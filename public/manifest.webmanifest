@@ -1,0 +1,20 @@
+{
+  "name": "КАЛАБАНЯ — калюжа, що висихає",
+  "short_name": "Калабаня",
+  "description": "Поетична інкрементальна гра-роглайк про калюжу, що висихає.",
+  "lang": "uk",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070f12",
+  "theme_color": "#0b1a20",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

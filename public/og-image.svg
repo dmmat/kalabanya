@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="sky" cx="50%" cy="-10%" r="120%">
+      <stop offset="0%" stop-color="#163842"/>
+      <stop offset="42%" stop-color="#0b1a20"/>
+      <stop offset="100%" stop-color="#070f12"/>
+    </radialGradient>
+    <radialGradient id="w" cx="42%" cy="26%" r="80%">
+      <stop offset="0%" stop-color="#bff0fa"/>
+      <stop offset="45%" stop-color="#5fd6e8"/>
+      <stop offset="100%" stop-color="#0c4a58"/>
+    </radialGradient>
+    <radialGradient id="sun" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#fff7e0"/>
+      <stop offset="55%" stop-color="#f7c14b"/>
+      <stop offset="100%" stop-color="#f0682f00"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#sky)"/>
+  <circle cx="960" cy="120" r="150" fill="url(#sun)" opacity=".85"/>
+  <ellipse cx="600" cy="430" rx="360" ry="150" fill="url(#w)" stroke="#0a3a46" stroke-width="3"/>
+  <ellipse cx="490" cy="380" rx="120" ry="44" fill="#ffffff" opacity=".45"/>
+  <text x="600" y="200" text-anchor="middle" font-family="Georgia, serif" font-weight="900"
+        font-size="120" fill="#dff1f3" letter-spacing="6">КАЛАБАНЯ</text>
+  <text x="600" y="270" text-anchor="middle" font-family="Georgia, serif" font-style="italic"
+        font-size="34" fill="#5fd6e8">калюжа, що висихає · slot-roguelike</text>
+</svg>
