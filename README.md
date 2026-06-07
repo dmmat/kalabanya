@@ -30,6 +30,8 @@
 
 ## Розробка
 
+Потрібен **Node.js 24+** (є `.nvmrc` — досить `nvm use`).
+
 ```bash
 npm install
 npm run dev      # локальний сервер розробки
