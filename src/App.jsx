@@ -584,8 +584,8 @@ export default function App() {
   // illustrated scene selection (drop your art into public/scenes/, see README)
   const isNight = sky.star > 0.45;
   const sceneFile = isNight
-    ? (ratio > 0.5 ? "night-full.jpg" : "night-dry.jpg")
-    : (ratio > 0.66 ? "day-full.jpg" : ratio > 0.33 ? "day-mid.jpg" : "day-dry.jpg");
+    ? (ratio > 0.5 ? "night-full.webp" : "night-dry.webp")
+    : (ratio > 0.66 ? "day-full.webp" : ratio > 0.33 ? "day-mid.webp" : "day-dry.webp");
   const useScene = scenesOk;
 
   if (phase === "loading") return <div className="kal-root"><div style={{ padding: 40, textAlign: "center", color: "#6f9099", fontFamily: "Fraunces, serif", fontStyle: "italic" }}>збираю краплі…</div></div>;
