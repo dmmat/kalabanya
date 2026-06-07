@@ -104,12 +104,12 @@ function computeWeather(idxs) {
 
 /* ---------- in-run & meta upgrades ---------- */
 const RUN_UPGRADES = [
-  { id: "deepen", emo: "🕳️", nm: "Поглибшати", de: "+40 об'єму, повільніший випар.", base: 26, growth: 1.55 },
-  { id: "silt",   emo: "🟤", nm: "Намулитись", de: "Плівка мулу береже від спеки.", base: 32, growth: 1.7 },
-  { id: "widen",  emo: "💧", nm: "Розширити русло", de: "Більше вбираєш, але й сохнеш.", base: 20, growth: 1.5 },
-  { id: "moss",   emo: "🌿", nm: "Поростити ряскою", de: "Ряска вкриває гладь: −9% випару.", base: 28, growth: 1.6 },
-  { id: "vein",   emo: "🌊", nm: "Прокласти жилу", de: "Підземна жила: +0.4 води/с.", base: 44, growth: 1.85 },
-  { id: "lake",   emo: "🟦", nm: "Підземне озеро", de: "Велике джерело: +120 об'єму, +0.6/с.", base: 150, growth: 2.0, req: g => g.levels.deepen >= 3, lock: "відкриється: Поглибшати рів.3" },
+  { id: "deepen", emo: "🕳️", nm: "Поглибшати", de: "+45% об'єму, трохи менший випар.", base: 24, growth: 1.4 },
+  { id: "silt",   emo: "🟤", nm: "Намулитись", de: "Плівка мулу береже від спеки.", base: 30, growth: 1.42 },
+  { id: "widen",  emo: "💧", nm: "Розширити русло", de: "+вбирання, +30 об'єму, трохи більший випар.", base: 22, growth: 1.4 },
+  { id: "moss",   emo: "🌿", nm: "Поростити ряскою", de: "Ряска вкриває гладь: −7% випару.", base: 28, growth: 1.45 },
+  { id: "vein",   emo: "🌊", nm: "Прокласти жилу", de: "Підземна жила: +0.4 води/с.", base: 40, growth: 1.5 },
+  { id: "lake",   emo: "🟦", nm: "Підземне озеро", de: "Велике джерело: +150 об'єму, +0.7/с.", base: 130, growth: 1.7, req: g => g.levels.deepen >= 3, lock: "відкриється: Поглибшати рів.3" },
 ];
 const META_UPGRADES = [
   { id: "memory", emo: "🫧", nm: "Глибша пам'ять", de: "+22 стартової води.", base: 18, growth: 1.6, max: 12 },
@@ -516,12 +516,13 @@ export default function App() {
     if (prev.water < cost) return prev;
     Sfx.click();
     const n = { ...prev, water: prev.water - cost, levels: { ...prev.levels, [u.id]: lvl + 1 } };
-    if (u.id === "deepen") { n.maxWater += 40; n.deepenMult *= 0.95; }
-    if (u.id === "silt") n.sunResist = clamp(n.sunResist + 0.09, 0, 0.85);
-    if (u.id === "widen") { n.absorbMult += 0.6; n.soilMax += 40; n.baseEvap += 0.05; }
-    if (u.id === "moss") n.mossMult *= 0.91;
+    // deepen multiplies capacity so it always outpaces rising upgrade costs (no soft-lock)
+    if (u.id === "deepen") { n.maxWater = Math.round(n.maxWater * 1.45) + 20; n.deepenMult *= 0.97; }
+    if (u.id === "silt") n.sunResist = clamp(n.sunResist + 0.08, 0, 0.85);
+    if (u.id === "widen") { n.absorbMult += 0.6; n.soilMax += 40; n.maxWater += 30; n.baseEvap += 0.04; }
+    if (u.id === "moss") n.mossMult *= 0.93;
     if (u.id === "vein") n.passive += 0.4;
-    if (u.id === "lake") { n.maxWater += 120; n.passive += 0.6; queueMicrotask(() => unlock("deepwell")); }
+    if (u.id === "lake") { n.maxWater += 150; n.passive += 0.7; queueMicrotask(() => unlock("deepwell")); }
     if (n.maxWater >= 500) unlock("unfathom");
     if (n.maxWater > (metaRef.current.maxVol || 0)) setMeta(m => ({ ...m, maxVol: Math.round(n.maxWater) }));
     return n;
