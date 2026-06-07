@@ -144,6 +144,39 @@ body {
 .kal-hint { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); color:var(--muted); font-size:12px; letter-spacing:.08em;
   background:rgba(7,15,18,.5); padding:3px 10px; border-radius:99px; backdrop-filter:blur(3px); }
 
+/* menu / altar background (optional art: public/scenes/altar.webp) */
+.kal-menubg-wrap { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.kal-menubg-wrap::after { content:""; position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(7,15,18,.74) 0%, rgba(7,15,18,.6) 40%, rgba(7,15,18,.9) 100%); }
+.kal-menubg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 55%;
+  filter:brightness(.55) saturate(1.02); animation:welcomedrift 28s ease-in-out infinite alternate; }
+
+/* event character portrait (optional art: public/events/<id>.webp) */
+.kal-evt .eemo-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:12px;
+  box-shadow:0 2px 10px rgba(0,0,0,.5), inset 0 0 0 1px rgba(95,214,232,.4); z-index:1; animation:bin .3s ease both; }
+
+/* event ambiance over the stage */
+.kal-eventfx { position:absolute; inset:0; pointer-events:none; z-index:7; overflow:hidden; }
+.kal-eventglow { position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(60% 50% at 50% 56%, rgba(95,214,232,.20), transparent 70%);
+  animation:efglow 1.8s ease-out forwards; }
+@keyframes efglow { 0%{opacity:0;} 28%{opacity:1;} 100%{opacity:0;} }
+.ef-emoji { position:absolute; bottom:30%; opacity:0; filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));
+  animation:effloat 2.8s cubic-bezier(.3,.6,.4,1) forwards; }
+@keyframes effloat {
+  0%{opacity:0; transform:translateY(24px) scale(.5) rotate(0);}
+  14%{opacity:.95;}
+  100%{opacity:0; transform:translateY(-170px) scale(1.15) rotate(var(--r,20deg));}
+}
+/* storm lightning */
+.kal-lightning { position:absolute; inset:0; pointer-events:none; z-index:4; mix-blend-mode:screen;
+  background:radial-gradient(120% 80% at 50% 0%, rgba(214,238,255,.9), rgba(160,200,255,.2) 40%, transparent 70%);
+  opacity:0; animation:flash 7s ease-out infinite; }
+@keyframes flash {
+  0%,100%{opacity:0;} 3%{opacity:.0;} 3.4%{opacity:.7;} 4%{opacity:.08;}
+  4.6%{opacity:.55;} 5.6%{opacity:0;} 46%{opacity:0;} 46.5%{opacity:.45;} 47.4%{opacity:0;}
+}
+
 /* ------------------------------------------------------------------ cards */
 .kal-cols { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:8px; }
 @media(max-width:720px){ .kal-cols{grid-template-columns:1fr;} }
@@ -182,8 +215,19 @@ body {
   background:linear-gradient(180deg,rgba(18,52,60,.96),rgba(9,24,30,.97)); backdrop-filter:blur(10px);
   box-shadow:0 20px 60px -10px rgba(0,0,0,.7); animation:pop .25s ease-out; }
 @keyframes pop { from{transform:translate(-50%,16px);opacity:0;} to{transform:translate(-50%,0);opacity:1;} }
+.kal-evt { animation:pop .25s ease-out, evtglow 2.4s ease-in-out infinite; }
+@keyframes evtglow {
+  0%,100%{ box-shadow:0 20px 60px -10px rgba(0,0,0,.7), 0 0 0 0 rgba(95,214,232,0); }
+  50%{ box-shadow:0 20px 60px -10px rgba(0,0,0,.7), 0 0 26px -2px rgba(95,214,232,.35); }
+}
 .kal-evt .ehead { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
-.kal-evt .eemo { font-size:26px; }
+.kal-evt .eemo { font-size:28px; position:relative; display:grid; place-items:center; width:48px; height:48px; flex:0 0 auto;
+  animation:emobob 2.4s ease-in-out infinite; }
+@keyframes emobob { 0%,100%{transform:translateY(0) rotate(-5deg);} 50%{transform:translateY(-3px) rotate(5deg);} }
+.kal-evt .eemo-ring { position:absolute; inset:-4px; border-radius:50%; pointer-events:none;
+  background:conic-gradient(from 0deg, rgba(95,214,232,.0), rgba(95,214,232,.5), rgba(95,214,232,.0) 60%);
+  animation:ringspin 3.5s linear infinite; opacity:.7; -webkit-mask:radial-gradient(closest-side, transparent 64%, #000 66%); mask:radial-gradient(closest-side, transparent 64%, #000 66%); }
+@keyframes ringspin { to{ transform:rotate(360deg); } }
 .kal-evt .et { font-family:'Fraunces',serif; font-style:italic; font-size:18px; }
 .kal-evt .ed { font-size:13.5px; color:#bcd6da; margin-bottom:12px; line-height:1.4; }
 .kal-evt .opts { display:flex; gap:10px; flex-wrap:wrap; }
