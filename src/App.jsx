@@ -126,6 +126,17 @@ const META_UPGRADES = [
 ];
 const META_TIER2_DAY = 8; // глибинні дари відкриваються після такого рекорду
 
+/* ---------- prestige: «Велике Випаровування» ---------- */
+const PRESTIGE_UNLOCK = 1200; // скільки сутності за все треба заробити, щоб відкрити престиж
+const cloudsFrom = (essThisAsc) => Math.floor(Math.sqrt((essThisAsc || 0) / 200));
+const PRESTIGE_UPGRADES = [
+  { id: "c_ess",    emo: "🌫️", nm: "Небесна пам'ять", de: "+40% сутності за кожен рівень.", base: 1, growth: 2.0, max: 10 },
+  { id: "c_full",   emo: "💧", nm: "Повноводний старт", de: "+30 стартової води та +25 об'єму.", base: 1, growth: 1.7, max: 10 },
+  { id: "c_spring", emo: "🌧️", nm: "Першоджерело неба", de: "Старт із +0.5/с пасивної води.", base: 2, growth: 1.9, max: 8 },
+  { id: "c_cheap",  emo: "🕊️", nm: "Лагідне небо", de: "−6% до ціни «постійних дарів».", base: 2, growth: 1.9, max: 8 },
+  { id: "c_silt",   emo: "🪨", nm: "Прадавній мул", de: "Старт із +6% опору спеці.", base: 2, growth: 1.8, max: 6 },
+];
+
 /* ---------- events ---------- */
 const EVENTS = [
   { t: "Набігла хмара", emo: "☁️", d: "Темна хмара зависла над тобою.", opts: [
@@ -227,6 +238,7 @@ const ACHIEVEMENTS = [
   { id: "mooncat",  e: "🐈‍⬛", nm: "Місячний гість",  dq: "Погладити місячного кота брижами." },
   { id: "deepwell", e: "🟦", nm: "Підземне озеро",  dq: "Прокласти шлях до підземного озера." },
   { id: "eternal",  e: "🏵️", nm: "Вічна калабаня",  dq: "Прожити п'ятдесят днів." },
+  { id: "ascend",   e: "🌥️", nm: "Велике Випаровування", dq: "Розчинитися в небі та переродитися хмарою." },
 ];
 
 /* ---------- helpers ---------- */
@@ -260,14 +272,14 @@ function evapPerSec(g) {
 function freshRun(meta) {
   const M = (k) => meta[k] || 0;
   return {
-    water: 46 + M("memory") * 22, maxWater: 120 + M("memory") * 22,
+    water: 46 + M("memory") * 22 + 30 * M("c_full"), maxWater: 120 + M("memory") * 22 + 25 * M("c_full"),
     day: 1, elapsed: 0, dayLen: 100, sun: 8,
     baseEvap: 0.95 * Math.pow(0.96, M("cold")),
-    deepenMult: 1, mossMult: 1, sunResist: 0, absorbMult: 1,
+    deepenMult: 1, mossMult: 1, sunResist: clamp(0.06 * M("c_silt"), 0, 0.85), absorbMult: 1,
     soil: 60, soilMax: 60, soilRegen: 3.8 * (1 + 0.25 * M("roots")),
-    passive: 0.3 * M("spring") + 0.4 * M("spring2") + ((meta.frogBond || 0) >= 3 ? 0.1 : 0), leaf: 0,
+    passive: 0.3 * M("spring") + 0.4 * M("spring2") + 0.5 * M("c_spring") + ((meta.frogBond || 0) >= 3 ? 0.1 : 0), leaf: 0,
     shadeT: 0, evapBoostT: 0, absorbBoostT: 0,
-    essMult: 1 + 0.12 * M("silver"), essRate: 0.15 + 0.05 * M("essflow"),
+    essMult: (1 + 0.12 * M("silver")) * (1 + 0.4 * M("c_ess")), essRate: 0.15 + 0.05 * M("essflow"),
     pending: 0, nextEvent: 14,
     levels: { deepen: 0, silt: 0, widen: 0, moss: 0, vein: 0, lake: 0 },
     weather: NEUTRAL,
@@ -337,7 +349,7 @@ function Reel({ target, spinKey, delay, dur }) {
 }
 
 /* ============================ APP ============================ */
-const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, sound: true, ach: {}, maxVol: 120 };
+const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, sound: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0 };
 
 export default function App() {
   const [phase, setPhase] = useState("loading"); // loading|welcome|menu|forecast|playing|dead|survived
@@ -469,7 +481,7 @@ export default function App() {
           const gained = Math.round(n.pending);
           queueMicrotask(() => {
             setResult({ gained, secs: Math.round(n.elapsed), day: n.day });
-            setMeta(m => ({ ...m, essence: m.essence + gained, runs: m.runs + 1, best: Math.max(m.best, n.day) }));
+            setMeta(m => ({ ...m, essence: m.essence + gained, runs: m.runs + 1, best: Math.max(m.best, n.day), essThisAsc: (m.essThisAsc || 0) + gained, lifeEss: (m.lifeEss || 0) + gained }));
             if (n.day >= 7) unlock("sevensuns");
             if (n.day >= 30) unlock("oldpuddle");
             if (n.day >= 50) unlock("eternal");
@@ -529,11 +541,34 @@ export default function App() {
   });
   const buyMeta = (u) => setMeta(m => {
     const lvl = m[u.id] || 0; if (lvl >= u.max) return m;
-    const cost = Math.round(u.base * Math.pow(u.growth, lvl));
+    const disc = Math.max(0.4, 1 - 0.06 * (m.c_cheap || 0)); // «Лагідне небо» здешевлює дари
+    const cost = Math.round(u.base * Math.pow(u.growth, lvl) * disc);
     if (m.essence < cost) return m;
     Sfx.click();
     return { ...m, essence: m.essence - cost, [u.id]: lvl + 1 };
   });
+  const buyPrestige = (u) => setMeta(m => {
+    const lvl = m[u.id] || 0; if (lvl >= u.max) return m;
+    const cost = Math.round(u.base * Math.pow(u.growth, lvl));
+    if ((m.clouds || 0) < cost) return m;
+    Sfx.click();
+    return { ...m, clouds: m.clouds - cost, [u.id]: lvl + 1 };
+  });
+  const doPrestige = () => {
+    const gain = cloudsFrom(metaRef.current.essThisAsc);
+    if (gain < 1) return;
+    if (!window.confirm(`Велике Випаровування — ти розчинишся в небі й переродишся.\n\nОтримаєш: ☁ ${gain} ${gain === 1 ? "хмару" : "хмар"}.\nЗникнуть: уся сутність і всі «постійні дари».\nЛишаться: хмари, небесні дари, досягнення, рекорд.\n\nПродовжити?`)) return;
+    setMeta(m => ({
+      ...m,
+      essence: 0, essThisAsc: 0,
+      memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, spring2: 0, essflow: 0, calmsky: 0,
+      clouds: (m.clouds || 0) + gain,
+      ascensions: (m.ascensions || 0) + 1,
+    }));
+    unlock("ascend");
+    Sfx.dusk();
+    setPhase("menu");
+  };
   const resolveEvent = (opt) => {
     Sfx.click();
     setG(prev => {
@@ -606,7 +641,7 @@ export default function App() {
     Sfx.click();
     const gained = Math.round(g.pending);
     setResult({ gained, secs: Math.round(g.elapsed), day: g.day, finished: true });
-    setMeta(m => ({ ...m, essence: m.essence + gained, runs: m.runs + 1, best: Math.max(m.best, g.day) }));
+    setMeta(m => ({ ...m, essence: m.essence + gained, runs: m.runs + 1, best: Math.max(m.best, g.day), essThisAsc: (m.essThisAsc || 0) + gained, lifeEss: (m.lifeEss || 0) + gained }));
     if (g.day >= 7) unlock("sevensuns");
     if (g.day >= 30) unlock("oldpuddle");
     if (g.day >= 50) unlock("eternal");
@@ -708,6 +743,7 @@ export default function App() {
           </div>
           <div className="kal-stat">
             <div><div className="lab">Сутність</div><div className="val kal-ess">◈ {fmt(meta.essence)}</div></div>
+            {(meta.clouds > 0 || meta.ascensions > 0) && <div><div className="lab">Хмари</div><div className="val kal-clouds">☁ {fmt(meta.clouds || 0)}</div></div>}
             <div><div className="lab">Рекорд</div><div className="val kal-num">{meta.best} дн.</div></div>
             <div style={{ display: "flex", gap: 8 }}>
               <button className="kal-toolbtn" title="Досягнення" onClick={() => { Sfx.click(); setPopup("ach"); }}>🏆</button>
@@ -895,6 +931,40 @@ export default function App() {
               )}
               <button className="kal-go" onClick={startJourney}>Стати калабанею знову →</button>
             </div>
+
+            {(meta.ascensions > 0 || (meta.lifeEss || 0) >= PRESTIGE_UNLOCK || (meta.best || 0) >= 12) && (() => {
+              const gain = cloudsFrom(meta.essThisAsc);
+              return (
+                <div className="kal-card reveal kal-sky-card" style={{ marginTop: 14 }}>
+                  <span className="kal-tag">небо</span>
+                  <div className="kal-stat" style={{ justifyContent: "space-between", marginBottom: 6 }}>
+                    <div><div className="lab">Хмари</div><div className="val kal-clouds">☁ {fmt(meta.clouds || 0)}</div></div>
+                    <div style={{ textAlign: "right" }}><div className="lab">Випаровувань</div><div className="val kal-num">{meta.ascensions || 0}</div></div>
+                  </div>
+                  <div className="kal-lore">Усе висихає. Та коли ти піднімешся парою в небо, то проллєшся новою калабанею — мудрішою. <span className="kal-clouds">Хмари</span> лишаються з тобою назавжди.</div>
+                  <div className="seclab">Небесні дари ☁ <small style={{ color: "var(--muted)", textTransform: "none", letterSpacing: 0 }}>(вічні, не зникають)</small></div>
+                  {PRESTIGE_UPGRADES.map(u => {
+                    const lvl = meta[u.id] || 0, maxed = lvl >= u.max, cost = Math.round(u.base * Math.pow(u.growth, lvl)), can = !maxed && (meta.clouds || 0) >= cost;
+                    return (
+                      <div key={u.id} className={"kal-up sky clickable" + (can || maxed ? "" : " dis")} onClick={() => can && buyPrestige(u)} style={maxed ? { cursor: "default", opacity: 0.7 } : {}}>
+                        <div className="emo">{u.emo}</div>
+                        <div className="body"><div className="nm">{u.nm}<span className="lvl">{lvl}/{u.max}</span></div><div className="de">{u.de}</div></div>
+                        <div className="cost">{maxed ? "✦" : `☁ ${fmt(cost)}`}</div>
+                      </div>
+                    );
+                  })}
+                  <button className="kal-go sky" disabled={gain < 1} onClick={doPrestige} style={{ opacity: gain < 1 ? 0.5 : 1, marginTop: 12 }}>
+                    {gain < 1
+                      ? `Велике Випаровування (треба ще сутності)`
+                      : `🌥️ Велике Випаровування → +☁ ${gain}`}
+                  </button>
+                  <div style={{ fontSize: 11.5, color: "var(--muted)", textAlign: "center", marginTop: 8, lineHeight: 1.4 }}>
+                    Забере: всю сутність і «постійні дари». Лишить: хмари, небесні дари, досягнення, рекорд.
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="kal-card reveal" style={{ marginTop: 14 }}>
               <span className="kal-tag">сховище</span>
               <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 10, lineHeight: 1.4 }}>Прогрес зберігається автоматично. Можна перенести його на інший пристрій кодом.</div>

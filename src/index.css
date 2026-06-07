@@ -55,6 +55,12 @@ body {
 .kal-stat { display:flex; gap:18px; align-items:flex-end; flex-wrap:wrap; }
 .kal-stat .lab, .lab { font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
 .kal-stat .val { font-size:20px; } .kal-ess { color:var(--essence); font-family:'Spline Sans Mono',monospace; }
+.kal-clouds { color:#cfe2ff; font-family:'Spline Sans Mono',monospace; }
+.kal-sky-card { border-color:rgba(180,210,245,.28); background:linear-gradient(180deg,rgba(30,42,66,.55),rgba(12,18,30,.45)); }
+.kal-up.sky .cost { color:#cfe2ff; }
+.kal-up.sky:hover:not(.dis){ border-color:rgba(180,210,245,.3); background:rgba(180,210,245,.08); }
+.kal-go.sky { background:linear-gradient(180deg,#c3d6f6,#7f95ca); color:#0f1d36; }
+.kal-go.sky:disabled { background:linear-gradient(180deg,#3a4866,#2a3550); color:#9fb0cc; }
 .kal-toolbtn { border:1px solid var(--line); background:rgba(95,214,232,.06); color:var(--ink); width:38px;height:38px;
   border-radius:11px; font-size:17px; display:grid; place-items:center; transition:.16s; }
 .kal-toolbtn:hover { background:rgba(95,214,232,.16); border-color:var(--water-a); }
