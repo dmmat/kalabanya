@@ -113,6 +113,7 @@ body {
 @keyframes snowfall { from{transform:translateY(-10px) translateX(0);} to{transform:translateY(400px) translateX(20px);opacity:.2;} }
 
 .kal-stage.live { cursor:url("./assets/cursor-ripple.svg") 20 20, pointer; }
+.kal-svg { position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none; }
 .kal-scene { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 60%;
   pointer-events:none; transition:filter .8s linear, opacity .5s ease; animation:scenefade .6s ease both; }
 @keyframes scenefade { from{opacity:0;} to{opacity:1;} }

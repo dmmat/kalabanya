@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import SvgScene from "./SvgScene.jsx";
 
 /* =========================================================================
    КАЛАБАНЯ — інкрементальна roguelike про калюжу, що висихає.
@@ -303,7 +304,7 @@ function skyAt(t) {
   const span = (k1.t - k0.t) || 1, f = clamp((t - k0.t) / span, 0, 1);
   const a = mix(k0.a, k1.a, f), b = mix(k0.b, k1.b, f);
   const star = clamp(Math.max(t < 0.1 ? (0.1 - t) / 0.1 : 0, t > 0.84 ? (t - 0.84) / 0.16 : 0), 0, 1);
-  return { gradient: `linear-gradient(180deg, ${a} 0%, ${b} 78%, ${mix(b, "#1a1008", 0.5)} 100%)`, star };
+  return { gradient: `linear-gradient(180deg, ${a} 0%, ${b} 78%, ${mix(b, "#1a1008", 0.5)} 100%)`, star, a, b };
 }
 
 /* ============================ SLOT REEL ============================ */
@@ -774,45 +775,12 @@ export default function App() {
 
         {/* STAGE */}
         <div className={"kal-stage reveal" + (phase === "playing" ? " live" : "")} ref={stageRef} onClick={absorb}>
-          <div className="kal-sky" style={{ background: sky.gradient }} />
-          <div className="kal-stars" style={{ "--star": sky.star, opacity: sky.star }} />
-          {!useScene && sky.star > 0.4 && <div className="kal-moon" style={{ opacity: sky.star }} />}
-
-          {/* illustrated scene (auto-used when art is dropped into public/scenes/) */}
-          {useScene && (
-            <img
-              className="kal-scene"
-              key={sceneFile}
-              src={`${import.meta.env.BASE_URL}scenes/${sceneFile}`}
-              alt=""
-              draggable={false}
-              onError={() => setScenesOk(false)}
-              style={{ filter: `brightness(${0.92 + 0.12 * Math.sin(Math.PI * todT)})` }}
-            />
-          )}
-
-          {/* procedural fallback puddle */}
-          {!useScene && <>
-            <div className="kal-ground" style={{ filter: `brightness(${0.7 + 0.5 * Math.sin(Math.PI * todT)})` }} />
-            {showSunArc && <>
-              <div className="kal-rays" style={{ opacity: sunT * 0.5, background: `conic-gradient(from 0deg at ${sunArcLeft}% ${sunArcTop / 3.8}%, transparent 0deg, ${sunCol}33 8deg, transparent 16deg, transparent 40deg, ${sunCol}22 48deg, transparent 56deg)` }} />
-              <div className="kal-sun" style={{ left: `${sunArcLeft}%`, top: sunArcTop, width: sunArcSize, height: sunArcSize, background: `radial-gradient(circle at 38% 38%, #fff7e0, ${sunCol} 55%, transparent 72%)`, boxShadow: `0 0 ${30 + sunT * 70}px ${10 + sunT * 30}px ${sunCol}66`, opacity: 0.6 + sunT * 0.4 }} />
-            </>}
-            <div className="kal-puddle" style={{ width: size, height: size * 0.62 }}>
-              <div className="kal-blob" style={{ background: `radial-gradient(120% 130% at 50% 25%, ${waterEdge}, ${waterCol} 55%, ${mix("#0c4a58", "#3a2414", dryT)} 100%)` }} />
-              <div className="kal-crack" style={{ opacity: clamp((dryT - 0.55) * 2.5, 0, 0.85) }} />
-              <div className="kal-sheen" style={{ opacity: 0.7 * ratio }} />
-              <div className="kal-pmid"><b>{fmt(g.water)}</b><small>/ {fmt(g.maxWater)} води</small></div>
-            </div>
-          </>}
-
-          {/* weather particles (both modes) */}
-          {phase === "playing" && Array.from({ length: rainN }).map((_, i) => (
-            <div key={"r" + i} className="kal-rain" style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 1.2}s`, animationDuration: `${0.6 + Math.random() * 0.5}s` }} />
-          ))}
-          {Array.from({ length: snowN }).map((_, i) => (
-            <div key={"s" + i} className="kal-snow" style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 2}s`, animationDuration: `${2.5 + Math.random() * 2}s` }} />
-          ))}
+          {/* fully vectorial living scene */}
+          <SvgScene
+            todT={todT} ratio={ratio} star={sky.star} skyA={sky.a} skyB={sky.b}
+            sunCol={sunCol} sunT={sunT} weather={w} phase={phase}
+            rainN={rainN} snowN={snowN}
+          />
           {phase === "playing" && Array.from({ length: vaporN }).map((_, i) => (
             <div key={"v" + i} className="kal-vapor" style={{ left: `${42 + Math.random() * 16}%`, animationDelay: `${i * 0.35}s`, animationDuration: `${2 + Math.random()}s` }} />
           ))}
@@ -838,8 +806,8 @@ export default function App() {
             </div>
           ))}
 
-          {/* water HUD overlay (shown over scene art) */}
-          {useScene && phase === "playing" && (
+          {/* water HUD overlay */}
+          {phase === "playing" && (
             <div className="kal-hud kal-pmid"><b>{fmt(g.water)}</b><small>/ {fmt(g.maxWater)} води</small></div>
           )}
           {phase === "playing" && <div className="kal-hint">торкайся, щоб вбирати · {net >= 0 ? "▲" : "▼"} {fmt(Math.abs(net))}/с {w.icon}</div>}
