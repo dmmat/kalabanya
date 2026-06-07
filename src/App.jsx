@@ -311,6 +311,8 @@ export default function App() {
   const phaseRef = useRef(phase); phaseRef.current = phase;
   const metaRef = useRef(meta); metaRef.current = meta;
   const dayTaps = useRef(0);
+  const resultRef = useRef(result); resultRef.current = result;
+  const bootForecast = useRef(false);
 
   useEffect(() => { Sfx.setMuted(!meta.sound); }, [meta.sound]);
 
@@ -333,9 +335,17 @@ export default function App() {
         try {
           const d = JSON.parse(raw);
           if (d.meta) setMeta(m => ({ ...m, ...d.meta, ach: { ...(d.meta.ach || {}) } }));
-          if (d.g && d.phase === "playing") {
+          const resumable = ["playing", "survived", "forecast", "dead"];
+          if (d.g && resumable.includes(d.phase)) {
             setG(gg => ({ ...gg, ...d.g, weather: d.g.weather || NEUTRAL }));
-            setPhase("playing"); // resume an in-progress day, skip the intro
+            if (d.phase === "dead") {
+              if (d.result) { setResult(d.result); setPhase("dead"); }
+              else setPhase("menu"); // run already banked, just no screen to show
+            } else if (d.phase === "forecast") {
+              bootForecast.current = true; setPhase("forecast"); // re-open the day's slot
+            } else {
+              setPhase(d.phase); // playing | survived — continue exactly where we stopped
+            }
           } else setPhase("welcome");
         } catch (e) { setPhase("welcome"); }
       } else setPhase("welcome");
@@ -347,12 +357,17 @@ export default function App() {
   useEffect(() => {
     if (!loaded.current) return;
     const iv = setInterval(() => {
-      const snap = JSON.stringify({ v: 3, meta: metaRef.current, phase: phaseRef.current, g: gRef.current });
+      const snap = JSON.stringify({ v: 3, meta: metaRef.current, phase: phaseRef.current, g: gRef.current, result: resultRef.current });
       store.save(KEY, snap);
     }, 2500);
     return () => clearInterval(iv);
   }, []);
-  useEffect(() => { if (loaded.current) store.save(KEY, JSON.stringify({ v: 3, meta, phase: phaseRef.current, g: gRef.current })); }, [meta]);
+  useEffect(() => { if (loaded.current) store.save(KEY, JSON.stringify({ v: 3, meta, phase: phaseRef.current, g: gRef.current, result: resultRef.current })); }, [meta]);
+  // persist immediately whenever the phase changes, so a refresh resumes the exact screen
+  useEffect(() => {
+    if (!loaded.current || phase === "loading") return;
+    store.save(KEY, JSON.stringify({ v: 3, meta: metaRef.current, phase, g: gRef.current, result: resultRef.current }));
+  }, [phase]);
 
   /* ---- game loop ---- */
   useEffect(() => {
@@ -490,6 +505,17 @@ export default function App() {
       else if (res.tier === "danger") Sfx.danger();
     }, 520 + 1900 + 220);
   };
+
+  // resuming straight into the day's forecast after a page refresh
+  useEffect(() => {
+    if (phase === "forecast" && bootForecast.current) {
+      bootForecast.current = false;
+      setRespins(0); setFcResult(null); setSpinning(false);
+      setFreeSpins(metaRef.current.luck || 0);
+      const t = setTimeout(() => spin(0), 350);
+      return () => clearTimeout(t);
+    }
+  }, [phase]); // eslint-disable-line
 
   const enterForecast = () => {
     setRespins(0); setFcResult(null); setSpinning(false);
