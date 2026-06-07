@@ -1185,12 +1185,34 @@ export default function App() {
               <button className="kal-mini" onClick={() => { setMeta(m => ({ ...m, sound: !m.sound })); Sfx.click(); }}>{meta.sound ? "Увімкнено" : "Вимкнено"}</button>
             </div>
             <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--line)" }}>
+              <div className="seclab">Збереження</div>
+              <div style={{ fontSize: 12.5, color: "var(--muted)", marginBottom: 10, lineHeight: 1.4 }}>Можна зберегти або перенести прогрес будь-якої миті — навіть посеред дня.</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button className="kal-mini" onClick={exportProgress}>⬇ Експортувати</button>
+                <button className="kal-mini" onClick={() => setIo({ open: true, text: "", msg: "Встав сюди код збереження й натисни «Завантажити»." })}>⬆ Імпортувати</button>
+                <button className="kal-mini danger" onClick={wipe}>✕ Стерти все</button>
+              </div>
+              {io.open && (
+                <div style={{ marginTop: 12 }}>
+                  <textarea className="kal-ta" value={io.text} onChange={e => setIo(o => ({ ...o, text: e.target.value }))} placeholder="код збереження…" spellCheck={false} />
+                  <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}>
+                    <button className="kal-mini" onClick={copyExport}>Копіювати</button>
+                    <button className="kal-mini" onClick={() => { importProgress(); setPopup(null); }}>Завантажити</button>
+                    <button className="kal-mini ghost" onClick={() => setIo({ open: false, text: "", msg: "" })}>Закрити</button>
+                    {io.msg && <span style={{ fontSize: 12.5, color: "var(--water-a)" }}>{io.msg}</span>}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--line)" }}>
               <div className="seclab">Статистика</div>
               <div className="kal-grid2">
                 <ResStat l="Мандрівок" v={meta.runs} />
                 <ResStat l="Рекорд днів" v={`${meta.best} дн.`} />
                 <ResStat l="Найбільший об'єм" v={`${fmt(meta.maxVol || 120)} 💧`} />
                 <ResStat l="Сутність" v={`◈ ${fmt(meta.essence)}`} hi />
+                {(meta.clouds > 0 || meta.ascensions > 0) && <ResStat l="Хмари" v={`☁ ${fmt(meta.clouds || 0)}`} />}
+                {meta.ascensions > 0 && <ResStat l="Випаровувань" v={meta.ascensions} />}
               </div>
             </div>
             <div style={{ marginTop: 14, fontSize: 12, color: "var(--muted)", textAlign: "center", lineHeight: 1.5 }}>
