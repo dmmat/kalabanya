@@ -104,13 +104,19 @@ function computeWeather(idxs) {
 
 /* ---------- in-run & meta upgrades ---------- */
 const RUN_UPGRADES = [
-  { id: "deepen", emo: "🕳️", nm: "Поглибшати", de: "+45% об'єму, трохи менший випар.", base: 24, growth: 1.4 },
-  { id: "silt",   emo: "🟤", nm: "Намулитись", de: "Плівка мулу береже від спеки.", base: 30, growth: 1.42 },
-  { id: "widen",  emo: "💧", nm: "Розширити русло", de: "+вбирання, +30 об'єму, трохи більший випар.", base: 22, growth: 1.4 },
-  { id: "moss",   emo: "🌿", nm: "Поростити ряскою", de: "Ряска вкриває гладь: −7% випару.", base: 28, growth: 1.45 },
-  { id: "vein",   emo: "🌊", nm: "Прокласти жилу", de: "Підземна жила: +0.4 води/с.", base: 40, growth: 1.5 },
-  { id: "lake",   emo: "🟦", nm: "Підземне озеро", de: "Велике джерело: +150 об'єму, +0.7/с.", base: 130, growth: 1.7, req: g => g.levels.deepen >= 3, lock: "відкриється: Поглибшати рів.3" },
+  { id: "deepen", emo: "🕳️", nm: "Поглибшати", de: "+45% об'єму, трохи менший випар.", base: 24, growth: 1.4, frac: 0.18 },
+  { id: "silt",   emo: "🟤", nm: "Намулитись", de: "Плівка мулу береже від спеки.", base: 30, growth: 1.42, frac: 0.12 },
+  { id: "widen",  emo: "💧", nm: "Розширити русло", de: "+вбирання, +30 об'єму, трохи більший випар.", base: 22, growth: 1.4, frac: 0.10 },
+  { id: "moss",   emo: "🌿", nm: "Поростити ряскою", de: "Ряска вкриває гладь: −7% випару.", base: 28, growth: 1.45, frac: 0.10 },
+  { id: "vein",   emo: "🌊", nm: "Прокласти жилу", de: "Підземна жила: +0.4 води/с.", base: 40, growth: 1.5, frac: 0.14 },
+  { id: "lake",   emo: "🟦", nm: "Підземне озеро", de: "Велике джерело: +150 об'єму, +0.7/с.", base: 130, growth: 1.7, frac: 0.25, req: g => g.levels.deepen >= 3, lock: "відкриється: Поглибшати рів.3" },
 ];
+// ціна = більше з експоненти (рання гра) та частки від об'єму (пізня гра),
+// але ніколи не вище 92% об'єму → апгрейд завжди можна накопичити (без софт-локу за будь-якої стратегії)
+const runCost = (u, lvl, maxW) => {
+  const c = Math.max(u.base * Math.pow(u.growth, lvl), (u.frac || 0) * maxW);
+  return Math.round(Math.min(c, 0.92 * maxW));
+};
 const META_UPGRADES = [
   { id: "memory", emo: "🫧", nm: "Глибша пам'ять", de: "+22 стартової води.", base: 18, growth: 1.6, max: 12 },
   { id: "cold",   emo: "❄️", nm: "Холодна сутність", de: "−4% базового випару.", base: 24, growth: 1.7, max: 10 },
@@ -448,7 +454,7 @@ export default function App() {
         const n = { ...prev };
         n.elapsed += dt;
         const t = clamp(n.elapsed / n.dayLen, 0, 1);
-        const peak = 74 + (n.day - 1) * 15;
+        const peak = 74 + (n.day - 1) * 15 + Math.pow(Math.max(0, n.day - 8), 2) * 0.7;
         n.sun = Math.max(6, peak * Math.sin(Math.PI * t));
         n.shadeT = Math.max(0, n.shadeT - dt);
         n.evapBoostT = Math.max(0, n.evapBoostT - dt);
@@ -528,7 +534,7 @@ export default function App() {
   }, []);
 
   const buyRun = (u) => setG(prev => {
-    const lvl = prev.levels[u.id], cost = Math.round(u.base * Math.pow(u.growth, lvl));
+    const lvl = prev.levels[u.id], cost = runCost(u, lvl, prev.maxWater);
     if (prev.water < cost) return prev;
     Sfx.click();
     const n = { ...prev, water: prev.water - cost, levels: { ...prev.levels, [u.id]: lvl + 1 } };
@@ -856,7 +862,7 @@ export default function App() {
               <h3 className="kal-fold" onClick={() => setShopOpen(o => !o)}><span>Поглиблення <small>ціна у воді</small></span><span className="chev">{shopOpen ? "▾" : "▸"}</span></h3>
               <div className="kal-foldbody">
               {RUN_UPGRADES.map(u => {
-                const lvl = g.levels[u.id] || 0, cost = Math.round(u.base * Math.pow(u.growth, lvl));
+                const lvl = g.levels[u.id] || 0, cost = runCost(u, lvl, g.maxWater);
                 const locked = u.req && !u.req(g);
                 if (locked) return (
                   <div key={u.id} className="kal-up dis">
