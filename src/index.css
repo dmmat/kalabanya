@@ -9,6 +9,8 @@
 }
 
 html, body, #root { height: 100%; }
+/* no double-tap zoom / pull-to-refresh while tapping the puddle */
+html, body { overscroll-behavior: none; touch-action: manipulation; }
 
 /* themed custom cursor — a falling water drop */
 html, body {
@@ -30,6 +32,7 @@ body {
 .kal-root {
   min-height: 100%; width: 100%; position: relative; overflow: hidden;
   user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  touch-action: manipulation;
   background: radial-gradient(120% 90% at 50% -10%, #163842 0%, var(--bg1) 42%, var(--bg0) 100%);
 }
 /* keep the save/import code selectable so it can be copied */
