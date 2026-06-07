@@ -29,8 +29,11 @@ body {
 /* ------------------------------------------------------------------ root */
 .kal-root {
   min-height: 100%; width: 100%; position: relative; overflow: hidden;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
   background: radial-gradient(120% 90% at 50% -10%, #163842 0%, var(--bg1) 42%, var(--bg0) 100%);
 }
+/* keep the save/import code selectable so it can be copied */
+.kal-ta, input, textarea { user-select: text; -webkit-user-select: text; }
 .kal-root::before {
   content:""; position:absolute; inset:0; pointer-events:none; opacity:.5; mix-blend-mode:overlay;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/></svg>");
