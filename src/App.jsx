@@ -104,7 +104,7 @@ function computeWeather(idxs) {
 
 /* ---------- in-run & meta upgrades ---------- */
 const RUN_UPGRADES = [
-  { id: "deepen", emo: "🕳️", nm: "Поглибшати", de: "+45% об'єму, трохи менший випар.", base: 24, growth: 1.4, frac: 0.18 },
+  { id: "deepen", emo: "🕳️", nm: "Поглибшати", de: "+об'єму, трохи менший випар.", base: 24, growth: 1.4, frac: 0.18 },
   { id: "silt",   emo: "🟤", nm: "Намулитись", de: "Плівка мулу береже від спеки.", base: 30, growth: 1.42, frac: 0.12 },
   { id: "widen",  emo: "💧", nm: "Розширити русло", de: "+вбирання, +30 об'єму, трохи більший випар.", base: 22, growth: 1.4, frac: 0.10 },
   { id: "moss",   emo: "🌿", nm: "Поростити ряскою", de: "Ряска вкриває гладь: −7% випару.", base: 28, growth: 1.45, frac: 0.10 },
@@ -454,7 +454,7 @@ export default function App() {
         const n = { ...prev };
         n.elapsed += dt;
         const t = clamp(n.elapsed / n.dayLen, 0, 1);
-        const peak = 74 + (n.day - 1) * 15 + Math.pow(Math.max(0, n.day - 8), 2) * 0.7;
+        const peak = 72 + (n.day - 1) * 13 + Math.pow(Math.max(0, n.day - 5), 1.6) * 0.6;
         n.sun = Math.max(6, peak * Math.sin(Math.PI * t));
         n.shadeT = Math.max(0, n.shadeT - dt);
         n.evapBoostT = Math.max(0, n.evapBoostT - dt);
@@ -464,10 +464,10 @@ export default function App() {
         const evap = evapPerSec(n);
         n.water = Math.min(n.water + (n.passive + w.rainPower - evap) * dt, n.maxWater);
         n.pending += (n.essRate || 0.15) * effEss(n) * dt;
-        n.nextEvent -= dt;
+        if (!event) n.nextEvent -= dt; // таймер паузиться, поки відкрите вікно події
         if (n.water >= n.maxWater - 0.5) unlock("rainchild");
         if (n.nextEvent <= 0 && !event) {
-          n.nextEvent = 13 + Math.random() * 8;
+          n.nextEvent = 99999; // сентинел: жодних нових подій, доки цю не закриють
           setEvent(pickEvent(n, metaRef.current));
         }
         if (n.elapsed >= n.dayLen) {
@@ -538,8 +538,8 @@ export default function App() {
     if (prev.water < cost) return prev;
     Sfx.click();
     const n = { ...prev, water: prev.water - cost, levels: { ...prev.levels, [u.id]: lvl + 1 } };
-    // deepen multiplies capacity so it always outpaces rising upgrade costs (no soft-lock)
-    if (u.id === "deepen") { n.maxWater = Math.round(n.maxWater * 1.45) + 20; n.deepenMult *= 0.97; }
+    // additive capacity — помірний ріст об'єму (від софт-локу захищає стеля ціни 92% у runCost)
+    if (u.id === "deepen") { n.maxWater += 50 + lvl * 10; n.deepenMult *= 0.97; }
     if (u.id === "silt") n.sunResist = clamp(n.sunResist + 0.08, 0, 0.85);
     if (u.id === "widen") { n.absorbMult += 0.6; n.soilMax += 40; n.maxWater += 30; n.baseEvap += 0.04; }
     if (u.id === "moss") n.mossMult *= 0.93;
@@ -582,7 +582,8 @@ export default function App() {
   const resolveEvent = (opt) => {
     Sfx.click();
     setG(prev => {
-      const n = opt.fn ? opt.fn(prev) : prev;
+      const n = opt.fn ? { ...opt.fn(prev) } : { ...prev };
+      n.nextEvent = 13 + Math.random() * 8; // відлік до наступної події стартує лише тепер
       if (n.maxWater >= 500) unlock("unfathom");
       if (n.maxWater > (metaRef.current.maxVol || 0)) setMeta(m => ({ ...m, maxVol: Math.round(n.maxWater) }));
       return n;
