@@ -367,10 +367,6 @@ export default function App() {
   const [io, setIo] = useState({ open: false, text: "", msg: "" });
   const [popup, setPopup] = useState(null); // null | "codex" | "ach" | "settings"
   const [toasts, setToasts] = useState([]);
-  // play panels collapse on phones so the stage above stays full-size
-  const phoneInit = typeof window !== "undefined" && window.innerWidth <= 720;
-  const [shopOpen, setShopOpen] = useState(!phoneInit);
-  const [statsOpen, setStatsOpen] = useState(!phoneInit);
   const [scenesOk, setScenesOk] = useState(true); // illustrated backgrounds present?
   const stageRef = useRef(null);
 
@@ -746,6 +742,8 @@ export default function App() {
       )}
 
       <div className="kal-wrap">
+        {/* STICKY TOP: header + heat + day cycle + stage stay pinned while panels scroll */}
+        <div className="kal-stickytop">
         {/* TOP */}
         <div className="kal-top reveal">
           <div>
@@ -855,13 +853,13 @@ export default function App() {
           )}
           {phase === "playing" && <div className="kal-hint">торкайся, щоб вбирати · {net >= 0 ? "▲" : "▼"} {fmt(Math.abs(net))}/с {w.icon}</div>}
         </div>
+        </div>{/* end sticky top */}
 
         {/* PLAY PANELS */}
         {phase === "playing" && (
           <div className="kal-cols reveal">
-            <div className={"kal-card collapsible" + (shopOpen ? "" : " closed")}>
-              <h3 className="kal-fold" onClick={() => setShopOpen(o => !o)}><span>Поглиблення <small>ціна у воді</small></span><span className="chev">{shopOpen ? "▾" : "▸"}</span></h3>
-              <div className="kal-foldbody">
+            <div className="kal-card">
+              <h3>Поглиблення <small>ціна у воді</small></h3>
               {RUN_UPGRADES.map(u => {
                 const lvl = g.levels[u.id] || 0, cost = runCost(u, lvl, g.maxWater);
                 const locked = u.req && !u.req(g);
@@ -880,11 +878,9 @@ export default function App() {
                   </div>
                 );
               })}
-              </div>
             </div>
-            <div className={"kal-card collapsible" + (statsOpen ? "" : " closed")}>
-              <h3 className="kal-fold" onClick={() => setStatsOpen(o => !o)}><span>Стан калабані <small>{w.icon} {w.name}</small></span><span className="chev">{statsOpen ? "▾" : "▸"}</span></h3>
-              <div className="kal-foldbody">
+            <div className="kal-card">
+              <h3>Стан калабані <small>{w.icon} {w.name}</small></h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 13.5 }}>
                 <Stat l="Випар" v={`${fmt(evap)}/с`} c="var(--bad)" />
                 <Stat l="Приплив" v={`+${fmt(g.passive + w.rainPower)}/с`} c="var(--good)" />
@@ -898,7 +894,6 @@ export default function App() {
                 {g.evapBoostT > 0 && "Поверхня розкрита — сохнеш швидше. "}
                 {g.absorbBoostT > 0 && "Брижишся — вбираєш активніше. "}
                 {g.shadeT <= 0 && g.evapBoostT <= 0 && g.absorbBoostT <= 0 && "Небо тремтить у твоєму дзеркалі."}
-              </div>
               </div>
             </div>
           </div>
