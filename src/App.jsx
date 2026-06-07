@@ -7,6 +7,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
    ========================================================================= */
 
 const KEY = "kalabanya:save:v3";
+const ABSORB_BASE = 2.5; // water per tap before multipliers (kept in sync logic↔HUD)
 
 /* ---------- storage layer: localStorage -> window.storage -> memory ------- */
 const _mem = {};
@@ -205,11 +206,11 @@ function evapPerSec(g) {
 function freshRun(meta) {
   const M = (k) => meta[k] || 0;
   return {
-    water: 50 + M("memory") * 22, maxWater: 120 + M("memory") * 22,
+    water: 46 + M("memory") * 22, maxWater: 120 + M("memory") * 22,
     day: 1, elapsed: 0, dayLen: 100, sun: 8,
-    baseEvap: 0.9 * Math.pow(0.96, M("cold")),
+    baseEvap: 0.95 * Math.pow(0.96, M("cold")),
     deepenMult: 1, mossMult: 1, sunResist: 0, absorbMult: 1,
-    soil: 100, soilMax: 100, soilRegen: 4 * (1 + 0.25 * M("roots")),
+    soil: 60, soilMax: 60, soilRegen: 3.8 * (1 + 0.25 * M("roots")),
     passive: 0.3 * M("spring"), leaf: 0,
     shadeT: 0, evapBoostT: 0, absorbBoostT: 0,
     essMult: 1 + 0.12 * M("silver"),
@@ -362,7 +363,7 @@ export default function App() {
         const n = { ...prev };
         n.elapsed += dt;
         const t = clamp(n.elapsed / n.dayLen, 0, 1);
-        const peak = 70 + (n.day - 1) * 14;
+        const peak = 74 + (n.day - 1) * 15;
         n.sun = Math.max(6, peak * Math.sin(Math.PI * t));
         n.shadeT = Math.max(0, n.shadeT - dt);
         n.evapBoostT = Math.max(0, n.evapBoostT - dt);
@@ -420,7 +421,7 @@ export default function App() {
       const ratio = drain / 6;
       const boost = prev.absorbBoostT > 0 ? 1.9 : 1;
       const wb = 1 + (prev.weather ? prev.weather.absorbMod : 0);
-      const amt = 2.6 * prev.absorbMult * boost * ratio * wb;
+      const amt = ABSORB_BASE * prev.absorbMult * boost * ratio * wb;
       shown = amt;
       return { ...prev, water: Math.min(prev.water + amt, prev.maxWater), soil: prev.soil - drain };
     });
@@ -722,7 +723,7 @@ export default function App() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 13.5 }}>
                 <Stat l="Випар" v={`${fmt(evap)}/с`} c="var(--bad)" />
                 <Stat l="Приплив" v={`+${fmt(g.passive + w.rainPower)}/с`} c="var(--good)" />
-                <Stat l="Вбирання" v={`+${fmt(2.6 * g.absorbMult * (g.absorbBoostT > 0 ? 1.9 : 1) * (1 + w.absorbMod))}`} c="var(--water-a)" />
+                <Stat l="Вбирання" v={`+${fmt(ABSORB_BASE * g.absorbMult * (g.absorbBoostT > 0 ? 1.9 : 1) * (1 + w.absorbMod))}`} c="var(--water-a)" />
                 <Stat l="Волога ґрунту" v={`${Math.round(g.soil)}%`} c="var(--ink)" />
                 <Stat l="Опір спеці" v={`${Math.round(g.sunResist * 100)}%`} c="var(--ink)" />
                 <Stat l="Сутність ◈" v={`${fmt(g.pending)}${w.essMod ? ` ·${(1 + w.essMod).toFixed(1)}×` : ""}`} c="var(--essence)" />
@@ -951,8 +952,8 @@ export default function App() {
               <span>🏆 Досягнення</span>
               <span>💧 Виживання</span>
             </div>
-            <button className="kal-go" onClick={() => { Sfx.dusk(); setPhase("menu"); }}>
-              {meta.runs > 0 ? "Повернутись до калабані →" : "Стати калабанею →"}
+            <button className="kal-go" onClick={() => { if (meta.runs > 0) { Sfx.dusk(); setPhase("menu"); } else { startJourney(); } }}>
+              {meta.runs > 0 ? "До вівтаря калабань →" : "Стати калабанею →"}
             </button>
             <button className="kal-go ghost" onClick={() => { Sfx.click(); setPopup("codex"); }}>Як грати</button>
             <div className="kal-welcome-foot">
