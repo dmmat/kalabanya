@@ -285,7 +285,7 @@ function Reel({ target, spinKey, delay, dur }) {
 const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, sound: true, ach: {}, maxVol: 120 };
 
 export default function App() {
-  const [phase, setPhase] = useState("loading"); // loading|menu|forecast|playing|dead|survived
+  const [phase, setPhase] = useState("loading"); // loading|welcome|menu|forecast|playing|dead|survived
   const [g, setG] = useState(() => freshRun({}));
   const [meta, setMeta] = useState(DEFAULT_META);
   const [event, setEvent] = useState(null);
@@ -332,12 +332,12 @@ export default function App() {
         try {
           const d = JSON.parse(raw);
           if (d.meta) setMeta(m => ({ ...m, ...d.meta, ach: { ...(d.meta.ach || {}) } }));
-          if (d.g && (d.phase === "playing" || d.phase === "forecast")) {
+          if (d.g && d.phase === "playing") {
             setG(gg => ({ ...gg, ...d.g, weather: d.g.weather || NEUTRAL }));
-            setPhase(d.phase === "forecast" ? "menu" : "playing");
-          } else setPhase("menu");
-        } catch (e) { setPhase("menu"); }
-      } else setPhase("menu");
+            setPhase("playing"); // resume an in-progress day, skip the intro
+          } else setPhase("welcome");
+        } catch (e) { setPhase("welcome"); }
+      } else setPhase("welcome");
       loaded.current = true;
     })();
   }, []);
@@ -926,6 +926,38 @@ export default function App() {
                   <span className="wd">{s.rain ? `дощ +${s.rain} ` : ""}{s.sun ? `спека ${s.sun > 0 ? "+" : ""}${Math.round(s.sun * 100)}% ` : ""}{s.evap ? `випар ${Math.round(s.evap * 100)}% ` : ""}{s.abs ? `вітер +${Math.round(s.abs * 100)}% ` : ""}{s.ess ? `сутність +${Math.round(s.ess * 100)}%` : ""}</span>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* WELCOME / INTRO */}
+      {phase === "welcome" && (
+        <div className="kal-welcome">
+          {scenesOk && (
+            <img className="kal-welcome-bg" src={`${import.meta.env.BASE_URL}scenes/day-full.webp`} alt="" draggable={false} onError={() => setScenesOk(false)} />
+          )}
+          <div className="kal-welcome-veil" />
+          <div className="kal-welcome-inner">
+            <span className="kal-tag">поетична інкрементальна roguelike</span>
+            <h1 className="kal-welcome-title">КАЛАБАНЯ<span>, що висихає</span></h1>
+            <p className="kal-welcome-tag">
+              Ти — калюжа на узбіччі польової дороги. Сонце п'є тебе краплю за краплею.
+              Крути слот неба, тримайся до сутінків — і лиши по собі сутність.
+            </p>
+            <div className="kal-welcome-chips">
+              <span>🎰 Слот неба</span>
+              <span>🌗 День і ніч</span>
+              <span>🏆 Досягнення</span>
+              <span>💧 Виживання</span>
+            </div>
+            <button className="kal-go" onClick={() => { Sfx.dusk(); setPhase("menu"); }}>
+              {meta.runs > 0 ? "Повернутись до калабані →" : "Стати калабанею →"}
+            </button>
+            <button className="kal-go ghost" onClick={() => { Sfx.click(); setPopup("codex"); }}>Як грати</button>
+            <div className="kal-welcome-foot">
+              автозбереження · {meta.best > 0 ? `рекорд ${meta.best} дн. · ` : ""}
+              <a href="https://github.com/dmmat/kalabanya" target="_blank" rel="noopener noreferrer">github</a>
             </div>
           </div>
         </div>

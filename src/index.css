@@ -265,6 +265,29 @@ body {
 .codex .wx .wn { font-weight:600; min-width:78px; }
 .codex .wx .wd { color:var(--muted); font-size:12px; }
 
+/* ------------------------------------------------------------------ welcome */
+.kal-welcome { position:fixed; inset:0; z-index:40; display:flex; align-items:center; justify-content:center; padding:24px;
+  overflow:hidden; background:radial-gradient(120% 90% at 50% -10%, #163842, var(--bg1) 45%, var(--bg0)); animation:up .5s ease both; }
+.kal-welcome-bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 58%;
+  filter:saturate(1.05); transform:scale(1.05); animation:welcomedrift 24s ease-in-out infinite alternate; }
+@keyframes welcomedrift { from{transform:scale(1.05) translateY(0);} to{transform:scale(1.12) translateY(-12px);} }
+.kal-welcome-veil { position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(7,15,18,.35) 0%, rgba(7,15,18,.15) 35%, rgba(7,15,18,.72) 78%, rgba(7,15,18,.92) 100%); }
+.kal-welcome-inner { position:relative; z-index:2; width:min(620px,100%); text-align:center;
+  display:flex; flex-direction:column; align-items:center; animation:up .7s cubic-bezier(.2,.8,.3,1) both; }
+.kal-welcome-title { font-family:'Fraunces',serif; font-weight:900; font-size:clamp(40px,11vw,84px); line-height:.92;
+  letter-spacing:.01em; color:#fff; text-shadow:0 6px 40px rgba(0,0,0,.6); margin:6px 0 4px; }
+.kal-welcome-title span { display:block; color:var(--water-a); font-weight:400; font-style:italic; font-size:.42em; letter-spacing:.02em; }
+.kal-welcome-tag { font-family:'Fraunces',serif; font-style:italic; font-size:clamp(15px,2.4vw,19px); line-height:1.55;
+  color:#dbeef2; max-width:36em; margin:10px auto 18px; text-shadow:0 2px 18px rgba(0,0,0,.6); }
+.kal-welcome-chips { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:22px; }
+.kal-welcome-chips span { font-size:12.5px; letter-spacing:.04em; color:var(--ink); padding:6px 13px; border-radius:99px;
+  border:1px solid rgba(120,200,215,.3); background:rgba(8,20,25,.5); backdrop-filter:blur(6px); }
+.kal-welcome-inner .kal-go { width:min(360px,100%); }
+.kal-welcome-foot { margin-top:16px; font-size:12px; color:var(--muted); letter-spacing:.04em; }
+.kal-welcome-foot a { color:var(--water-a); text-decoration:none; }
+.kal-welcome-foot a:hover { text-decoration:underline; }
+
 .kal-foot { text-align:center; color:var(--muted); font-size:12px; margin-top:26px; line-height:1.6; }
 .kal-foot a { color:var(--water-a); text-decoration:none; }
 .kal-foot a:hover { text-decoration:underline; }
