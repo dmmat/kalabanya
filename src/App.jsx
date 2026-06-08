@@ -2194,7 +2194,7 @@ export default function App() {
             <div className="wheel-wrap">
               <div className="wheel-aura" style={{ opacity: luck * 0.9 }} />
               <div className="wheel-pointer" style={{ borderTopColor: mix("#ffffff", "#ffd05a", luck), filter: `drop-shadow(0 2px 3px rgba(0,0,0,.5)) drop-shadow(0 0 ${luck * 7}px rgba(255,205,90,${luck * 0.9}))` }} />
-              <div className="wheel" style={{ transform: `rotate(${wheelRot}deg)`, background: `conic-gradient(${WHEEL.map((s, i) => `${s.col} ${i * 45 - 22.5}deg ${(i + 1) * 45 - 22.5}deg`).join(",")})` }}>
+              <div className="wheel" style={{ transform: `rotate(${wheelRot}deg)`, background: `conic-gradient(from -22.5deg, ${WHEEL.map((s, i) => `${s.col} ${i * 45}deg ${(i + 1) * 45}deg`).join(",")})` }}>
                 {WHEEL.map((s, i) => (
                   <div key={i} className="wheel-lbl" style={{ transform: `rotate(${i * 45}deg) translateY(-86px) rotate(${-i * 45}deg)` }}>{s.emo}</div>
                 ))}
