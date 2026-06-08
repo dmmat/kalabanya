@@ -267,6 +267,8 @@ const mix = (c1, c2, t) => {
   return `rgb(${Math.round(r1 + (r2 - r1) * t)},${Math.round(g1 + (g2 - g1) * t)},${Math.round(b1 + (b2 - b1) * t)})`;
 };
 const effEss = (g) => g.essMult * (1 + (g.weather ? g.weather.essMod : 0));
+// внутрішня «спека» (sun) — ігрова інтенсивність; для показу мапимо у правдоподібний °C
+const tempC = (sun) => Math.round(14 + Math.sqrt(clamp(sun, 0, 400) / 400) * 32);
 
 function evapPerSec(g) {
   const w = g.weather || NEUTRAL;
@@ -769,7 +771,7 @@ export default function App() {
         {phase === "playing" && (
           <div className="reveal" style={{ marginTop: 12, display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: 180 }}>
-              <div className="rowlab"><span>Спека {w.sunMod ? <em style={{ color: tierCol(w.tier) }}>· {w.name}</em> : null}</span><span className="kal-num">{Math.round(g.sun)}°</span></div>
+              <div className="rowlab"><span>Спека {w.sunMod ? <em style={{ color: tierCol(w.tier) }}>· {w.name}</em> : null}</span><span className="kal-num">{tempC(g.sun * (1 + (w.sunMod || 0)))}°C</span></div>
               <div className="kal-heat"><i style={{ width: `${clamp(g.sun / 1.4, 0, 100)}%`, background: `linear-gradient(90deg, var(--sun), ${sunCol})` }} /></div>
             </div>
             <div style={{ textAlign: "right" }}>
