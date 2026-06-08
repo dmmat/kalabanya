@@ -2204,7 +2204,7 @@ export default function App() {
                 {wheel.stage === "done" && <div className="wheel-win" />}
               </div>
               {wheel.stage === "done" && (
-                <div className="bannerin">
+                <div className="kal-reveal">
                   <div className="fc-name" style={{ color: WHEEL[wheel.idx].tier === "jackpot" ? "var(--essence)" : WHEEL[wheel.idx].tier === "good" ? "var(--good)" : WHEEL[wheel.idx].tier === "none" ? "var(--muted)" : "var(--bad)" }}>{WHEEL[wheel.idx].emo} {WHEEL[wheel.idx].nm}</div>
                   <div style={{ fontSize: 13.5, color: "#cfe6ea", margin: "8px 0 2px", fontStyle: "italic" }}>{WHEEL[wheel.idx].msg}</div>
                 </div>
@@ -2292,7 +2292,7 @@ export default function App() {
 
             <div className="fc-res" style={{ minHeight: 64 }}>
               {fcResult ? (
-                <div className="bannerin">
+                <div className="kal-reveal">
                   <div className="fc-name" style={{ color: tierCol(fcResult.tier) }}>{fcResult.icon} {fcResult.name}</div>
                   <div className="fc-mods">
                     {fcResult.rainPower > 0 && <span className="mod good">🌧 +{fcResult.rainPower.toFixed(2)} води/с</span>}
