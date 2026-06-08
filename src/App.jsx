@@ -90,11 +90,27 @@ const SYMBOLS = [
 const WEIGHTS = [4, 3, 4, 3, 3, 1, 1.6, 2, 1.4, 1.8, 3, 1.6];
 const NEUTRAL = { rainPower: 0, sunMod: 0, absorbMod: 0, evapMod: 0, essMod: 0, name: "Ще не дивилась у небо", icon: "⛅", idxs: [0, 0, 0], tier: "norm" };
 
-function pickIdx() {
+// детермінований ГВЧ — щоб прогноз погоди НЕ мінявся при перезавантаженні сторінки
+// (інакше можна було безкоштовно «перекручувати» небо рефрешем). Сід — на забіг,
+// результат залежить від (сід, день, № перекруту), тож рефреш дає той самий прогноз.
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function pickIdxR(rnd) {
   const tot = WEIGHTS.reduce((a, b) => a + b, 0);
-  let r = Math.random() * tot;
+  let r = rnd() * tot;
   for (let i = 0; i < WEIGHTS.length; i++) { r -= WEIGHTS[i]; if (r <= 0) return i; }
   return WEIGHTS.length - 1;
+}
+function rollForecast(seed, day, idx) {
+  const s = (((seed >>> 0) ^ Math.imul(day | 0, 2654435761) ^ Math.imul((idx | 0) + 1, 40503)) >>> 0);
+  const rnd = mulberry32(s);
+  return [pickIdxR(rnd), pickIdxR(rnd), pickIdxR(rnd)];
 }
 function computeWeather(idxs) {
   const w = { rainPower: 0, sunMod: 0, absorbMod: 0, evapMod: 0, essMod: 0 };
@@ -650,6 +666,8 @@ function freshRun(meta) {
     abil: { birds: 0, frogs: 0, dog: 0, cat: 0, ducks: 0, snail: 0, bee: 0, hog: 0, heron: 0, fish: 0, fire: 0 },
     hasFriend: !!(meta.birdFriend || (meta.frogBond || 0) >= 1 || meta.dogFriend || meta.catPet || meta.duckFriend || meta.snailMet || meta.beeFriend || meta.hogFriend || meta.heronFriend || meta.fireFriend),
     pending: 0, nextEvent: 14,
+    seed: (Math.random() * 4294967296) >>> 0, // сід забігу для детермінованого прогнозу
+    fcIdx: 0, fcFree: 0, // № перекруту прогнозу цього дня та скільки безкоштовних витрачено (зберігаються → рефреш не змінює небо)
     levels: { deepen: 0, silt: 0, widen: 0, moss: 0, vein: 0, lake: 0, summon: 0 },
     weather: NEUTRAL,
   };
@@ -1142,13 +1160,19 @@ export default function App() {
   /* ---- slot spin ---- */
   const spin = (cost) => {
     if (spinning) return;
+    const cur = gRef.current.fcIdx || 0;
+    let idx = cur, payWater = false, usedFree = false;
     if (cost > 0) {
-      if (freeSpins > 0) { setFreeSpins(s => s - 1); }
-      else { if (gRef.current.water < cost) return; setG(p => ({ ...p, water: p.water - cost })); }
+      // перекрут: наступний (детермінований) сектор; спершу витрачаємо безкоштовні, тоді воду
+      if (freeSpins > 0) { setFreeSpins(s => s - 1); usedFree = true; }
+      else { if (gRef.current.water < cost) return; payWater = true; }
+      idx = cur + 1;
       setRespins(r => r + 1);
     }
+    // зберігаємо № перекруту й витрачені безкоштовні в g → рефреш відновлює точно той самий прогноз
+    setG(p => ({ ...p, fcIdx: idx, water: payWater ? p.water - cost : p.water, fcFree: (p.fcFree || 0) + (usedFree ? 1 : 0) }));
     Sfx.spin();
-    const targets = [pickIdx(), pickIdx(), pickIdx()];
+    const targets = rollForecast(gRef.current.seed || 0, gRef.current.day, idx);
     setReels(targets); setFcResult(null); setSpinning(true); setSpinKey(k => k + 1);
     setTimeout(() => {
       setSpinning(false);
@@ -1164,9 +1188,10 @@ export default function App() {
   useEffect(() => {
     if (phase === "forecast" && bootForecast.current) {
       bootForecast.current = false;
-      setRespins(0); setFcResult(null); setSpinning(false);
-      setFreeSpins(metaRef.current.luck || 0);
-      const t = setTimeout(() => spin(0), 350);
+      // відновлюємо точний стан прогнозу: № перекруту й витрачені безкоштовні (щоб рефреш не давав нового неба)
+      setRespins(gRef.current.fcIdx || 0); setFcResult(null); setSpinning(false);
+      setFreeSpins(Math.max(0, (metaRef.current.luck || 0) - (gRef.current.fcFree || 0)));
+      const t = setTimeout(() => spin(0), 350); // spin(0) перекрутить до збереженого fcIdx — той самий результат
       return () => clearTimeout(t);
     }
   }, [phase]); // eslint-disable-line
@@ -1174,6 +1199,7 @@ export default function App() {
   const enterForecast = () => {
     setRespins(0); setFcResult(null); setSpinning(false);
     setFreeSpins(meta.luck || 0);
+    setG(p => ({ ...p, fcIdx: 0, fcFree: 0, seed: p.seed || ((Math.random() * 4294967296) >>> 0) })); // новий день — лічильник перекрутів обнуляється (сід для старих збережень)
     setPhase("forecast");
     setTimeout(() => spin(0), 350);
   };
