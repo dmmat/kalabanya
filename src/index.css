@@ -393,12 +393,19 @@ body {
   .kal-sub { font-size:11.5px; letter-spacing:.14em; }
   .kal-stat { gap:12px; } .kal-stat .val { font-size:18px; }
   .kal-panel { padding:20px 16px; border-radius:18px; }
+  .wheel-panel { padding:0; } .wheel-scroll { padding:20px 16px 6px; } .wheel-foot { padding:8px 16px 18px; }
   .kal-big { font-size:clamp(26px,8vw,40px); }
   .kal-toolbtn { width:34px; height:34px; font-size:15px; }
 }
 
 /* ------------------------------------------------------------------ wheel of fortune */
-.wheel-wrap { --wsz:min(220px,70vw,34vh); position:relative; width:var(--wsz); height:var(--wsz); margin:6px auto 12px; }
+/* колесо може бути високим — кнопки тримаємо в закріпленому «підвалі», що прокручується лише вміст */
+.wheel-panel { display:flex; flex-direction:column; padding:0; overflow:hidden; }
+.wheel-scroll { flex:1 1 auto; min-height:0; overflow:auto; padding:26px 26px 8px; }
+.wheel-scroll::-webkit-scrollbar { width:8px; } .wheel-scroll::-webkit-scrollbar-thumb { background:var(--line); border-radius:9px; }
+.wheel-foot { flex:0 0 auto; padding:10px 26px 22px; border-top:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(18,46,53,.55),rgba(8,20,25,.9)); }
+.wheel-wrap { --wsz:min(220px,68vw,34vh); position:relative; width:var(--wsz); height:var(--wsz); margin:6px auto 10px; }
 .wheel { position:absolute; inset:0; border-radius:50%; border:4px solid rgba(255,255,255,.14);
   box-shadow:0 14px 44px -10px rgba(0,0,0,.7), inset 0 0 0 8px rgba(8,18,24,.45);
   transition: transform 3.3s cubic-bezier(.15,.62,.16,1); will-change: transform; }
