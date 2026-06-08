@@ -276,6 +276,47 @@ const EVENTS = [
     { b: "Заплатити сутністю", sf: g => `−${eAmt(g, 24)} сутності · +${aw(g, 0.5)} води`, fn: g => ({ ...g, pending: Math.max(0, g.pending - eAmt(g, 24)), water: Math.min(g.water + aw(g, 0.5), g.maxWater) }), meta: m => ({ ...m, fireFriend: true }), luck: 1 },
     { b: "Віддати шмат русла", sf: g => `−12% об'єму · наповнити майже по вінця`, fn: g => { const mw = Math.max(120, Math.round(g.maxWater * 0.88)); return { ...g, maxWater: mw, water: Math.max(g.water, Math.round(mw * 0.85)) }; }, meta: m => ({ ...m, fireFriend: true }) },
     { b: "Подякувати й відмовити", s: "нічого", fn: g => g, luck: 1 }] },
+
+  /* — нові події з розгалуженням (вибір веде до наступної сцени) — */
+  { t: "Замулений сундук", emo: "🧰", req: (g) => g.day >= 4, weight: 0.9,
+    d: "У твоєму намулі проступив старий сундук із важким, поіржавілим замком.", opts: [
+    { b: "Розбити замок об камінь", sf: g => `−${aw(g, 0.06)} води`, fn: g => ({ ...g, water: g.water - aw(g, 0.06) }),
+      then: { t: "Сундук відчинено", emo: "🗝️", d: "Замок піддався з тріском. Усередині — потьмяніле начиння, а в кутку щось зблиснуло.", opts: [
+        { b: "Забрати жменю монет", sf: g => `+${eAmt(g, 30)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 30) * effEss(g) }), luck: 1 },
+        { b: "Розколупати дно — там джерельце", sf: g => `+${aw(g, 0.2)} об'єму`, fn: g => ({ ...g, maxWater: g.maxWater + aw(g, 0.2) }) }] } },
+    { b: "Не чіпати чужого", s: "+вдача", fn: g => g, luck: 2 }] },
+  { t: "Подорожній із загадкою", emo: "🧙", req: (g) => g.day >= 3, weight: 0.9, timer: 12,
+    d: "Подорожній присів на твоїм березі: «Відгадаєш — віддячу. Що росте догори корінням?»", opts: [
+    { b: "«Бурулька»", fn: g => g, luck: 1,
+      then: { t: "Просто в ціль!", emo: "🎉", d: "«А ти кмітлива калабаня!» — він простягнув тобі вибір дарунка.", opts: [
+        { b: "Жменя сутності", sf: g => `+${eAmt(g, 28)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 28) * effEss(g) }), luck: 1 },
+        { b: "Ковток із його баклаги", sf: g => `+${aw(g, 0.18)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.18), g.maxWater) }) }] } },
+    { b: "«Дерево»", fn: g => g,
+      then: { t: "Майже…", emo: "🤔", d: "«Не зовсім. Та за сміливість — ось дещиця».", opts: [
+        { b: "Прийняти дещицю", sf: g => `+${eAmt(g, 8)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 8) * effEss(g) }) }] } },
+    { b: "Промовчати", s: "нічого", fn: g => g }] },
+  { t: "Стара верба схилилась", emo: "🌳", req: (g) => g.day >= 5, weight: 0.85,
+    d: "Гілля старої верби схилилось над тобою — то прихисток, то спрага її коренів.", opts: [
+    { b: "Прийняти затінок", s: "−випар на 24с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 24) }),
+      then: { t: "Корінь прокинувся", emo: "🪵", d: "У затінку верба пустила корінь глибше до тебе — обери, як бути.", opts: [
+        { b: "Напоїти вербу", sf: g => `−${aw(g, 0.08)} води · +вдача`, fn: g => ({ ...g, water: g.water - aw(g, 0.08) }), luck: 2 },
+        { b: "Відштовхнути корінь", s: "нічого", fn: g => g }] } },
+    { b: "Скаламутитись", s: "верба відступає", fn: g => g }] },
+
+  /* — нові звичайні події (для різноманіття) — */
+  { t: "Паперовий кораблик", emo: "⛵", req: (g) => g.day >= 2, weight: 1.0,
+    d: "Хлопчик пустив паперовий кораблик, і той закружляв твоєю гладдю.", opts: [
+    { b: "Лагідно гойдати кораблик", sf: g => `+${eAmt(g, 10)} сутності · −випар на 10с`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 10) * effEss(g), shadeT: addT(g.shadeT, 10) }), luck: 1 },
+    { b: "Втопити кораблик", s: "−вдача", fn: g => g, luck: -1 }] },
+  { t: "Загублений м'яч", emo: "⚽", req: (g) => g.day >= 2, weight: 1.0, timer: 10,
+    d: "Дітлахи загнали м'яч просто в тебе — і вже біжать слідом, репетуючи.", opts: [
+    { b: "Виштовхнути м'яч брижами", sf: g => `+${eAmt(g, 12)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 12) * effEss(g) }), luck: 1 },
+    { b: "Сховати на дні", s: "тиша, але −вдача", fn: g => g, luck: -1 }] },
+  { t: "Водомірки ковзають", emo: "🪲", req: (g) => g.day >= 3, weight: 1.0,
+    d: "Зграйка водомірок розкреслила твою гладь тонкими тінями.", opts: [
+    { b: "Завмерти дзеркалом", s: "−випар на 14с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 14) }) },
+    { b: "Розігнати їх брижами", sf: g => `+${eAmt(g, 9)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 9) * effEss(g) }) }] },
+
   { t: "Веселка торкнулась води", emo: "🌈", req: (g) => g.day >= 5, weight: 0.7,
     d: "Після короткого дощу веселка вмочила свій край просто в тебе.", opts: [
     { b: "Зачерпнути барв", sf: g => `+${aw(g, 0.14)} води · +${eAmt(g, 12)} сутності`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.14), g.maxWater), pending: g.pending + eAmt(g, 12) * effEss(g) }) },
@@ -1102,7 +1143,9 @@ export default function App() {
       if (fate >= 20) queueMicrotask(() => unlock("lucky"));
       return { ...m, fate, tricked: opt.luck < 0 ? true : m.tricked };
     });
-    setEvent(null);
+    // розгалуження: варіант може вести до наступної (вкладеної) події замість закриття
+    const nxt = opt.then ? (typeof opt.then === "function" ? opt.then(gRef.current, metaRef.current) : opt.then) : null;
+    if (nxt) { Haptics.event(); setEvent(nxt); } else setEvent(null);
   };
   resolveEventRef.current = resolveEvent;
   // timed guests (равлик, хитруни): йдуть, якщо не вирішити вчасно (авто-відмова — останній варіант)
@@ -1509,11 +1552,21 @@ export default function App() {
             {ABILITIES.filter(a => a.req(meta, g)).map(a => {
               const cd = (g.abil && g.abil[a.id]) || 0;
               const max = abilCD(a);
+              const preyEmos = (a.prey || []).map(id => (ABILITIES.find(x => x.id === id) || {}).emo).filter(Boolean);
+              const synEmos = Object.keys(SYNERGY).filter(k => k.split("+").includes(a.id))
+                .map(k => (ABILITIES.find(x => x.id === k.split("+").find(id => id !== a.id)) || {}).emo).filter(Boolean);
               return (
-                <button key={a.id} className={"kal-abil" + (cd > 0 ? " cd" : "")} disabled={cd > 0} onClick={() => useAbility(a)} title={`${a.nm}: ${a.tip}`}>
+                <button key={a.id} className={"kal-abil" + (cd > 0 ? " cd" : "")} disabled={cd > 0} onClick={() => useAbility(a)}>
                   {cd > 0 && <span className="ab-ring" style={{ background: `conic-gradient(rgba(0,0,0,.55) ${(cd / max) * 360}deg, transparent 0)` }} />}
                   <span className="ab-emo">{a.emo}</span>
                   {cd > 0 && <span className="ab-num">{Math.ceil(cd)}</span>}
+                  <span className="ab-tip">
+                    <b>{a.emo} {a.nm}</b>
+                    <i>{a.tip}</i>
+                    <em>Перезарядка ~{max}с · {a.kind}{cd > 0 ? ` · ще ${Math.ceil(cd)}с` : ""}</em>
+                    {synEmos.length > 0 && <span className="good">Синергія: {synEmos.join(" ")}</span>}
+                    {preyEmos.length > 0 && <span className="bad">Лякає: {preyEmos.join(" ")}</span>}
+                  </span>
                 </button>
               );
             })}
@@ -1931,6 +1984,7 @@ export default function App() {
               <li>Час від часу приходять <b>гості</b> з вибором. Деякі <b>не дуже чесні</b>: на вигляд обіцяють добро, а потай користуються тобою — навчишся їх упізнавати.</li>
               <li>Декого знаєш давно — <b>дружба</b> (жаба, кіт, равлик…) росте й покращує дари подій. Глибші зустрічі приходять лише з прогресом.</li>
               <li>Деякі гості мають <b>таймер</b>: не вирішиш — підуть (обереться безпечний варіант). Події не «стакаються».</li>
+              <li>Деякі зустрічі <b>розгалужуються</b>: твій вибір веде до наступної сцени з новим рішенням (сундук, загадка, верба…).</li>
             </ul>
 
             <h4>Прихована Вдача</h4>

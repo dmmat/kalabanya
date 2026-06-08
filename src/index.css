@@ -430,6 +430,20 @@ body {
 .kal-abil .ab-ring { position:absolute; inset:0; z-index:0; }
 .kal-abil .ab-num { position:absolute; inset:0; z-index:2; display:grid; place-items:center;
   font-family:'Spline Sans Mono',monospace; font-size:14px; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.8); }
+/* custom hover tooltip for abilities (краще за стандартний title) */
+.kal-abil .ab-tip { position:absolute; bottom:calc(100% + 10px); left:50%; transform:translateX(-50%) translateY(6px);
+  width:max-content; max-width:230px; z-index:40; pointer-events:none; opacity:0; transition:opacity .14s, transform .14s;
+  display:flex; flex-direction:column; gap:3px; text-align:left; padding:9px 11px; border-radius:12px;
+  border:1px solid rgba(116,195,154,.35); background:linear-gradient(180deg,rgba(20,54,62,.98),rgba(9,22,28,.99));
+  box-shadow:0 14px 40px -10px rgba(0,0,0,.8); }
+.kal-abil .ab-tip::after { content:""; position:absolute; top:100%; left:50%; transform:translateX(-50%);
+  border:6px solid transparent; border-top-color:rgba(20,54,62,.98); }
+.kal-abil .ab-tip b { font-family:'Fraunces',serif; font-size:15px; font-weight:600; }
+.kal-abil .ab-tip i { font-style:normal; font-size:13px; color:#cfe6ea; line-height:1.35; }
+.kal-abil .ab-tip em { font-style:normal; font-size:11.5px; letter-spacing:.04em; color:var(--muted); }
+.kal-abil .ab-tip .good { font-size:12px; color:var(--good); }
+.kal-abil .ab-tip .bad { font-size:12px; color:var(--bad); }
+@media (hover:hover){ .kal-abil:hover .ab-tip { opacity:1; transform:translateX(-50%) translateY(0); } }
 
 /* ability combo popup */
 .kal-abilities { position:relative; }
