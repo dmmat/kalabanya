@@ -61,7 +61,7 @@ body {
 .kal-title span { color:var(--water-a); font-style:italic; font-weight:400; letter-spacing:-.01em; }
 .kal-sub { color:var(--muted); font-size:13px; letter-spacing:.18em; text-transform:uppercase; margin-top:4px; }
 .kal-stat { display:flex; gap:18px; align-items:flex-end; flex-wrap:wrap; }
-.kal-stat .lab, .lab { font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
+.kal-stat .lab, .lab { font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
 .kal-stat .val { font-size:20px; } .kal-ess { color:var(--essence); font-family:'Spline Sans Mono',monospace; }
 .kal-clouds { color:#cfe2ff; font-family:'Spline Sans Mono',monospace; }
 .kal-sky-card { border-color:rgba(180,210,245,.28); background:linear-gradient(180deg,rgba(30,42,66,.55),rgba(12,18,30,.45)); }
@@ -208,7 +208,7 @@ body {
 }
 .kal-up.dis { opacity:.4; }
 .kal-up .emo { font-size:20px; width:26px; text-align:center; }
-.kal-up .body { flex:1; min-width:0; } .kal-up .nm { font-size:14px; font-weight:600; } .kal-up .de { font-size:11.5px; color:var(--muted); line-height:1.3; }
+.kal-up .body { flex:1; min-width:0; } .kal-up .nm { font-size:15.5px; font-weight:600; } .kal-up .de { font-size:13px; color:#9fb097; line-height:1.35; }
 .kal-up .cost { font-family:'Spline Sans Mono',monospace; font-size:13px; white-space:nowrap; color:var(--water-a); }
 .kal-up.meta .cost { color:var(--essence); }
 .kal-up .lvl { font-family:'Spline Sans Mono',monospace; font-size:11px; color:var(--muted); margin-left:4px; }
@@ -237,21 +237,21 @@ body {
   0%,100%{ box-shadow:0 20px 60px -10px rgba(0,0,0,.7), 0 0 0 0 rgba(116,195,154,0); }
   50%{ box-shadow:0 20px 60px -10px rgba(0,0,0,.7), 0 0 26px -2px rgba(116,195,154,.35); }
 }
-.kal-evt .ehead { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
-.kal-evt .eemo { font-size:28px; position:relative; display:grid; place-items:center; width:48px; height:48px; flex:0 0 auto;
+.kal-evt .ehead { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+.kal-evt .eemo { font-size:34px; position:relative; display:grid; place-items:center; width:56px; height:56px; flex:0 0 auto;
   animation:emobob 2.4s ease-in-out infinite; }
 @keyframes emobob { 0%,100%{transform:translateY(0) rotate(-5deg);} 50%{transform:translateY(-3px) rotate(5deg);} }
 .kal-evt .eemo-ring { position:absolute; inset:-4px; border-radius:50%; pointer-events:none;
   background:conic-gradient(from 0deg, rgba(116,195,154,.0), rgba(116,195,154,.5), rgba(116,195,154,.0) 60%);
   animation:ringspin 3.5s linear infinite; opacity:.7; -webkit-mask:radial-gradient(closest-side, transparent 64%, #000 66%); mask:radial-gradient(closest-side, transparent 64%, #000 66%); }
 @keyframes ringspin { to{ transform:rotate(360deg); } }
-.kal-evt .et { font-family:'Fraunces',serif; font-style:italic; font-size:18px; }
-.kal-evt .ed { font-size:13.5px; color:#bcd6da; margin-bottom:12px; line-height:1.4; }
+.kal-evt .et { font-family:'Fraunces',serif; font-style:italic; font-size:22px; line-height:1.2; }
+.kal-evt .ed { font-size:16.5px; color:#dceff2; margin-bottom:14px; line-height:1.5; }
 .kal-evt .opts { display:flex; gap:10px; flex-wrap:wrap; }
-.kal-btn { flex:1; min-width:120px; border:1px solid var(--line); border-radius:11px; padding:10px 12px;
-  background:rgba(116,195,154,.06); color:var(--ink); font-family:'Spectral',serif; font-size:13.5px; transition:.16s; text-align:left; }
+.kal-btn { flex:1; min-width:140px; border:1px solid var(--line); border-radius:11px; padding:12px 14px;
+  background:rgba(116,195,154,.06); color:var(--ink); font-family:'Spectral',serif; font-size:16px; transition:.16s; text-align:left; }
 .kal-btn:hover { background:rgba(116,195,154,.16); border-color:var(--water-a); transform:translateY(-1px); }
-.kal-btn b { display:block; font-weight:600; margin-bottom:2px; } .kal-btn small { color:var(--muted); font-size:11.5px; }
+.kal-btn b { display:block; font-weight:600; font-size:16.5px; margin-bottom:3px; } .kal-btn small { color:#a7bca0; font-size:13.5px; }
 
 /* ------------------------------------------------------------------ overlays / popups */
 .kal-over { position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; padding:20px;
@@ -384,8 +384,8 @@ body {
   .kal-stage { border-radius:18px; }
   .kal-up { padding:8px 9px; }
   .kal-up .emo { font-size:18px; width:24px; }
-  .kal-up .nm { font-size:13.5px; }
-  .kal-up .de { font-size:11px; }
+  .kal-up .nm { font-size:14.5px; }
+  .kal-up .de { font-size:12.5px; }
   .kal-up .cost { font-size:12.5px; }
   .kal-title { font-size:clamp(23px,7.4vw,34px); }
   .kal-sub { font-size:11.5px; letter-spacing:.14em; }

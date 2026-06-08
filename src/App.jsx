@@ -1024,7 +1024,13 @@ export default function App() {
     Sfx.dusk();
     setPhase("menu");
   };
-  const abilCD = (ab) => Math.max(7, Math.round(ab.cd * (1 - 0.08 * (metaRef.current.callcd || 0)) * (1 - 0.06 * ((gRef.current.levels && gRef.current.levels.summon) || 0))));
+  // зниження КД капається (адитивно), а підлога — половина базового КД здібності,
+  // щоб потужні (пожежники, сутність) не ставали спамом навіть при гарній прокачці
+  const abilCD = (ab) => {
+    const red = clamp(0.07 * (metaRef.current.callcd || 0) + 0.04 * ((gRef.current.levels && gRef.current.levels.summon) || 0), 0, 0.55);
+    const floor = Math.max(8, Math.round(ab.cd * 0.45));
+    return Math.max(floor, Math.round(ab.cd * (1 - red)));
+  };
   const flashAbil = (kind, text) => {
     setAbilFx({ kind, text });
     clearTimeout(abilFxRef.current);
@@ -1541,7 +1547,7 @@ export default function App() {
             </div>
             <div className="kal-card">
               <h3>Стан калабані <small>{w.icon} {w.name}</small></h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 13.5 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 15 }}>
                 <Stat l="Випар" v={`${fmt(evap)}/с`} c="var(--bad)" />
                 <Stat l="Приплив" v={`+${fmt(g.passive + w.rainPower)}/с`} c="var(--good)" />
                 <Stat l="Чистий" v={`${net >= 0 ? "+" : "−"}${fmt(Math.abs(net))}/с`} c={net >= 0 ? "var(--good)" : "var(--bad)"} />
