@@ -144,14 +144,15 @@ const RUN_UPGRADES = [
   { id: "widen",  emo: "💧", nm: "Розширити русло", de: "+вбирання, +30 об'єму, трохи більший випар.", base: 22, growth: 1.4, frac: 0.10 },
   { id: "moss",   emo: "🌿", nm: "Поростити ряскою", de: "Ряска вкриває гладь: −7% випару.", base: 28, growth: 1.45, frac: 0.10 },
   { id: "vein",   emo: "🌊", nm: "Прокласти жилу", de: "Підземна жила: +0.4 води/с.", base: 40, growth: 1.5, frac: 0.14 },
-  { id: "lake",   emo: "🟦", nm: "Підземне озеро", de: "Велике джерело: +150 об'єму, +0.7/с.", base: 130, growth: 1.7, frac: 0.25, req: g => g.levels.deepen >= 3, lock: "відкриється: Поглибшати рів.3" },
+  { id: "lake",   emo: "🟦", nm: "Підземне озеро", de: "Велике джерело: +об'єму, +0.7/с.", base: 130, growth: 1.7, frac: 0.25, req: g => g.levels.deepen >= 3, lock: "відкриється: Поглибшати рів.3" },
+  { id: "trench", emo: "🌀", nm: "Океанічна западина", de: "Велетенська западина: +8% об'єму та +1.5/с.", base: 420, growth: 1.62, frac: 0.22, req: g => (g.levels.lake || 0) >= 2, lock: "відкриється: Підземне озеро рів.2" },
   { id: "summon", emo: "📣", nm: "Гучніший поклик", de: "−6% перезарядки здібностей.", base: 60, growth: 1.5, frac: 0.10, req: g => g.hasFriend, hidden: true },
 ];
 // ціна = більше з експоненти (рання гра) та частки від об'єму (пізня гра),
 // але ніколи не вище 92% об'єму → апгрейд завжди можна накопичити (без софт-локу за будь-якої стратегії)
-const runCost = (u, lvl, maxW) => {
+const runCost = (u, lvl, maxW, disc = 1) => {
   const c = Math.max(u.base * Math.pow(u.growth, lvl), (u.frac || 0) * maxW);
-  return Math.round(Math.min(c, 0.92 * maxW));
+  return Math.max(1, Math.round(Math.min(c, 0.92 * maxW) * disc));
 };
 const META_UPGRADES = [
   { id: "memory", emo: "🫧", nm: "Глибша пам'ять", de: "+22 стартової води.", base: 40, growth: 1.72, max: 12 },
@@ -306,6 +307,16 @@ const EVENTS = [
         { b: "Напоїти вербу", sf: g => `−${aw(g, 0.08)} води · +вдача`, fn: g => ({ ...g, water: g.water - aw(g, 0.08) }), luck: 2 },
         { b: "Відштовхнути корінь", s: "нічого", fn: g => g }] } },
     { b: "Скаламутитись", s: "верба відступає", fn: g => g }] },
+
+  /* — персонажі, що здешевлюють «Поглиблення» на якийсь час — */
+  { t: "Бобер-будівничий", emo: "🦫", req: (g) => g.day >= 4, weight: 0.85, timer: 12,
+    d: "Дбайливий бобер приволік оберемок гілок: «Підсоблю тобі з ложем — поки я тут, поглиблюватись дешевше!»", opts: [
+    { b: "Прийняти допомогу", s: "−40% до «Поглиблення» на 30с", fn: g => ({ ...g, cheapT: addT(g.cheapT, 30) }), luck: 1 },
+    { b: "Подякувати й відмовити", s: "+вдача", fn: g => g, luck: 1 }] },
+  { t: "Кріт-землекоп", emo: "⛏️", req: (g) => g.day >= 3, weight: 0.85,
+    d: "З-під дна виткнувся кріт у касці: «Розпушу тобі ложе — усі поглиблення підуть легше й дешевше!»", opts: [
+    { b: "Хай порпається", s: "−40% до «Поглиблення» на 28с", fn: g => ({ ...g, cheapT: addT(g.cheapT, 28) }), luck: 1 },
+    { b: "Не чіпати дно", s: "нічого", fn: g => g }] },
 
   /* — ще «скарбові» події з розгалуженням (як сундук) — */
   { t: "Глиняний глечик у намулі", emo: "🏺", req: (g) => g.day >= 5, weight: 0.8,
@@ -680,6 +691,7 @@ const ACHIEVEMENTS = [
   { id: "pond",     e: "🪷", nm: "Ставок",          dq: "Дорости до об'єму ставка (2.5к)." },
   { id: "lakeach",  e: "🏞️", nm: "Озеро",           dq: "Дорости до об'єму озера (16к)." },
   { id: "ocean",    e: "🌊", nm: "Океан",           dq: "Здійснити мрію — дорости до об'єму океану (160к)." },
+  { id: "worldocean", e: "🌍", nm: "Світовий океан", dq: "Дорости до мільйона об'єму — справжній океан світу.", hidden: true },
   { id: "bestfriend", e: "🐸", nm: "Нерозлийвода",  dq: "Дорости дружбу з жабою до 6-го рівня." },
   // приховані: текст з'являється лише після відкриття
   { id: "allfriends", e: "🐾", nm: "Душа компанії", dq: "Заприятелювати з жабою, котом і равликом за один забіг.", hidden: true },
@@ -885,16 +897,16 @@ const eMul = (m) => 1 + friendCount(m) * 0.045; // дружба підсилює
 // дружби тепер скидаються щозабігу — друзів треба здобувати знову.
 // За велику сутність їх можна «приручити назавжди» у вівтарі (meta.perma).
 const PERMA_FRIENDS = [
-  { id: "frog",  emo: "🐸",  nm: "Жаба Кума",        cost: 60000 },
-  { id: "dog",   emo: "🐕",  nm: "Песик-приятель",   cost: 70000 },
-  { id: "bird",  emo: "🐦",  nm: "Зграя птахів",     cost: 80000 },
-  { id: "duck",  emo: "🦆",  nm: "Качина родина",    cost: 95000 },
-  { id: "snail", emo: "🐌",  nm: "Равлик-крамар",    cost: 110000 },
-  { id: "cat",   emo: "🐈‍⬛", nm: "Місячний кіт",     cost: 130000 },
-  { id: "bee",   emo: "🐝",  nm: "Золоті бджоли",    cost: 150000 },
-  { id: "hog",   emo: "🦔",  nm: "Їжак-садівник",    cost: 175000 },
-  { id: "heron", emo: "🪽",  nm: "Чапля-провидиця",  cost: 210000 },
-  { id: "fire",  emo: "🚒",  nm: "Пожежники",        cost: 260000 },
+  { id: "frog",  emo: "🐸",  nm: "Жаба Кума",        cost: 22000 },
+  { id: "dog",   emo: "🐕",  nm: "Песик-приятель",   cost: 28000 },
+  { id: "bird",  emo: "🐦",  nm: "Зграя птахів",     cost: 34000 },
+  { id: "duck",  emo: "🦆",  nm: "Качина родина",    cost: 42000 },
+  { id: "snail", emo: "🐌",  nm: "Равлик-крамар",    cost: 50000 },
+  { id: "cat",   emo: "🐈‍⬛", nm: "Місячний кіт",     cost: 62000 },
+  { id: "bee",   emo: "🐝",  nm: "Золоті бджоли",    cost: 76000 },
+  { id: "hog",   emo: "🦔",  nm: "Їжак-садівник",    cost: 92000 },
+  { id: "heron", emo: "🪽",  nm: "Чапля-провидиця",  cost: 115000 },
+  { id: "fire",  emo: "🚒",  nm: "Пожежники",        cost: 140000 },
 ];
 const PERMA_FLAG = { frog: "frogBond", dog: "dogFriend", cat: "catPet", duck: "duckFriend", bird: "birdFriend", bee: "beeFriend", hog: "hogFriend", heron: "heronFriend", snail: "snailMet", fire: "fireFriend" };
 // скинути дружби до купленого «назавжди» базису (на старті забігу)
@@ -969,8 +981,8 @@ const tempC = (sun) => Math.round(14 + Math.sqrt(clamp(sun, 0, 400) / 400) * 32)
 // з ~20-25 дня стає відчутним, тож пасив уже не покриває все — треба знову діяти.
 const warmingDrain = (day) => Math.pow(Math.max(0, day - 10), 1.5) * 0.13;
 // мрія калабані рости: ранг за об'ємом
-const RANKS = [[300, "калабаня"], [900, "велика калабаня"], [2500, "ставок"], [6000, "озерце"], [16000, "озеро"], [50000, "велике озеро"], [160000, "море"]];
-const rankName = (mw) => { for (const [t, n] of RANKS) if (mw < t) return n; return "океан"; };
+const RANKS = [[300, "калабаня"], [900, "велика калабаня"], [2500, "ставок"], [6000, "озерце"], [16000, "озеро"], [50000, "велике озеро"], [160000, "море"], [400000, "велике море"], [1000000, "Північний Льодовитий океан"], [3000000, "Індійський океан"], [10000000, "Атлантичний океан"], [35000000, "Тихий океан"]];
+const rankName = (mw) => { for (const [t, n] of RANKS) if (mw < t) return n; return "Світовий океан"; };
 
 function evapPerSec(g) {
   const w = g.weather || NEUTRAL;
@@ -998,7 +1010,7 @@ function freshRun(meta) {
     deepenMult: 1, mossMult: 1, sunResist: clamp(0.06 * M("c_silt"), 0, 0.85), absorbMult: 1 + 0.10 * M("absorb") + 0.12 * M("thirst"),
     soil: 60, soilMax: 60, soilRegen: 3.8 * (1 + 0.25 * M("roots") + 0.25 * M("deeproots")),
     passive: 0.3 * M("spring") + 0.4 * M("spring2") + 0.5 * M("c_spring") + 0.03 * M("abyss") + ((meta.frogBond || 0) >= 3 ? 0.1 : 0), leaf: 0,
-    shadeT: 0, evapBoostT: 0, absorbBoostT: 0,
+    shadeT: 0, evapBoostT: 0, absorbBoostT: 0, cheapT: 0,
     essMult: (1 + 0.12 * M("silver") + 0.15 * M("golddrop")) * (1 + 0.4 * M("c_ess")), essRate: 0.15 + 0.05 * M("essflow"),
     friend: 1 + Math.min(0.6, (meta.frogBond || 0) * 0.05), // дружба з жабою покращує дари подій
     ecoMult: Math.max(0.12, (1 - 0.06 * M("trees")) * (1 - 0.10 * M("c_eco"))), // еко-дари зменшують потепління
@@ -1168,6 +1180,7 @@ export default function App() {
     if (mw >= 2500) unlock("pond");
     if (mw >= 16000) unlock("lakeach");
     if (mw >= 160000) unlock("ocean");
+    if (mw >= 1000000) unlock("worldocean");
   }, [unlock]);
 
   /* ---- load ---- */
@@ -1243,6 +1256,7 @@ export default function App() {
         n.shadeT = Math.max(0, n.shadeT - dt);
         n.evapBoostT = Math.max(0, n.evapBoostT - dt);
         n.absorbBoostT = Math.max(0, n.absorbBoostT - dt);
+        n.cheapT = Math.max(0, (n.cheapT || 0) - dt);
         if (n.abil) { const ab = { ...n.abil }; for (const k in ab) ab[k] = Math.max(0, ab[k] - dt); n.abil = ab; }
         const w = n.weather || NEUTRAL;
         // курна буря: ґрунт пересихає й не відновлюється (вбирати нічим)
@@ -1340,17 +1354,19 @@ export default function App() {
   }, []);
 
   const buyRun = (u) => setG(prev => {
-    const lvl = prev.levels[u.id], cost = runCost(u, lvl, prev.maxWater);
+    const lvl = prev.levels[u.id], cost = runCost(u, lvl, prev.maxWater, prev.cheapT > 0 ? 0.6 : 1);
     if (prev.water < cost) return prev;
     Sfx.click();
     const n = { ...prev, water: prev.water - cost, levels: { ...prev.levels, [u.id]: lvl + 1 } };
     // additive capacity — помірний ріст об'єму (від софт-локу захищає стеля ціни 92% у runCost)
-    if (u.id === "deepen") { n.maxWater += 50 + lvl * 10; n.deepenMult *= 0.97; }
+    // об'єм росте і адитивно (рання гра), і часткою від поточного (пізня гра) — щоб дотягтись аж до океанів
+    if (u.id === "deepen") { n.maxWater += Math.max(50 + lvl * 10, Math.round(n.maxWater * 0.05)); n.deepenMult *= 0.97; }
     if (u.id === "silt") { n.sunResist = clamp(n.sunResist + 0.08, 0, 0.85); if (n.levels.silt >= 10) queueMicrotask(() => unlock("shrek")); }
-    if (u.id === "widen") { n.absorbMult += 0.6; n.soilMax += 40; n.maxWater += 30; n.baseEvap += 0.04; }
+    if (u.id === "widen") { n.absorbMult += 0.6; n.soilMax += 40; n.maxWater += Math.max(30, Math.round(n.maxWater * 0.02)); n.baseEvap += 0.04; }
     if (u.id === "moss") n.mossMult *= 0.93;
     if (u.id === "vein") n.passive += 0.4;
-    if (u.id === "lake") { n.maxWater += 150; n.passive += 0.7; queueMicrotask(() => unlock("deepwell")); }
+    if (u.id === "lake") { n.maxWater += Math.max(150, Math.round(n.maxWater * 0.08)); n.passive += 0.7; queueMicrotask(() => unlock("deepwell")); }
+    if (u.id === "trench") { n.maxWater += Math.max(400, Math.round(n.maxWater * 0.08)); n.passive += 1.5; }
     checkVol(n.maxWater);
     if (n.maxWater > (metaRef.current.maxVol || 0)) setMeta(m => ({ ...m, maxVol: Math.round(n.maxWater) }));
     return n;
@@ -1967,9 +1983,9 @@ export default function App() {
         {phase === "playing" && (
           <div className="kal-cols reveal">
             <div className="kal-card">
-              <h3>Поглиблення <small>ціна у воді</small></h3>
+              <h3>Поглиблення <small>{g.cheapT > 0 ? `🏷️ знижка −40% (${Math.ceil(g.cheapT)}с)` : "ціна у воді"}</small></h3>
               {RUN_UPGRADES.map(u => {
-                const lvl = g.levels[u.id] || 0, cost = runCost(u, lvl, g.maxWater);
+                const lvl = g.levels[u.id] || 0, cost = runCost(u, lvl, g.maxWater, g.cheapT > 0 ? 0.6 : 1);
                 const locked = u.req && !u.req(g);
                 if (locked && u.hidden) return null; // прихований апгрейд (сюрприз) — не показуємо замкненим
                 if (locked) return (
@@ -2007,7 +2023,8 @@ export default function App() {
                 {g.evapBoostT > 0 && <span className="bad">♨️ випар {Math.ceil(g.evapBoostT)}с</span>}
                 {g.absorbBoostT > 0 && <span className="good">💧 вбирання {Math.ceil(g.absorbBoostT)}с</span>}
                 {g.leaf > 0 && <span>🍂 листя −{Math.round(g.leaf * 100)}% випару</span>}
-                {g.shadeT <= 0 && g.evapBoostT <= 0 && g.absorbBoostT <= 0 && g.leaf <= 0 && <span className="idle">Небо тремтить у твоєму дзеркалі…</span>}
+                {g.cheapT > 0 && <span className="good">🏷️ −40% поглиблення {Math.ceil(g.cheapT)}с</span>}
+                {g.shadeT <= 0 && g.evapBoostT <= 0 && g.absorbBoostT <= 0 && g.leaf <= 0 && g.cheapT <= 0 && <span className="idle">Небо тремтить у твоєму дзеркалі…</span>}
               </div>
             </div>
           </div>
