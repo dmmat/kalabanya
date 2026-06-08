@@ -124,7 +124,7 @@ function computeWeather(idxs) {
 /* ---------- in-run & meta upgrades ---------- */
 const RUN_UPGRADES = [
   { id: "deepen", emo: "🕳️", nm: "Поглибшати", de: "+об'єму, трохи менший випар.", base: 24, growth: 1.4, frac: 0.18 },
-  { id: "silt",   emo: "🟤", nm: "Намулитись", de: "Плівка мулу береже від спеки.", base: 30, growth: 1.42, frac: 0.12 },
+  { id: "silt",   emo: "🟤", nm: "Намулитись", de: "Плівка мулу: +8% опору спеці (див. «Стан калабані»).", base: 30, growth: 1.42, frac: 0.12 },
   { id: "widen",  emo: "💧", nm: "Розширити русло", de: "+вбирання, +30 об'єму, трохи більший випар.", base: 22, growth: 1.4, frac: 0.10 },
   { id: "moss",   emo: "🌿", nm: "Поростити ряскою", de: "Ряска вкриває гладь: −7% випару.", base: 28, growth: 1.45, frac: 0.10 },
   { id: "vein",   emo: "🌊", nm: "Прокласти жилу", de: "Підземна жила: +0.4 води/с.", base: 40, growth: 1.5, frac: 0.14 },
@@ -1117,7 +1117,11 @@ export default function App() {
   };
 
   /* ---- death + rescue slot ---- */
-  const rescueCost = () => 1000 * Math.pow(3, gRef.current.rescues || 0);
+  // рятунок оплачується із сутності, зібраної цього забігу (показана на екрані), а решта — з банку
+  const rescuePool = () => Math.round((gRef.current.pending || 0) + (metaRef.current.essence || 0));
+  // ціна — відсоток від наявної сутності, що дорожчає з кожним прокрутом (мінімум 1тис на старті)
+  const rescuePct = () => Math.min(0.4 + 0.2 * (gRef.current.rescues || 0), 0.85);
+  const rescueCost = () => Math.max(1000, Math.round(rescuePool() * rescuePct()));
   const finalizeDeath = () => { // забанкувати сутність і піти у вівтар
     Sfx.click();
     const gained = (resultRef.current && resultRef.current.gained) || 0;
@@ -1127,9 +1131,13 @@ export default function App() {
   };
   const tryRescue = () => {
     const cost = rescueCost();
-    if ((metaRef.current.essence || 0) < cost || rescue === "spin") return;
-    setMeta(m => ({ ...m, essence: m.essence - cost }));
-    setG(p => ({ ...p, rescues: (p.rescues || 0) + 1 }));
+    if (rescuePool() < cost || rescue === "spin") return;
+    // спершу списуємо із сутності цього забігу, решту (якщо треба) — з банку
+    const fromRun = Math.min(gRef.current.pending || 0, cost);
+    const fromBank = cost - fromRun;
+    setG(p => ({ ...p, rescues: (p.rescues || 0) + 1, pending: Math.max(0, (p.pending || 0) - fromRun) }));
+    if (fromBank > 0) setMeta(m => ({ ...m, essence: Math.max(0, m.essence - fromBank) }));
+    setResult(r => (r ? { ...r, gained: Math.max(0, Math.round((r.gained || 0) - fromRun)) } : r));
     setRescue("spin"); Sfx.spin();
     const chance = clamp(0.42 + fateLuck(metaRef.current) * 0.18, 0.2, 0.7);
     setTimeout(() => {
@@ -1407,7 +1415,7 @@ export default function App() {
                 <Stat l="Вбирання" v={`+${fmt(ABSORB_BASE * g.absorbMult * (g.absorbBoostT > 0 ? 1.9 : 1) * (1 + w.absorbMod))}/тап`} c="var(--water-a)" />
                 <Stat l="Наповнення" v={`${Math.round(clamp(g.water / g.maxWater, 0, 1) * 100)}%`} c="var(--ink)" />
                 <Stat l="Волога ґрунту" v={`${Math.round(g.soil)}%`} c="var(--ink)" />
-                <Stat l="Опір спеці" v={`${Math.round(g.sunResist * 100)}%`} c="var(--ink)" />
+                <Stat l="Опір спеці 🟤" v={`${Math.round(g.sunResist * 100)}%`} c="var(--ink)" />
                 {warmingDrain(g.day) * (g.ecoMult ?? 1) * (1 + w.evapMod) > 0.05 && <Stat l="Потепління 🌡️" v={`−${fmt(warmingDrain(g.day) * (g.ecoMult ?? 1) * (1 + w.evapMod))}/с`} c="var(--bad)" />}
                 <Stat l="Сутність ◈" v={`${fmt(g.pending)}${w.essMod ? ` ·${(1 + w.essMod).toFixed(1)}×` : ""}`} c="var(--essence)" />
                 {(g.speed || 1) > 1.01 && <Stat l="Швидкість ⏩" v={`×${(g.speed).toFixed(2)}`} c="var(--essence)" />}
@@ -1657,14 +1665,14 @@ export default function App() {
               <ResStat l="Усього мандрівок" v={meta.runs} />
             </div>
             {rescue !== "spin" && (() => {
-              const cost = rescueCost(), canAfford = (meta.essence || 0) >= cost;
+              const cost = rescueCost(), canAfford = rescuePool() >= cost;
               return (
                 <button className="kal-go" disabled={!canAfford} onClick={tryRescue} style={{ opacity: canAfford ? 1 : 0.5, background: "linear-gradient(180deg,#e0c060,#b8902f)", color: "#1a1206" }}>
                   🎰 {rescue === "lose" ? "Спробувати ще раз" : "Остання надія"} (−◈ {fmt(cost)})
                 </button>
               );
             })()}
-            {rescue !== "spin" && <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 6 }}>Слот може врятувати… а може й ні. Сутність списується одразу.</div>}
+            {rescue !== "spin" && <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 6 }}>Слот може врятувати… а може й ні. Ціна — {Math.round(rescuePct() * 100)}% сутності, списується одразу й дорожчає щоразу.</div>}
             {rescue !== "spin" && <button className="kal-go ghost" onClick={finalizeDeath}>Прийняти долю → до вівтаря (забрати ◈ {fmt(result.gained)})</button>}
           </div>
         </div>
@@ -1728,8 +1736,18 @@ export default function App() {
             <h4>Дії</h4>
             <ul>
               <li><b>Торкайся калабані</b> — вбираєш вологу з ґрунту (ґрунт повільно відновлюється).</li>
-              <li><b>Поглиблення</b> — витрачай воду на покращення поточної мандрівки.</li>
+              <li><b>Поглиблення</b> — витрачай воду на покращення поточної мандрівки: глибина, ряска, жили, а <b>🟤 Намулитись</b> додає <b>опору спеці</b>.</li>
               <li><b>Постійні дари</b> — між мандрівками витрачай Сутність на вічні бонуси.</li>
+            </ul>
+
+            <h4>Стан калабані</h4>
+            <p>Картка «Стан калабані» показує живі цифри твоєї води:</p>
+            <ul>
+              <li><b>Випар</b> — скільки води сонце п'є щосекунди; <b>Приплив</b> — скільки прибуває.</li>
+              <li><b>Чистий</b> — підсумок (приплив мінус випар): <span style={{ color: "var(--good)" }}>+</span> зростаєш, <span style={{ color: "var(--bad)" }}>−</span> висихаєш.</li>
+              <li><b>Вбирання</b> — скільки даєш за один дотик; <b>Опір спеці 🟤</b> — наскільки мул гасить спеку (росте від «Намулитись»).</li>
+              <li><b>Волога ґрунту</b> — запас, з якого тягнеш дотиками; <b>Потепління 🌡️</b> — додатковий випар від глобального потепління.</li>
+              <li>Внизу — <b>тимчасові бусти</b> (тінь, листя, прискорений випар тощо) з лічильником секунд.</li>
             </ul>
             <h4>Слот неба</h4>
             <p>Перед кожним днем крути барабани — три однакові символи дають потужне <b>комбо</b>. Можна перекрутити, ризикнувши водою.</p>
@@ -1760,6 +1778,9 @@ export default function App() {
 
             <h4>Сутінки й Велике Випаровування</h4>
             <p>Доживши до <b>сутінків</b>, обери: важчий новий день чи забрати Сутність. А коли назбираєш досвіду — наважся на <b>Велике Випаровування</b> ☁: скидаєш сутність і дари, та отримуєш вічні <span className="kal-clouds">Хмари</span> й небесні дари. Нескінченне переродження.</p>
+
+            <h4>Остання надія</h4>
+            <p>Коли висихаєш — пропонується <b>🎰 рятувальний слот</b>. Заплати <b>відсоток зібраної сутності</b> (на старті — щонайменше 1 тис.) і крути: пощастить — калабаня наповнюється й мандрівка триває далі; ні — спробуй ще, але ціна щоразу дорожчає. Вища Вдача підвищує шанс. Можна й просто <b>прийняти долю</b> та забрати всю сутність.</p>
 
             <h4>Досягнення</h4>
             <p>За подвиги даються <b>досягнення</b> (🏆). Деякі — <b>приховані</b> (показуються як «???», поки не відкриєш).</p>
