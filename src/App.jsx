@@ -415,7 +415,9 @@ function evapPerSec(g) {
   const redu = Math.max(0.5, g.deepenMult * g.mossMult);
   let e = g.baseEvap * redu * sunMul * (1 - g.leaf);
   if (g.shadeT > 0) e *= 0.35;
-  if (g.evapBoostT > 0) e *= 1.7;
+  // буст випару від подій: множник + відчутний плоский злив (масштаб від об'єму),
+  // щоб відчувалось навіть коли базовий випар прокачкою зведений майже в нуль
+  if (g.evapBoostT > 0) e = e * 1.8 + (g.maxWater || 120) * 0.007;
   // глобальне потепління: невідворотний випар, що росте з днем (не блокується прокачкою/опором)
   e += warmingDrain(g.day);
   e *= (1 + w.evapMod);
