@@ -191,9 +191,11 @@ const EVENTS = [
     { b: "Прийняти, як рідну", s: "−випар на 20с · міцніша дружба", fn: g => ({ ...g, shadeT: 20 }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 1 }), luck: 2 },
     { b: "Попросити про послугу", s: "+12 сутності", fn: g => ({ ...g, pending: g.pending + 12 * effEss(g) }) }] },
   { t: "Равлик-крамар", emo: "🐌", art: "snail", req: (g) => g.day >= 3, weight: 1.1,
-    d: "Равлик зі скойкою-крамницею повз твоїм берегом, мляво ворухнувши ріжком.", opts: [
+    d: "Равлик зі скойкою-крамницею повз твоїм берегом і розклав на мушлі дрібний крам.", opts: [
     { b: "Виміняти мул на захист", s: "−18 води · +опір спеці", fn: g => ({ ...g, water: g.water - 18, sunResist: clamp(g.sunResist + 0.06, 0, 0.85) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
-    { b: "Купити краплю глибини", s: "−14 води · +35 об'єму", fn: g => ({ ...g, water: g.water - 14, maxWater: g.maxWater + 35 }), meta: m => ({ ...m, snailMet: true }), luck: 1 }] },
+    { b: "Купити краплю глибини", s: "−14 води · +35 об'єму", fn: g => ({ ...g, water: g.water - 14, maxWater: g.maxWater + 35 }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
+    { b: "Придбати жменю ряски", s: "−16 води · −6% випару (на весь забіг)", fn: g => ({ ...g, water: g.water - 16, mossMult: g.mossMult * 0.94 }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
+    { b: "Пройти повз", s: "нічого", fn: g => g }] },
   { t: "Чапля на одній нозі", emo: "🪽", art: "heron", req: (g) => g.day >= 4, weight: 0.9,
     d: "Сіра чапля завмерла над тобою, видивляючись щось у твоїй глибині.", opts: [
     { b: "Поділитися водою", s: "−30 води · +20 сутності", fn: g => ({ ...g, water: g.water - 30, pending: g.pending + 20 * effEss(g) }), luck: 2 },
