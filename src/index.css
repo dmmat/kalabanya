@@ -398,7 +398,7 @@ body {
 }
 
 /* ------------------------------------------------------------------ wheel of fortune */
-.wheel-wrap { position:relative; width:230px; height:230px; max-width:72vw; max-height:72vw; margin:6px auto 14px; }
+.wheel-wrap { --wsz:min(220px,70vw,34vh); position:relative; width:var(--wsz); height:var(--wsz); margin:6px auto 12px; }
 .wheel { position:absolute; inset:0; border-radius:50%; border:4px solid rgba(255,255,255,.14);
   box-shadow:0 14px 44px -10px rgba(0,0,0,.7), inset 0 0 0 8px rgba(8,18,24,.45);
   transition: transform 3.3s cubic-bezier(.15,.62,.16,1); will-change: transform; }
