@@ -433,6 +433,9 @@ const ACHIEVEMENTS = [
   { id: "trial",    e: "🚀", nm: "Загартована",      dq: "Пережити День Випробування." },
   { id: "ducks",    e: "🦆", nm: "Дім для всіх",     dq: "Прихистити качку з каченятами." },
   { id: "summoner", e: "📣", nm: "Гукни друзів",     dq: "Уперше скористатися здібністю друга.", hidden: true },
+  { id: "combo3",   e: "✨", nm: "Зграя помічників", dq: "Скласти комбо з 3 здібностей поспіль.", hidden: true },
+  { id: "combo5",   e: "🎆", nm: "Симфонія друзів",  dq: "Скласти комбо ×5.", hidden: true },
+  { id: "comboMix", e: "🌈", nm: "Усі гуртом",       dq: "В одному комбо — 3 різні здібності.", hidden: true },
 ];
 
 /* ---------- Дні Випробувань: кожен 10-й день — особливий, без прокруту погоди ---------- */
@@ -463,20 +466,22 @@ const applyChallenge = (w, day) => {
 };
 
 /* ---------- активні здібності від друзів (з'являються лише з дружбою — сюрприз) ----------
-   Кулдаун зменшується даром «Поклик друзів» (callcd). */
+   Ефекти СТАКАЮТЬСЯ (додають тривалість, з кепом). Кулдаун зменшує дар «Поклик друзів». */
+const ABT_CAP = 45; // стеля тривалості тіні/вбирання від стакання
+const addT = (v, a) => Math.min((v || 0) + a, ABT_CAP);
 const ABILITIES = [
   { id: "birds", emo: "🐦", nm: "Зграя птахів", cd: 45, req: m => m.birdFriend,
-    apply: g => ({ ...g, shadeT: Math.max(g.shadeT, 9) }), tip: "Зграя птахів затуляє сонце (тінь ~9с)" },
+    apply: g => ({ ...g, shadeT: addT(g.shadeT, 9) }), tip: "Зграя птахів затуляє сонце (+тінь 9с)" },
   { id: "frogs", emo: "🐸", nm: "Жаб'ячий хор", cd: 50, req: m => (m.frogBond || 0) >= 1,
-    apply: g => ({ ...g, shadeT: Math.max(g.shadeT, 6), absorbBoostT: Math.max(g.absorbBoostT, 6) }), tip: "Хор жаб: трохи тіні й вбирання" },
+    apply: g => ({ ...g, shadeT: addT(g.shadeT, 6), absorbBoostT: addT(g.absorbBoostT, 6) }), tip: "Хор жаб: +тінь і +вбирання 6с" },
   { id: "dog", emo: "🐕", nm: "Песик хлюпає", cd: 40, req: m => m.dogFriend,
-    apply: g => ({ ...g, absorbBoostT: Math.max(g.absorbBoostT, 11) }), tip: "Песик розбризкує — краще вбирання (~11с)" },
+    apply: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 11) }), tip: "Песик розбризкує — +вбирання 11с" },
   { id: "cat", emo: "🐈‍⬛", nm: "Котячий замур", cd: 60, req: m => m.catPet,
     apply: g => ({ ...g, pending: g.pending + eAmt(g, 8) * effEss(g) }), tip: "Кіт муркоче — трохи сутності" },
   { id: "ducks", emo: "🦆", nm: "Качині крила", cd: 55, req: m => m.duckFriend,
-    apply: g => ({ ...g, shadeT: Math.max(g.shadeT, 11) }), tip: "Качки обмахують крильми (тінь ~11с)" },
+    apply: g => ({ ...g, shadeT: addT(g.shadeT, 11) }), tip: "Качки обмахують крильми — +тінь 11с" },
   { id: "snail", emo: "🐌", nm: "Равликів слиз", cd: 50, req: m => m.snailMet,
-    apply: g => ({ ...g, shadeT: Math.max(g.shadeT, 14) }), tip: "Прохолодний слиз береже від спеки (~14с)" },
+    apply: g => ({ ...g, shadeT: addT(g.shadeT, 14) }), tip: "Прохолодний слиз — +тінь 14с" },
   { id: "bee", emo: "🐝", nm: "Бджолиний нектар", cd: 60, req: m => m.beeFriend,
     apply: g => ({ ...g, pending: g.pending + eAmt(g, 11) * effEss(g) }), tip: "Бджоли діляться нектаром — сутність" },
   { id: "hog", emo: "🦔", nm: "Їжак розпушує", cd: 50, req: m => m.hogFriend,
@@ -630,6 +635,9 @@ export default function App() {
   const [wheel, setWheel] = useState(null); // null | { stage:"offer"|"spin"|"done", idx }
   const [wheelRot, setWheelRot] = useState(0);
   const [eventT, setEventT] = useState(0); // countdown for timed (passing) guests
+  const [combo, setCombo] = useState(0); // ability combo display
+  const comboRef = useRef({ count: 0, last: 0, ids: new Set() });
+  const comboHideRef = useRef(null);
   const resolveEventRef = useRef(null);
   const stageRef = useRef(null);
   const wheelRef = useRef(null); wheelRef.current = wheel;
@@ -880,9 +888,25 @@ export default function App() {
     if (phaseRef.current !== "playing") return;
     const cur = (gRef.current.abil || {})[ab.id] || 0;
     if (cur > 0) return;
-    Sfx.drip();
-    setG(p => { const n = ab.apply({ ...p }); n.abil = { ...(p.abil || {}), [ab.id]: abilCD(ab) }; return n; });
+    // комбо: швидке поєднання здібностей (вікно 4с) нарощує лічильник і дає бонус
+    const now = Date.now(), c = comboRef.current;
+    if (now - c.last < 4000) c.count++; else { c.count = 1; c.ids = new Set(); }
+    c.ids.add(ab.id); c.last = now;
+    const cc = c.count, bonus = cc >= 2 ? eAmt(gRef.current, 3 * cc) : 0;
+    Sfx.drip(); if (cc >= 2) Sfx.win();
+    setG(p => {
+      const n = ab.apply({ ...p });
+      n.abil = { ...(p.abil || {}), [ab.id]: abilCD(ab) };
+      if (bonus) n.pending = n.pending + bonus * effEss(p);
+      return n;
+    });
+    setCombo(cc);
+    clearTimeout(comboHideRef.current);
+    comboHideRef.current = setTimeout(() => setCombo(0), 1700);
     unlock("summoner");
+    if (cc >= 3) unlock("combo3");
+    if (cc >= 5) unlock("combo5");
+    if (c.ids.size >= 3) unlock("comboMix");
   };
   const resolveEvent = (opt) => {
     Sfx.click();
@@ -1235,6 +1259,7 @@ export default function App() {
         {/* ACTIVE ABILITIES (appear only once befriended — a surprise) */}
         {phase === "playing" && ABILITIES.some(a => a.req(meta, g)) && (
           <div className="kal-abilities reveal">
+            {combo >= 2 && <div className="kal-combo" key={combo}>КОМБО ×{combo}!</div>}
             {ABILITIES.filter(a => a.req(meta, g)).map(a => {
               const cd = (g.abil && g.abil[a.id]) || 0;
               const max = abilCD(a);
