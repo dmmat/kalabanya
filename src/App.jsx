@@ -742,8 +742,8 @@ export default function App() {
       )}
 
       <div className="kal-wrap">
-        {/* STICKY TOP: header + heat + day cycle + stage stay pinned while panels scroll */}
-        <div className="kal-stickytop">
+        {/* sticky only while playing + on phones; normal flow elsewhere */}
+        <div className={"kal-stickytop" + (phase === "playing" ? " playing" : "")}>
         {/* TOP */}
         <div className="kal-top reveal">
           <div>
