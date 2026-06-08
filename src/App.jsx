@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import WaterPuddle from "./WaterPuddle.jsx";
 
 /* =========================================================================
    КАЛАБАНЯ — інкрементальна roguelike про калюжу, що висихає.
@@ -1088,7 +1089,7 @@ export default function App() {
   const [io, setIo] = useState({ open: false, text: "", msg: "" });
   const [popup, setPopup] = useState(null); // null | "codex" | "ach" | "settings"
   const [toasts, setToasts] = useState([]);
-  const [scenesOk, setScenesOk] = useState(true); // illustrated backgrounds present?
+  const [waterOk, setWaterOk] = useState(true); // procedural water assets (bg/map) present?
   const [wheel, setWheel] = useState(null); // null | { stage:"offer"|"spin"|"done", idx }
   const [wheelRot, setWheelRot] = useState(0);
   const [eventT, setEventT] = useState(0); // countdown for timed (passing) guests
@@ -1785,12 +1786,10 @@ export default function App() {
   const sunArcSize = 56 + Math.sin(Math.PI * todT) * 34;
   const phaseLabel = todT < 0.12 ? "Світанок" : todT < 0.4 ? "Ранок" : todT < 0.62 ? "Полудень" : todT < 0.82 ? "Пообіддя" : "Сутінки";
 
-  // illustrated scene selection (drop your art into public/scenes/, see README)
-  const isNight = sky.star > 0.45;
-  const sceneFile = isNight
-    ? (ratio > 0.5 ? "night-full.webp" : "night-dry.webp")
-    : (ratio > 0.66 ? "day-full.webp" : ratio > 0.33 ? "day-mid.webp" : "day-dry.webp");
-  const useScene = scenesOk;
+  // процедурна вода (намальований фон ями + карта глибини, див. public/scenes/README)
+  const waterBgDay = `${import.meta.env.BASE_URL}scenes/puddle-bg.webp`;
+  const waterBgNight = `${import.meta.env.BASE_URL}scenes/puddle-bg-night.webp`;
+  const waterMap = `${import.meta.env.BASE_URL}scenes/puddle-map.webp`;
 
   if (phase === "loading") return <div className="kal-root"><div style={{ padding: 40, textAlign: "center", color: "#6f9099", fontFamily: "Fraunces, serif", fontStyle: "italic" }}>збираю краплі…</div></div>;
 
@@ -1851,23 +1850,10 @@ export default function App() {
         <div className={"kal-stage reveal" + (phase === "playing" ? " live" : "")} ref={stageRef} onClick={absorb}>
           <div className="kal-sky" style={{ background: sky.gradient }} />
           <div className="kal-stars" style={{ "--star": sky.star, opacity: sky.star }} />
-          {!useScene && sky.star > 0.4 && <div className="kal-moon" style={{ opacity: sky.star }} />}
+          {!waterOk && sky.star > 0.4 && <div className="kal-moon" style={{ opacity: sky.star }} />}
 
-          {/* illustrated scene (auto-used when art is dropped into public/scenes/) */}
-          {useScene && (
-            <img
-              className="kal-scene"
-              key={sceneFile}
-              src={`${import.meta.env.BASE_URL}scenes/${sceneFile}`}
-              alt=""
-              draggable={false}
-              onError={() => setScenesOk(false)}
-              style={{ filter: `brightness(${0.92 + 0.12 * Math.sin(Math.PI * todT)})` }}
-            />
-          )}
-
-          {/* procedural fallback puddle */}
-          {!useScene && <>
+          {/* procedural fallback puddle (shown only if the water canvas assets failed) */}
+          {!waterOk && <>
             <div className="kal-ground" style={{ filter: `brightness(${0.7 + 0.5 * Math.sin(Math.PI * todT)})` }} />
             {showSunArc && <>
               <div className="kal-rays" style={{ opacity: sunT * 0.5, background: `conic-gradient(from 0deg at ${sunArcLeft}% ${sunArcTop / 3.8}%, transparent 0deg, ${sunCol}33 8deg, transparent 16deg, transparent 40deg, ${sunCol}22 48deg, transparent 56deg)` }} />
@@ -1880,6 +1866,19 @@ export default function App() {
               <div className="kal-pmid"><b>{fmt(g.water)}</b><small>/ {fmt(g.maxWater)} води</small></div>
             </div>
           </>}
+
+          {/* procedural water (canvas) — основний шар; returns null self if assets fail */}
+          <WaterPuddle
+            fill={ratio}
+            tod={todT}
+            night={sky.star}
+            active={phase === "playing"}
+            fxEvents={fx}
+            bgDayUrl={waterBgDay}
+            bgNightUrl={waterBgNight}
+            mapUrl={waterMap}
+            onError={() => setWaterOk(false)}
+          />
 
           {/* weather particles (both modes) */}
           {phase === "playing" && Array.from({ length: rainN }).map((_, i) => (
@@ -1908,13 +1907,13 @@ export default function App() {
           {/* positional ripple FX (both modes) */}
           {fx.map(r => (
             <div key={r.id} className="kal-fx" style={{ left: `${r.x}%`, top: `${r.y}%` }}>
-              <div className="kal-ripple" />
+              {!waterOk && <div className="kal-ripple" />}
               {r.amt > 0 && <div className="kal-gain kal-num">+{r.amt.toFixed(1)}</div>}
             </div>
           ))}
 
-          {/* water HUD overlay (shown over scene art) */}
-          {useScene && phase === "playing" && (
+          {/* water HUD overlay (shown over the water canvas) */}
+          {phase === "playing" && (
             <div className="kal-hud kal-pmid"><b>{fmt(g.water)}</b><small>/ {fmt(g.maxWater)} води</small></div>
           )}
           {phase === "playing" && <div className="kal-hint">{g.festival ? `🎉 свято — просто святкуй · ${w.icon} злива-благодать` : `торкайся, щоб вбирати · ${net >= 0 ? "▲" : "▼"} ${fmt(Math.abs(net))}/с ${w.icon}`}</div>}
@@ -2455,8 +2454,8 @@ export default function App() {
       {/* WELCOME / INTRO */}
       {phase === "welcome" && (
         <div className="kal-welcome">
-          {scenesOk && (
-            <img className="kal-welcome-bg" src={`${import.meta.env.BASE_URL}scenes/day-full.webp`} alt="" draggable={false} onError={() => setScenesOk(false)} />
+          {waterOk && (
+            <img className="kal-welcome-bg" src={`${import.meta.env.BASE_URL}scenes/puddle-bg.webp`} alt="" draggable={false} onError={() => setWaterOk(false)} />
           )}
           <div className="kal-welcome-veil" />
           <div className="kal-welcome-inner">

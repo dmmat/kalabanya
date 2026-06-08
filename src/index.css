@@ -124,6 +124,8 @@ body {
 .kal-scene { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 60%;
   pointer-events:none; transition:filter .8s linear, opacity .5s ease; animation:scenefade .6s ease both; }
 @keyframes scenefade { from{opacity:0;} to{opacity:1;} }
+.kal-water { position:absolute; inset:0; width:100%; height:100%; display:block;
+  pointer-events:none; animation:scenefade .6s ease both; }
 .kal-fx { position:absolute; transform:translate(-50%,-50%); pointer-events:none; z-index:6; }
 .kal-fx .kal-ripple { left:50%; top:50%; }
 .kal-fx .kal-gain { position:absolute; left:0; top:-6px; white-space:nowrap; }
