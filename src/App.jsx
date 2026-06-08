@@ -835,7 +835,8 @@ export default function App() {
         n.pending += (n.essRate || 0.15) * effEss(n) * dt;
         if (!event) n.nextEvent -= dt; // таймер паузиться, поки відкрите вікно події
         if (n.water >= n.maxWater - 0.5) unlock("rainchild");
-        if (n.nextEvent <= 0 && !event) {
+        // не запускати подій/Колесо в останні ~13с дня (щоб не вискакували перед сутінками)
+        if (n.nextEvent <= 0 && !event && (n.dayLen - n.elapsed) > 13) {
           n.nextEvent = 99999; // сентинел: жодних нових подій, доки цю не закриють
           // рідко (раз на пару днів) замість звичайної події випадає Колесо Фортуни
           const wheelReady = n.day >= 2 && (n.day - (n.wheelDay ?? -9)) >= 2 && Math.random() < 0.35;
