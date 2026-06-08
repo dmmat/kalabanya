@@ -3,9 +3,10 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg0:#070f12; --bg1:#0b1a20; --water-a:#5fd6e8; --water-b:#178aa6; --dry:#8a5a3c;
-  --sun:#f7c14b; --ink:#dff1f3; --muted:#6f9099; --line:rgba(120,200,215,.14);
-  --essence:#cdb4f6; --good:#7fe8b0; --bad:#f08a7a;
+  /* болотяна палітра: каламутна вода, мох, мул */
+  --bg0:#080b06; --bg1:#10160d; --water-a:#74c39a; --water-b:#2f7d5f; --dry:#8a6a3c;
+  --sun:#ecbb52; --ink:#e6efda; --muted:#86977a; --line:rgba(150,185,120,.16);
+  --essence:#cdb4f6; --good:#8fdc9e; --bad:#e2906a;
 }
 
 html, body, #root { height: 100%; }
@@ -33,7 +34,7 @@ body {
   min-height: 100%; width: 100%; position: relative; overflow: visible;
   user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
   touch-action: manipulation;
-  background: radial-gradient(120% 90% at 50% -10%, #163842 0%, var(--bg1) 42%, var(--bg0) 100%);
+  background: radial-gradient(120% 90% at 50% -10%, #20301c 0%, var(--bg1) 42%, var(--bg0) 100%);
 }
 /* keep the save/import code selectable so it can be copied */
 .kal-ta, input, textarea { user-select: text; -webkit-user-select: text; }
@@ -68,9 +69,9 @@ body {
 .kal-up.sky:hover:not(.dis){ border-color:rgba(180,210,245,.3); background:rgba(180,210,245,.08); }
 .kal-go.sky { background:linear-gradient(180deg,#c3d6f6,#7f95ca); color:#0f1d36; }
 .kal-go.sky:disabled { background:linear-gradient(180deg,#3a4866,#2a3550); color:#9fb0cc; }
-.kal-toolbtn { border:1px solid var(--line); background:rgba(95,214,232,.06); color:var(--ink); width:38px;height:38px;
+.kal-toolbtn { border:1px solid var(--line); background:rgba(116,195,154,.06); color:var(--ink); width:38px;height:38px;
   border-radius:11px; font-size:17px; display:grid; place-items:center; transition:.16s; }
-.kal-toolbtn:hover { background:rgba(95,214,232,.16); border-color:var(--water-a); }
+.kal-toolbtn:hover { background:rgba(116,195,154,.16); border-color:var(--water-a); }
 
 .rowlab { display:flex; justify-content:space-between; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
 .rowlab em { font-style:normal; letter-spacing:.04em; text-transform:none; }
@@ -166,12 +167,12 @@ body {
 
 /* event character portrait (optional art: public/events/<id>.webp) */
 .kal-evt .eemo-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:12px;
-  box-shadow:0 2px 10px rgba(0,0,0,.5), inset 0 0 0 1px rgba(95,214,232,.4); z-index:1; animation:bin .3s ease both; }
+  box-shadow:0 2px 10px rgba(0,0,0,.5), inset 0 0 0 1px rgba(116,195,154,.4); z-index:1; animation:bin .3s ease both; }
 
 /* event ambiance over the stage */
 .kal-eventfx { position:absolute; inset:0; pointer-events:none; z-index:7; overflow:hidden; }
 .kal-eventglow { position:absolute; inset:0; pointer-events:none;
-  background:radial-gradient(60% 50% at 50% 56%, rgba(95,214,232,.20), transparent 70%);
+  background:radial-gradient(60% 50% at 50% 56%, rgba(116,195,154,.20), transparent 70%);
   animation:efglow 1.8s ease-out forwards; }
 @keyframes efglow { 0%{opacity:0;} 28%{opacity:1;} 100%{opacity:0;} }
 .ef-emoji { position:absolute; bottom:30%; opacity:0; filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));
@@ -201,9 +202,9 @@ body {
 .seclab { font-size:13px; color:var(--muted); margin-bottom:6px; letter-spacing:.1em; text-transform:uppercase; }
 .kal-up { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:12px; border:1px solid transparent;
   transition:background .16s ease, border-color .16s ease, transform .08s ease; margin-bottom:6px; background:rgba(255,255,255,.02); }
-.kal-up.clickable:active:not(.dis) { transform:scale(.985); background:rgba(95,214,232,.12); border-color:rgba(95,214,232,.3); }
+.kal-up.clickable:active:not(.dis) { transform:scale(.985); background:rgba(116,195,154,.12); border-color:rgba(116,195,154,.3); }
 @media (hover:hover) {
-  .kal-up.clickable:hover:not(.dis) { border-color:rgba(95,214,232,.22); background:rgba(95,214,232,.06); }
+  .kal-up.clickable:hover:not(.dis) { border-color:rgba(116,195,154,.22); background:rgba(116,195,154,.06); }
 }
 .kal-up.dis { opacity:.4; }
 .kal-up .emo { font-size:20px; width:26px; text-align:center; }
@@ -212,9 +213,9 @@ body {
 .kal-up.meta .cost { color:var(--essence); }
 .kal-up .lvl { font-family:'Spline Sans Mono',monospace; font-size:11px; color:var(--muted); margin-left:4px; }
 
-.kal-mini { border:1px solid var(--line); border-radius:10px; padding:9px 13px; background:rgba(95,214,232,.06);
+.kal-mini { border:1px solid var(--line); border-radius:10px; padding:9px 13px; background:rgba(116,195,154,.06);
   color:var(--ink); font-family:'Spectral',serif; font-size:13px; transition:.16s; }
-.kal-mini:hover { background:rgba(95,214,232,.16); border-color:var(--water-a); }
+.kal-mini:hover { background:rgba(116,195,154,.16); border-color:var(--water-a); }
 .kal-mini.danger { color:var(--bad); } .kal-mini.danger:hover { border-color:var(--bad); background:rgba(240,138,122,.1); }
 .kal-mini.ghost { background:transparent; color:var(--muted); }
 .kal-ta { width:100%; height:78px; resize:vertical; border:1px solid var(--line); border-radius:10px; background:rgba(0,0,0,.25);
@@ -227,29 +228,29 @@ body {
 
 /* ------------------------------------------------------------------ events */
 .kal-evt { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); width:min(560px,92vw); z-index:30;
-  border:1px solid rgba(95,214,232,.35); border-radius:18px; padding:16px 18px;
+  border:1px solid rgba(116,195,154,.35); border-radius:18px; padding:16px 18px;
   background:linear-gradient(180deg,rgba(18,52,60,.96),rgba(9,24,30,.97)); backdrop-filter:blur(10px);
   box-shadow:0 20px 60px -10px rgba(0,0,0,.7); animation:pop .25s ease-out; }
 @keyframes pop { from{transform:translate(-50%,16px);opacity:0;} to{transform:translate(-50%,0);opacity:1;} }
 .kal-evt { animation:pop .25s ease-out, evtglow 2.4s ease-in-out infinite; }
 @keyframes evtglow {
-  0%,100%{ box-shadow:0 20px 60px -10px rgba(0,0,0,.7), 0 0 0 0 rgba(95,214,232,0); }
-  50%{ box-shadow:0 20px 60px -10px rgba(0,0,0,.7), 0 0 26px -2px rgba(95,214,232,.35); }
+  0%,100%{ box-shadow:0 20px 60px -10px rgba(0,0,0,.7), 0 0 0 0 rgba(116,195,154,0); }
+  50%{ box-shadow:0 20px 60px -10px rgba(0,0,0,.7), 0 0 26px -2px rgba(116,195,154,.35); }
 }
 .kal-evt .ehead { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
 .kal-evt .eemo { font-size:28px; position:relative; display:grid; place-items:center; width:48px; height:48px; flex:0 0 auto;
   animation:emobob 2.4s ease-in-out infinite; }
 @keyframes emobob { 0%,100%{transform:translateY(0) rotate(-5deg);} 50%{transform:translateY(-3px) rotate(5deg);} }
 .kal-evt .eemo-ring { position:absolute; inset:-4px; border-radius:50%; pointer-events:none;
-  background:conic-gradient(from 0deg, rgba(95,214,232,.0), rgba(95,214,232,.5), rgba(95,214,232,.0) 60%);
+  background:conic-gradient(from 0deg, rgba(116,195,154,.0), rgba(116,195,154,.5), rgba(116,195,154,.0) 60%);
   animation:ringspin 3.5s linear infinite; opacity:.7; -webkit-mask:radial-gradient(closest-side, transparent 64%, #000 66%); mask:radial-gradient(closest-side, transparent 64%, #000 66%); }
 @keyframes ringspin { to{ transform:rotate(360deg); } }
 .kal-evt .et { font-family:'Fraunces',serif; font-style:italic; font-size:18px; }
 .kal-evt .ed { font-size:13.5px; color:#bcd6da; margin-bottom:12px; line-height:1.4; }
 .kal-evt .opts { display:flex; gap:10px; flex-wrap:wrap; }
 .kal-btn { flex:1; min-width:120px; border:1px solid var(--line); border-radius:11px; padding:10px 12px;
-  background:rgba(95,214,232,.06); color:var(--ink); font-family:'Spectral',serif; font-size:13.5px; transition:.16s; text-align:left; }
-.kal-btn:hover { background:rgba(95,214,232,.16); border-color:var(--water-a); transform:translateY(-1px); }
+  background:rgba(116,195,154,.06); color:var(--ink); font-family:'Spectral',serif; font-size:13.5px; transition:.16s; text-align:left; }
+.kal-btn:hover { background:rgba(116,195,154,.16); border-color:var(--water-a); transform:translateY(-1px); }
 .kal-btn b { display:block; font-weight:600; margin-bottom:2px; } .kal-btn small { color:var(--muted); font-size:11.5px; }
 
 /* ------------------------------------------------------------------ overlays / popups */
@@ -279,10 +280,10 @@ body {
 
 /* ------------------------------------------------------------------ slot */
 .reelbox { position:relative; display:flex; justify-content:center; gap:10px; padding:16px; margin:6px 0 4px; border-radius:18px;
-  background:radial-gradient(120% 120% at 50% 0%,rgba(20,60,70,.6),rgba(5,14,18,.7)); border:1px solid rgba(95,214,232,.25);
+  background:radial-gradient(120% 120% at 50% 0%,rgba(20,60,70,.6),rgba(5,14,18,.7)); border:1px solid rgba(116,195,154,.25);
   box-shadow:inset 0 4px 30px rgba(0,0,0,.5); }
 .reel { position:relative; width:78px; height:78px; overflow:hidden; border-radius:12px;
-  background:linear-gradient(180deg,#0a1f25,#06141a); border:1px solid rgba(95,214,232,.2); box-shadow:inset 0 6px 16px rgba(0,0,0,.6); }
+  background:linear-gradient(180deg,#0a1f25,#06141a); border:1px solid rgba(116,195,154,.2); box-shadow:inset 0 6px 16px rgba(0,0,0,.6); }
 .reel-cell { height:78px; display:flex; align-items:center; justify-content:center; font-size:42px; }
 .reel-fade { position:absolute; left:0; right:0; height:22px; pointer-events:none; z-index:2; }
 .reel-fade.top { top:0; background:linear-gradient(#06141a,transparent); }
@@ -333,7 +334,7 @@ body {
 
 /* ------------------------------------------------------------------ welcome */
 .kal-welcome { position:fixed; inset:0; z-index:40; display:flex; align-items:center; justify-content:center; padding:24px;
-  overflow:hidden; background:radial-gradient(120% 90% at 50% -10%, #163842, var(--bg1) 45%, var(--bg0)); animation:up .5s ease both; }
+  overflow:hidden; background:radial-gradient(120% 90% at 50% -10%, #20301c, var(--bg1) 45%, var(--bg0)); animation:up .5s ease both; }
 .kal-welcome-bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 58%;
   filter:brightness(.6) saturate(1.05); transform:scale(1.05); animation:welcomedrift 24s ease-in-out infinite alternate; }
 @keyframes welcomedrift { from{transform:scale(1.05) translateY(0);} to{transform:scale(1.12) translateY(-12px);} }
@@ -368,7 +369,7 @@ body {
 /* on touch devices, don't let :hover stick after a tap; use crisp :active feedback instead */
 @media (hover: none) {
   .kal-up.sky:hover:not(.dis) { border-color:transparent; background:rgba(255,255,255,.02); }
-  .kal-toolbtn:hover, .kal-mini:hover, .kal-btn:hover { background:rgba(95,214,232,.06); border-color:var(--line); transform:none; }
+  .kal-toolbtn:hover, .kal-mini:hover, .kal-btn:hover { background:rgba(116,195,154,.06); border-color:var(--line); transform:none; }
   .kal-go:hover:not(:disabled) { filter:none; transform:none; }
 }
 .kal-up.sky.clickable:active:not(.dis) { transform:scale(.985); background:rgba(180,210,245,.12); }

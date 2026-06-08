@@ -271,7 +271,7 @@ const WHEEL = [
     msg: "Небо розщедрилось: повна вода, +об'єм і повна жменя сутності!" },
   { emo: "💎", nm: "Скарб", tier: "good", col: "#7fe8b0", w: 2,
     fn: g => ({ ...g, pending: g.pending + 40 * effEss(g) }), msg: "На дні зблиснув скарб — багато сутності." },
-  { emo: "💧", nm: "Повінь", tier: "good", col: "#5fd6e8", w: 2,
+  { emo: "💧", nm: "Повінь", tier: "good", col: "#74c39a", w: 2,
     fn: g => ({ ...g, water: g.maxWater }), msg: "Раптова повінь наповнила тебе по вінця." },
   { emo: "🍀", nm: "Доля", tier: "good", col: "#9be8c0", w: 2, luck: 3,
     fn: g => ({ ...g, pending: g.pending + 12 * effEss(g) }), msg: "Тобі усміхнулась доля — вдача зросла." },
@@ -801,7 +801,7 @@ export default function App() {
 
   /* ---- export / import ---- */
   const exportProgress = () => {
-    const data = JSON.stringify({ v: 3, meta, phase: phaseRef.current, g: gRef.current }, null, 0);
+    const data = JSON.stringify({ v: 3, meta, phase: phaseRef.current, g: gRef.current, result: resultRef.current }, null, 0);
     const b64 = (() => { try { return "KAL1" + btoa(unescape(encodeURIComponent(data))); } catch (e) { return data; } })();
     setIo({ open: true, text: b64, msg: "Скопіюй цей код або завантаж файл. Це вся твоя мандрівка." });
     try {
@@ -818,11 +818,23 @@ export default function App() {
       if (str.startsWith("KAL1")) str = decodeURIComponent(escape(atob(str.slice(4))));
       const d = JSON.parse(str);
       if (!d.meta) throw new Error("no meta");
-      setMeta(m => ({ ...m, ...d.meta }));
-      if (d.g) { setG(gg => ({ ...gg, ...d.g, weather: d.g.weather || NEUTRAL })); }
+      setMeta(m => ({ ...m, ...d.meta, ach: { ...(m.ach || {}), ...(d.meta.ach || {}) } }));
+      setEvent(null); setWheel(null);
+      const resumable = ["playing", "survived", "forecast", "dead"];
+      let nextPhase = "menu";
+      if (d.g && resumable.includes(d.phase)) {
+        const ne = (d.g.nextEvent == null || d.g.nextEvent >= 9999) ? 6 + Math.random() * 6 : d.g.nextEvent;
+        setG(gg => ({ ...gg, ...d.g, weather: d.g.weather || NEUTRAL, nextEvent: ne }));
+        if (d.phase === "dead") { if (d.result) { setResult(d.result); nextPhase = "dead"; } else nextPhase = "menu"; }
+        else if (d.phase === "forecast") { bootForecast.current = true; nextPhase = "forecast"; }
+        else nextPhase = d.phase; // playing | survived — переносимо активний забіг
+      } else if (d.g) {
+        setG(gg => ({ ...gg, ...d.g, weather: d.g.weather || NEUTRAL }));
+      }
       setIo({ open: false, text: "", msg: "" });
-      setPhase("menu");
-      store.save(KEY, JSON.stringify({ v: 3, meta: { ...metaRef.current, ...d.meta }, phase: "menu", g: d.g || gRef.current }));
+      setPopup(null);
+      setPhase(nextPhase);
+      store.save(KEY, JSON.stringify({ v: 3, meta: { ...metaRef.current, ...d.meta }, phase: nextPhase, g: d.g || gRef.current, result: d.result }));
     } catch (e) { setIo(o => ({ ...o, msg: "Не вдалося прочитати код 🙁" })); }
   };
   const wipe = () => {
@@ -840,8 +852,8 @@ export default function App() {
   const evap = evapPerSec(g);
   const net = g.passive + w.rainPower - evap;
   const dryT = 1 - ratio;
-  const waterCol = mix("#178aa6", "#8a5a3c", dryT * 0.65);
-  const waterEdge = mix("#5fd6e8", "#b07a4a", dryT * 0.6);
+  const waterCol = mix("#2f7d5f", "#8a5a3c", dryT * 0.65);
+  const waterEdge = mix("#74c39a", "#b07a4a", dryT * 0.6);
   const sunT = clamp(g.sun / 130, 0, 1);
   const sunCol = sunT < 0.5 ? mix("#f7c14b", "#f0682f", sunT * 2) : mix("#f0682f", "#d23a2c", (sunT - 0.5) * 2);
   const vaporN = Math.round(clamp(evap / 0.7, 0, 7));
