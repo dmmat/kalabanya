@@ -175,6 +175,8 @@ const META_UPGRADES = [
   { id: "spring2", emo: "🪨", nm: "Глибинна жила", de: "Старт із +0.4/с пасивної води.", base: 160, growth: 1.92, max: 6, tier: 2 },
   { id: "essflow", emo: "🌫️", nm: "Роса предків", de: "+0.05/с базового збору сутності.", base: 150, growth: 1.9, max: 6, tier: 2 },
   { id: "calmsky", emo: "🌬️", nm: "Пам'ять зливи", de: "−8% до ціни перекруту прогнозу.", base: 170, growth: 1.95, max: 5, tier: 2 },
+  // нескінченний сток сутності — щоб надлишок завжди мав куди йти (вівтар «дорожчає й далі»)
+  { id: "abyss", emo: "🌌", nm: "Безкрая глибінь", de: "Старт із +15 води/об'єму та +0.03/с (без межі — сюди йде надлишок сутності).", base: 240, growth: 1.42, max: 9999, inf: true, req: m => (m.wellspring || 0) >= 3 || (m.best || 0) >= 10 },
 ];
 const META_TIER2_DAY = 8; // глибинні дари відкриваються після такого рекорду
 
@@ -605,7 +607,7 @@ const addT = (v, a) => Math.min((v || 0) + a, ABT_CAP);
 const FRIEND_KEYS = ["frogBond", "dogFriend", "catPet", "duckFriend", "birdFriend", "beeFriend", "hogFriend", "heronFriend", "snailMet", "fireFriend"];
 const friendCount = (m) => FRIEND_KEYS.reduce((s, k) => s + (m && m[k] ? 1 : 0), 0);
 const fc3 = (m) => Math.floor(friendCount(m) / 3); // +1 кожні 3 друзі
-const eMul = (m) => 1 + friendCount(m) * 0.06; // дружба підсилює дари сутності
+const eMul = (m) => 1 + friendCount(m) * 0.045; // дружба підсилює дари сутності
 const ABILITIES = [
   // — тінь: коротка перезарядка, легкі дари —
   { id: "birds", emo: "🐦", nm: "Зграя птахів", cd: 26, kind: "тінь", req: m => m.birdFriend,
@@ -620,13 +622,13 @@ const ABILITIES = [
     apply: (g, m) => ({ ...g, shadeT: addT(g.shadeT, 14 + fc3(m)) }), tip: "Прохолодний слиз — велика тінь" },
   { id: "hog", emo: "🦔", nm: "Їжак розпушує", cd: 44, kind: "ґрунт", req: m => m.hogFriend, prey: ["snail"], lock: 9,
     apply: g => ({ ...g, soil: g.soilMax }), tip: "Розпушує ґрунт — повна волога (равлик ховається)" },
-  // — сутність: довша перезарядка —
-  { id: "cat", emo: "🐈‍⬛", nm: "Котячий замур", cd: 55, kind: "сутність", req: m => m.catPet, prey: ["birds", "ducks"], lock: 11,
-    apply: (g, m) => ({ ...g, pending: g.pending + eAmt(g, 8) * effEss(g) * eMul(m) }), tip: "Кіт муркоче — сутність (птахи й качки тікають)" },
-  { id: "bee", emo: "🐝", nm: "Бджолиний нектар", cd: 52, kind: "сутність", req: m => m.beeFriend,
-    apply: (g, m) => ({ ...g, pending: g.pending + eAmt(g, 11) * effEss(g) * eMul(m) }), tip: "Бджоли діляться нектаром — сутність" },
-  { id: "heron", emo: "🪽", nm: "Чапля будить глибину", cd: 60, kind: "сутність", req: m => m.heronFriend, prey: ["frogs", "fish"], lock: 11,
-    apply: (g, m) => ({ ...g, pending: g.pending + eAmt(g, 14) * effEss(g) * eMul(m) }), tip: "Чапля ворушить дно — сутність (жаби й короп ховаються)" },
+  // — сутність + ситуативна користь: довша перезарядка —
+  { id: "cat", emo: "🐈‍⬛", nm: "Котячий замур", cd: 58, kind: "сутність+спокій", req: m => m.catPet, prey: ["birds", "ducks"], lock: 11,
+    apply: (g, m) => ({ ...g, pending: g.pending + eAmt(g, 7) * effEss(g) * eMul(m), shadeT: addT(g.shadeT, 6) }), tip: "Кіт муркоче — сутність і трохи спокою-тіні (птахи й качки тікають)" },
+  { id: "bee", emo: "🐝", nm: "Бджолиний нектар", cd: 56, kind: "сутність+вбирання", req: m => m.beeFriend,
+    apply: (g, m) => ({ ...g, pending: g.pending + eAmt(g, 9) * effEss(g) * eMul(m), absorbBoostT: addT(g.absorbBoostT, 6) }), tip: "Бджоли діляться нектаром — сутність і +вбирання" },
+  { id: "heron", emo: "🪽", nm: "Чапля будить глибину", cd: 66, kind: "сутність+ґрунт", req: m => m.heronFriend, prey: ["frogs", "fish"], lock: 11,
+    apply: (g, m) => ({ ...g, pending: g.pending + eAmt(g, 11) * effEss(g) * eMul(m), soil: Math.min(g.soilMax, g.soil + g.soilMax * 0.4) }), tip: "Чапля ворушить дно — сутність і свіжа волога ґрунту (жаби й короп ховаються)" },
   // — вода: рідкісні, потужні —
   { id: "fish", emo: "🐟", nm: "Сплеск коропа", cd: 50, kind: "вода", req: (m, g) => (g && g.maxWater >= 6000),
     apply: (g, m) => ({ ...g, water: Math.min(g.water + aw(g, 0.05 + 0.004 * friendCount(m)), g.maxWater) }), tip: "Короп плюскоче — трохи води" },
@@ -637,7 +639,7 @@ const ABILITIES = [
 const SYNERGY = {
   "birds+frogs": { t: "🌤️ Хор неба й болота", fn: g => ({ ...g, shadeT: addT(g.shadeT, 8) }) },
   "ducks+frogs": { t: "💦 Болотяний плескіт", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 8) }) },
-  "bee+cat":     { t: "🍯 Лінива дрімота", fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }) },
+  "bee+cat":     { t: "🍯 Лінива дрімота", fn: g => ({ ...g, pending: g.pending + eAmt(g, 10) * effEss(g) }) },
   "dog+hog":     { t: "🐾 Землекопи", fn: g => ({ ...g, soil: g.soilMax, absorbBoostT: addT(g.absorbBoostT, 7) }) },
   "fire+frogs":  { t: "🐸 Жаби в захваті від води", fn: g => ({ ...g, shadeT: addT(g.shadeT, 7) }) },
 };
@@ -694,12 +696,12 @@ function evapPerSec(g) {
 function freshRun(meta) {
   const M = (k) => meta[k] || 0;
   return {
-    water: 46 + M("memory") * 22 + 40 * M("wellspring") + 30 * M("c_full"), maxWater: 120 + M("memory") * 22 + 40 * M("wellspring") + 25 * M("c_full"),
+    water: 46 + M("memory") * 22 + 40 * M("wellspring") + 30 * M("c_full") + 15 * M("abyss"), maxWater: 120 + M("memory") * 22 + 40 * M("wellspring") + 25 * M("c_full") + 15 * M("abyss"),
     day: 1, elapsed: 0, dayLen: 100, sun: 8, speed: 1 + 0.12 * M("swift"), rescues: 0,
     baseEvap: 0.95 * Math.pow(0.96, M("cold")) * Math.pow(0.97, M("permafrost")),
     deepenMult: 1, mossMult: 1, sunResist: clamp(0.06 * M("c_silt"), 0, 0.85), absorbMult: 1 + 0.10 * M("absorb") + 0.12 * M("thirst"),
     soil: 60, soilMax: 60, soilRegen: 3.8 * (1 + 0.25 * M("roots") + 0.25 * M("deeproots")),
-    passive: 0.3 * M("spring") + 0.4 * M("spring2") + 0.5 * M("c_spring") + ((meta.frogBond || 0) >= 3 ? 0.1 : 0), leaf: 0,
+    passive: 0.3 * M("spring") + 0.4 * M("spring2") + 0.5 * M("c_spring") + 0.03 * M("abyss") + ((meta.frogBond || 0) >= 3 ? 0.1 : 0), leaf: 0,
     shadeT: 0, evapBoostT: 0, absorbBoostT: 0,
     essMult: (1 + 0.12 * M("silver") + 0.15 * M("golddrop")) * (1 + 0.4 * M("c_ess")), essRate: 0.15 + 0.05 * M("essflow"),
     friend: 1 + Math.min(0.6, (meta.frogBond || 0) * 0.05), // дружба з жабою покращує дари подій
@@ -777,7 +779,7 @@ function Reel({ target, spinKey, delay, dur }) {
 }
 
 /* ============================ APP ============================ */
-const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, absorb: 0, thirst: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, duckFriend: false, birdFriend: false, beeFriend: false, hogFriend: false, heronFriend: false, fireFriend: false, frogShy: false, tricked: false, callcd: 0, trees: 0, swift: 0, fate: 0, seenOnce: {}, sound: true, haptics: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0, c_eco: 0 };
+const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, absorb: 0, thirst: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, abyss: 0, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, duckFriend: false, birdFriend: false, beeFriend: false, hogFriend: false, heronFriend: false, fireFriend: false, frogShy: false, tricked: false, callcd: 0, trees: 0, swift: 0, fate: 0, seenOnce: {}, sound: true, haptics: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0, c_eco: 0 };
 // зведення дублюючих дарів: рівні старих апгрейдів переливаються в той, що лишився
 function migrateMeta(src) {
   const m = { ...src };
@@ -1057,7 +1059,7 @@ export default function App() {
     setMeta(m => ({
       ...m,
       essence: 0, essThisAsc: 0,
-      memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, absorb: 0, thirst: 0, luck: 0, moon: 0, callcd: 0, trees: 0, swift: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0,
+      memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, absorb: 0, thirst: 0, luck: 0, moon: 0, callcd: 0, trees: 0, swift: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, abyss: 0,
       clouds: (m.clouds || 0) + gain,
       ascensions: (m.ascensions || 0) + 1,
     }));
@@ -1086,7 +1088,7 @@ export default function App() {
     const prevId = now - c.last < 4000 ? c.lastId : null;
     if (now - c.last < 4000) c.count++; else { c.count = 1; c.ids = new Set(); }
     c.ids.add(ab.id); c.last = now;
-    const cc = c.count, bonus = cc >= 2 ? eAmt(gRef.current, 3 * cc) : 0;
+    const cc = c.count;
     // синергія з попередньою здібністю (позитивна комбінація)
     const syn = prevId && prevId !== ab.id ? SYNERGY[synKey(prevId, ab.id)] : null;
     Sfx.drip(); Haptics.tap(); if (cc >= 2) { Sfx.win(); Haptics.combo(); }
@@ -1097,7 +1099,9 @@ export default function App() {
       // хижак лякає здобич — ті здібності тимчасово недоступні
       if (ab.prey) for (const id of ab.prey) n.abil[id] = Math.max(n.abil[id] || 0, ab.lock || 10);
       if (syn) n = syn.fn(n);
-      if (bonus) n.pending = n.pending + bonus * effEss(p);
+      // комбо більше НЕ друкує сутність щотиском (це був фарм) — лише невелика винагорода на віхах
+      if (cc === 3) n.pending = n.pending + eAmt(p, 6) * effEss(p);
+      else if (cc === 5) n.pending = n.pending + eAmt(p, 14) * effEss(p);
       return n;
     });
     c.lastId = ab.id;
@@ -1638,7 +1642,7 @@ export default function App() {
                 return (
                   <div key={u.id} className={"kal-up meta clickable" + (can || maxed ? "" : " dis")} onClick={() => can && buyMeta(u)} style={maxed ? { cursor: "default", opacity: 0.7 } : {}}>
                     <div className="emo">{u.emo}</div>
-                    <div className="body"><div className="nm">{u.nm}<span className="lvl">{lvl}/{u.max}</span></div><div className="de">{u.de}</div></div>
+                    <div className="body"><div className="nm">{u.nm}<span className="lvl">{u.inf ? `рів.${lvl}` : `${lvl}/${u.max}`}</span></div><div className="de">{u.de}</div></div>
                     <div className="cost">{maxed ? "✦" : `◈ ${fmt(cost)}`}</div>
                   </div>
                 );
