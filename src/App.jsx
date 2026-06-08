@@ -110,6 +110,7 @@ const RUN_UPGRADES = [
   { id: "moss",   emo: "🌿", nm: "Поростити ряскою", de: "Ряска вкриває гладь: −7% випару.", base: 28, growth: 1.45, frac: 0.10 },
   { id: "vein",   emo: "🌊", nm: "Прокласти жилу", de: "Підземна жила: +0.4 води/с.", base: 40, growth: 1.5, frac: 0.14 },
   { id: "lake",   emo: "🟦", nm: "Підземне озеро", de: "Велике джерело: +150 об'єму, +0.7/с.", base: 130, growth: 1.7, frac: 0.25, req: g => g.levels.deepen >= 3, lock: "відкриється: Поглибшати рів.3" },
+  { id: "summon", emo: "📣", nm: "Гучніший поклик", de: "−6% перезарядки здібностей.", base: 60, growth: 1.5, frac: 0.10, req: g => g.hasFriend, hidden: true },
 ];
 // ціна = більше з експоненти (рання гра) та частки від об'єму (пізня гра),
 // але ніколи не вище 92% об'єму → апгрейд завжди можна накопичити (без софт-локу за будь-якої стратегії)
@@ -314,6 +315,44 @@ const EVENTS = [
     { b: "Дати йому дім", sf: g => `+${aw(g, 0.10)} об'єму · +вдача`, fn: g => ({ ...g, maxWater: g.maxWater + aw(g, 0.10) }), luck: 1 },
     { b: "Замилуватись", sf: g => `+${eAmt(g, 28)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 28) * effEss(g) }) }] },
 
+  /* — українські меми та культурні гості (з любов'ю) — */
+  { t: "Пасічник Ющенко", emo: "🐝", req: (g) => g.day >= 2, weight: 0.9,
+    d: "Сивий пасічник підійшов із вуликом, примружився й мовив: «Бджоли — це Так!».", opts: [
+    { b: "«Так!»", sf: g => `+${eAmt(g, 16)} сутності · мед`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }), meta: m => ({ ...m, beeFriend: true }), luck: 2 },
+    { b: "Узяти воскову плівку", s: "−випар на 18с", fn: g => ({ ...g, shadeT: 18 }), meta: m => ({ ...m, beeFriend: true }) }] },
+  { t: "Рій золотих бджіл", emo: "🐝", req: (g, m) => m.beeFriend && g.day >= 4, weight: 0.6,
+    d: "Знайомі бджоли привели цілий рій — гудуть над тобою золотою хмаркою.", opts: [
+    { b: "Прийняти медовий дар", sf: g => `+${eAmt(g, 28)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 28) * effEss(g) }), luck: 1 },
+    { b: "Попросити воскову плівку", s: "−випар на 22с", fn: g => ({ ...g, shadeT: 22 }) }] },
+  { t: "Кіт Степан завітав", emo: "🐈", req: (g) => g.day >= 2, weight: 0.9,
+    d: "Біля тебе флегматично вмостився рудий кіт зі склянкою — точнісінько як на тих картинках.", opts: [
+    { b: "Зробити вірусне фото", sf: g => `+${eAmt(g, 14)} сутності · слава`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 14) * effEss(g) }), meta: m => ({ ...m, catPet: true }), luck: 2 },
+    { b: "Не турбувати кота", s: "+вбирання на 14с", fn: g => ({ ...g, absorbBoostT: 14 }) }] },
+  { t: "Пес Патрон на службі", emo: "🐕", req: (g) => g.day >= 2, weight: 0.9,
+    d: "Маленький джек-рассел у жилетці обнюхав твій берег: «Чисто — мін немає!».", opts: [
+    { b: "Подякувати герою", sf: g => `+${eAmt(g, 16)} сутності · спокій`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g), shadeT: 10 }), meta: m => ({ ...m, dogFriend: true }), luck: 2 },
+    { b: "Дати водички", sf: g => `−${aw(g, 0.06)} води · +вдача`, fn: g => ({ ...g, water: g.water - aw(g, 0.06) }), meta: m => ({ ...m, dogFriend: true }), luck: 2 }] },
+  { t: "Чорнобаївка", emo: "💥", req: (g) => g.day >= 5, weight: 0.6,
+    d: "Тут знову щось пішло не так — уже вкотре. Дивне місце, ця твоя яма.", opts: [
+    { b: "Махнути рукою", sf: g => `+${eAmt(g, 12)} сутності (з досвіду)`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 12) * effEss(g) }), luck: 1 },
+    { b: "Спробувати ще раз", sf: g => `+${aw(g, 0.08)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.08), g.maxWater) }) }] },
+  { t: "Байрактар над полем", emo: "🛩️", req: (g) => g.day >= 4, weight: 0.6,
+    d: "Над тобою з тихим дзижчанням пройшов знайомий безпілотник — мов із тієї пісеньки.", opts: [
+    { b: "Помахати знизу", s: "+вбирання на 16с · бойовий дух", fn: g => ({ ...g, absorbBoostT: 16 }), luck: 1 },
+    { b: "Сховатись у тінь крила", s: "−випар на 16с", fn: g => ({ ...g, shadeT: 16 }) }] },
+  { t: "Червона калина", emo: "🌺", req: (g) => g.day >= 3, weight: 0.7,
+    d: "Над тобою схилилась гілка червоної калини, і десь у вітрі вчувається пісня.", opts: [
+    { b: "Підспівати", sf: g => `+${eAmt(g, 14)} сутності · піднесення`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 14) * effEss(g) }), luck: 1 },
+    { b: "Вмочити ягідку", sf: g => `+${aw(g, 0.06)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.06), g.maxWater) }) }] },
+  { t: "Доброго вечора!", emo: "🌻", tod: [0.74, 1.0], weight: 0.8,
+    d: "Хтось проходить повз і кидає тепле: «Доброго вечора, ми з України!».", opts: [
+    { b: "Привітатись у відповідь", s: "+вбирання на 14с · добрий настрій", fn: g => ({ ...g, absorbBoostT: 14 }), luck: 1 },
+    { b: "Засоромитись брижами", sf: g => `+${eAmt(g, 10)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 10) * effEss(g) }) }] },
+  { t: "Штани за 40 гривень", emo: "👖", once: "pants", req: (g) => g.day >= 2, weight: 0.5,
+    d: "У тебе шубовснули чиїсь джинси — ті самі, «за сорок гривень». Легендарна знахідка, раз на життя!", opts: [
+    { b: "Виставити на продаж", sf: g => `+${eAmt(g, 40)} сутності (рівно за 40!)`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 40) * effEss(g) }), luck: 2 },
+    { b: "Зробити з них тінь", s: "−випар на 40с", fn: g => ({ ...g, shadeT: 40 }) }] },
+
   /* — розгалуження за історією стосунків (дружба / образа / обман) — */
   { t: "Песик-приятель", emo: "🐕", art: "dog", req: (g, m) => m.dogFriend && g.day >= 4, weight: 0.6,
     d: "Той самий песик, якого ти напоїв, прибіг знову — приніс у зубах щось блискуче й завзято завиляв хвостом.", opts: [
@@ -361,8 +400,9 @@ function pickEvent(g, meta) {
   const tod = g.dayLen ? clamp(g.elapsed / g.dayLen, 0, 1) : 0.5;
   const okReq = e => !e.req || e.req(g, meta);
   const okTod = e => !e.tod || (tod >= e.tod[0] && tod <= e.tod[1]);
-  let pool = EVENTS.filter(e => okReq(e) && okTod(e));
-  if (!pool.length) pool = EVENTS.filter(okReq); // запас: якщо за часом нічого не підійшло
+  const okOnce = e => !e.once || !((meta.seenOnce || {})[e.once]); // одноразові події — лише раз за всю гру
+  let pool = EVENTS.filter(e => okReq(e) && okTod(e) && okOnce(e));
+  if (!pool.length) pool = EVENTS.filter(e => okReq(e) && okOnce(e)); // запас: якщо за часом нічого не підійшло
   const tot = pool.reduce((a, e) => a + (e.weight || 1), 0);
   let r = Math.random() * tot;
   for (const e of pool) { r -= (e.weight || 1); if (r <= 0) return e; }
@@ -550,8 +590,9 @@ function freshRun(meta) {
     essMult: (1 + 0.12 * M("silver") + 0.15 * M("golddrop")) * (1 + 0.4 * M("c_ess")), essRate: 0.15 + 0.05 * M("essflow"),
     friend: 1 + Math.min(0.6, (meta.frogBond || 0) * 0.05), // дружба з жабою покращує дари подій
     abil: { birds: 0, frogs: 0, dog: 0, cat: 0, ducks: 0, snail: 0, bee: 0, hog: 0, heron: 0, fish: 0 },
+    hasFriend: !!(meta.birdFriend || (meta.frogBond || 0) >= 1 || meta.dogFriend || meta.catPet || meta.duckFriend || meta.snailMet || meta.beeFriend || meta.hogFriend || meta.heronFriend),
     pending: 0, nextEvent: 14,
-    levels: { deepen: 0, silt: 0, widen: 0, moss: 0, vein: 0, lake: 0 },
+    levels: { deepen: 0, silt: 0, widen: 0, moss: 0, vein: 0, lake: 0, summon: 0 },
     weather: NEUTRAL,
   };
 }
@@ -619,7 +660,7 @@ function Reel({ target, spinKey, delay, dur }) {
 }
 
 /* ============================ APP ============================ */
-const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, duckFriend: false, birdFriend: false, beeFriend: false, hogFriend: false, heronFriend: false, frogShy: false, tricked: false, callcd: 0, fate: 0, sound: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0 };
+const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, duckFriend: false, birdFriend: false, beeFriend: false, hogFriend: false, heronFriend: false, frogShy: false, tricked: false, callcd: 0, fate: 0, seenOnce: {}, sound: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0 };
 
 export default function App() {
   const [phase, setPhase] = useState("loading"); // loading|welcome|menu|forecast|challenge|playing|dead|survived
@@ -769,7 +810,7 @@ export default function App() {
           // рідко (раз на пару днів) замість звичайної події випадає Колесо Фортуни
           const wheelReady = n.day >= 2 && (n.day - (n.wheelDay ?? -9)) >= 2 && Math.random() < 0.35;
           if (wheelReady) { n.wheelDay = n.day; setWheel({ stage: "offer" }); }
-          else setEvent(pickEvent(n, metaRef.current));
+          else { const ev = pickEvent(n, metaRef.current); if (ev.once) setMeta(m => ({ ...m, seenOnce: { ...(m.seenOnce || {}), [ev.once]: true } })); setEvent(ev); }
         }
         if (n.elapsed >= n.dayLen) {
           const bonus = 14 * n.day * effEss(n) * (1 + 0.15 * (metaRef.current.moon || 0));
@@ -883,7 +924,7 @@ export default function App() {
     Sfx.dusk();
     setPhase("menu");
   };
-  const abilCD = (ab) => Math.max(8, Math.round(ab.cd * (1 - 0.08 * (metaRef.current.callcd || 0))));
+  const abilCD = (ab) => Math.max(7, Math.round(ab.cd * (1 - 0.08 * (metaRef.current.callcd || 0)) * (1 - 0.06 * ((gRef.current.levels && gRef.current.levels.summon) || 0))));
   const useAbility = (ab) => {
     if (phaseRef.current !== "playing") return;
     const cur = (gRef.current.abil || {})[ab.id] || 0;
@@ -1282,6 +1323,7 @@ export default function App() {
               {RUN_UPGRADES.map(u => {
                 const lvl = g.levels[u.id] || 0, cost = runCost(u, lvl, g.maxWater);
                 const locked = u.req && !u.req(g);
+                if (locked && u.hidden) return null; // прихований апгрейд (сюрприз) — не показуємо замкненим
                 if (locked) return (
                   <div key={u.id} className="kal-up dis">
                     <div className="emo" style={{ filter: "grayscale(1)" }}>🔒</div>
