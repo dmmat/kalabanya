@@ -254,6 +254,11 @@ const EVENTS = [
     d: "Дорожники сяк-так залатали яму гарячим асфальтом — твоє ложе помітно поменшало.", opts: [
     { b: "Влягтися в менше ложе", sf: g => `−18% об'єму · +${eAmt(g, 20)} сутності`, fn: g => { const mw = Math.max(120, Math.round(g.maxWater * 0.82)); return { ...g, maxWater: mw, water: Math.min(g.water, mw), pending: g.pending + eAmt(g, 20) * effEss(g) }; } },
     { b: "Просочитися під латку", s: "−35% води, об'єм цілий", fn: g => ({ ...g, water: g.water * 0.65 }) }] },
+  { t: "Пожежна машина", emo: "🚒", req: (g) => g.day >= 3 && g.water < g.maxWater * 0.72, weight: 1.1, timer: 12,
+    d: "Червона пожежна машина пригальмувала біля тебе. «Маємо зайву воду в цистерні — можемо долити по самі вінця. Та задарма ніхто не возить — щось та й віддай».", opts: [
+    { b: "Заплатити сутністю", sf: g => `−${eAmt(g, 24)} сутності · +${aw(g, 0.5)} води`, fn: g => ({ ...g, pending: Math.max(0, g.pending - eAmt(g, 24)), water: Math.min(g.water + aw(g, 0.5), g.maxWater) }), luck: 1 },
+    { b: "Віддати шмат русла", sf: g => `−12% об'єму · наповнити майже по вінця`, fn: g => { const mw = Math.max(120, Math.round(g.maxWater * 0.88)); return { ...g, maxWater: mw, water: Math.max(g.water, Math.round(mw * 0.85)) }; } },
+    { b: "Подякувати й відмовити", s: "нічого", fn: g => g, luck: 1 }] },
   { t: "Веселка торкнулась води", emo: "🌈", req: (g) => g.day >= 5, weight: 0.7,
     d: "Після короткого дощу веселка вмочила свій край просто в тебе.", opts: [
     { b: "Зачерпнути барв", sf: g => `+${aw(g, 0.14)} води · +${eAmt(g, 12)} сутності`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.14), g.maxWater), pending: g.pending + eAmt(g, 12) * effEss(g) }) },
