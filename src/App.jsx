@@ -143,17 +143,18 @@ const META_UPGRADES = [
   { id: "silver", emo: "🌙", nm: "Срібна крапля", de: "+12% сутності з мандрівок.", base: 48, growth: 1.74, max: 12 },
   { id: "spring", emo: "⛲", nm: "Вічне джерело", de: "Старт із +0.3/с пасивної води.", base: 70, growth: 1.85, max: 8 },
   { id: "roots",  emo: "🌱", nm: "Глибокі корінці", de: "+25% швидкості наповнення ґрунту.", base: 52, growth: 1.78, max: 8 },
+  { id: "absorb", emo: "🪣", nm: "Спрагле ложе", de: "+10% вбирання вологи за дотик.", base: 50, growth: 1.76, max: 10 },
   { id: "swift",  emo: "⏩", nm: "Стрімкий час", de: "+12% швидкості гри (усе те саме, лише швидше).", base: 200, growth: 1.9, max: 12 },
   { id: "luck",   emo: "🍀", nm: "Прихильність неба", de: "+1 безкоштовний перекрут прогнозу на день.", base: 70, growth: 2.1, max: 4 },
   { id: "moon",   emo: "🌗", nm: "Срібло сутінків", de: "+15% сутності за виживання до ночі.", base: 85, growth: 1.95, max: 8 },
-  { id: "trees",  emo: "🌳", nm: "Лісосмуга", de: "−6% глобального потепління.", base: 90, growth: 1.85, max: 8 },
-  { id: "reeds",  emo: "🌿", nm: "Очеретяний пояс", de: "−5% глобального потепління.", base: 80, growth: 1.82, max: 8 },
-  { id: "callcd", emo: "📣", nm: "Поклик друзів", de: "−8% перезарядки дружніх здібностей.", base: 60, growth: 1.78, max: 6, req: m => m.birdFriend || (m.frogBond || 0) >= 1 || m.dogFriend || m.catPet || m.duckFriend || m.snailMet || m.beeFriend || m.hogFriend || m.heronFriend },
+  { id: "trees",  emo: "🌳", nm: "Лісосмуга", de: "−6% глобального потепління.", base: 84, growth: 1.84, max: 12 },
+  { id: "callcd", emo: "📣", nm: "Поклик друзів", de: "−8% перезарядки дружніх здібностей.", base: 60, growth: 1.78, max: 6, req: m => m.birdFriend || (m.frogBond || 0) >= 1 || m.dogFriend || m.catPet || m.duckFriend || m.snailMet || m.beeFriend || m.hogFriend || m.heronFriend || m.fireFriend },
   // просунуті дари — відкриваються, коли викупиш базовий повністю
   { id: "wellspring", emo: "🌊", nm: "Бездонна пам'ять", de: "+40 стартової води та об'єму.", base: 120, growth: 1.8, max: 10, req: m => (m.memory || 0) >= 12 },
   { id: "permafrost", emo: "🧊", nm: "Вічна мерзлота", de: "−3% базового випару.", base: 150, growth: 1.82, max: 8, req: m => (m.cold || 0) >= 10 },
   { id: "golddrop", emo: "🪙", nm: "Золота крапля", de: "+15% сутності з мандрівок.", base: 140, growth: 1.8, max: 10, req: m => (m.silver || 0) >= 12 },
   { id: "deeproots", emo: "🌳", nm: "Прадавнє коріння", de: "+25% наповнення ґрунту.", base: 120, growth: 1.8, max: 8, req: m => (m.roots || 0) >= 8 },
+  { id: "thirst", emo: "🫗", nm: "Невгасима спрага", de: "+12% вбирання за дотик.", base: 130, growth: 1.8, max: 8, req: m => (m.absorb || 0) >= 10 },
   // глибинні дари — відкриваються лише в довгій грі (рекорд ≥ 8 днів)
   { id: "spring2", emo: "🪨", nm: "Глибинна жила", de: "Старт із +0.4/с пасивної води.", base: 160, growth: 1.92, max: 6, tier: 2 },
   { id: "essflow", emo: "🌫️", nm: "Роса предків", de: "+0.05/с базового збору сутності.", base: 150, growth: 1.9, max: 6, tier: 2 },
@@ -256,8 +257,8 @@ const EVENTS = [
     { b: "Просочитися під латку", s: "−35% води, об'єм цілий", fn: g => ({ ...g, water: g.water * 0.65 }) }] },
   { t: "Пожежна машина", emo: "🚒", req: (g) => g.day >= 3 && g.water < g.maxWater * 0.72, weight: 1.1, timer: 12,
     d: "Червона пожежна машина пригальмувала біля тебе. «Маємо зайву воду в цистерні — можемо долити по самі вінця. Та задарма ніхто не возить — щось та й віддай».", opts: [
-    { b: "Заплатити сутністю", sf: g => `−${eAmt(g, 24)} сутності · +${aw(g, 0.5)} води`, fn: g => ({ ...g, pending: Math.max(0, g.pending - eAmt(g, 24)), water: Math.min(g.water + aw(g, 0.5), g.maxWater) }), luck: 1 },
-    { b: "Віддати шмат русла", sf: g => `−12% об'єму · наповнити майже по вінця`, fn: g => { const mw = Math.max(120, Math.round(g.maxWater * 0.88)); return { ...g, maxWater: mw, water: Math.max(g.water, Math.round(mw * 0.85)) }; } },
+    { b: "Заплатити сутністю", sf: g => `−${eAmt(g, 24)} сутності · +${aw(g, 0.5)} води`, fn: g => ({ ...g, pending: Math.max(0, g.pending - eAmt(g, 24)), water: Math.min(g.water + aw(g, 0.5), g.maxWater) }), meta: m => ({ ...m, fireFriend: true }), luck: 1 },
+    { b: "Віддати шмат русла", sf: g => `−12% об'єму · наповнити майже по вінця`, fn: g => { const mw = Math.max(120, Math.round(g.maxWater * 0.88)); return { ...g, maxWater: mw, water: Math.max(g.water, Math.round(mw * 0.85)) }; }, meta: m => ({ ...m, fireFriend: true }) },
     { b: "Подякувати й відмовити", s: "нічого", fn: g => g, luck: 1 }] },
   { t: "Веселка торкнулась води", emo: "🌈", req: (g) => g.day >= 5, weight: 0.7,
     d: "Після короткого дощу веселка вмочила свій край просто в тебе.", opts: [
@@ -508,6 +509,7 @@ const ACHIEVEMENTS = [
   { id: "combo3",   e: "✨", nm: "Зграя помічників", dq: "Скласти комбо з 3 здібностей поспіль.", hidden: true },
   { id: "combo5",   e: "🎆", nm: "Симфонія друзів",  dq: "Скласти комбо ×5.", hidden: true },
   { id: "comboMix", e: "🌈", nm: "Усі гуртом",       dq: "В одному комбо — 3 різні здібності.", hidden: true },
+  { id: "synergy",  e: "🧩", nm: "Спільна пісня",    dq: "Поєднати дві здібності в синергію.", hidden: true },
   { id: "shrek",    e: "🧅", nm: "Це моє болото!",   dq: "Так замулитись, що калабаня стала справжнім болотом.", hidden: true },
 ];
 
@@ -542,28 +544,47 @@ const applyChallenge = (w, day) => {
    Ефекти СТАКАЮТЬСЯ (додають тривалість, з кепом). Кулдаун зменшує дар «Поклик друзів». */
 const ABT_CAP = 45; // стеля тривалості тіні/вбирання від стакання
 const addT = (v, a) => Math.min((v || 0) + a, ABT_CAP);
+// скільки всього друзів здобуто — чим більше, тим щедріші активні дари
+const FRIEND_KEYS = ["frogBond", "dogFriend", "catPet", "duckFriend", "birdFriend", "beeFriend", "hogFriend", "heronFriend", "snailMet", "fireFriend"];
+const friendCount = (m) => FRIEND_KEYS.reduce((s, k) => s + (m && m[k] ? 1 : 0), 0);
+const fc3 = (m) => Math.floor(friendCount(m) / 3); // +1 кожні 3 друзі
+const eMul = (m) => 1 + friendCount(m) * 0.06; // дружба підсилює дари сутності
 const ABILITIES = [
-  { id: "birds", emo: "🐦", nm: "Зграя птахів", cd: 45, req: m => m.birdFriend,
-    apply: g => ({ ...g, shadeT: addT(g.shadeT, 9) }), tip: "Зграя птахів затуляє сонце (+тінь 9с)" },
-  { id: "frogs", emo: "🐸", nm: "Жаб'ячий хор", cd: 50, req: m => (m.frogBond || 0) >= 1,
-    apply: g => ({ ...g, shadeT: addT(g.shadeT, 6), absorbBoostT: addT(g.absorbBoostT, 6) }), tip: "Хор жаб: +тінь і +вбирання 6с" },
-  { id: "dog", emo: "🐕", nm: "Песик хлюпає", cd: 40, req: m => m.dogFriend,
-    apply: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 11) }), tip: "Песик розбризкує — +вбирання 11с" },
-  { id: "cat", emo: "🐈‍⬛", nm: "Котячий замур", cd: 60, req: m => m.catPet,
-    apply: g => ({ ...g, pending: g.pending + eAmt(g, 8) * effEss(g) }), tip: "Кіт муркоче — трохи сутності" },
-  { id: "ducks", emo: "🦆", nm: "Качині крила", cd: 55, req: m => m.duckFriend,
-    apply: g => ({ ...g, shadeT: addT(g.shadeT, 11) }), tip: "Качки обмахують крильми — +тінь 11с" },
-  { id: "snail", emo: "🐌", nm: "Равликів слиз", cd: 50, req: m => m.snailMet,
-    apply: g => ({ ...g, shadeT: addT(g.shadeT, 14) }), tip: "Прохолодний слиз — +тінь 14с" },
-  { id: "bee", emo: "🐝", nm: "Бджолиний нектар", cd: 60, req: m => m.beeFriend,
-    apply: g => ({ ...g, pending: g.pending + eAmt(g, 11) * effEss(g) }), tip: "Бджоли діляться нектаром — сутність" },
-  { id: "hog", emo: "🦔", nm: "Їжак розпушує", cd: 50, req: m => m.hogFriend,
-    apply: g => ({ ...g, soil: g.soilMax }), tip: "Їжачок розпушує ґрунт — повна волога для вбирання" },
-  { id: "heron", emo: "🪽", nm: "Чапля будить глибину", cd: 65, req: m => m.heronFriend,
-    apply: g => ({ ...g, pending: g.pending + eAmt(g, 14) * effEss(g) }), tip: "Чапля ворушить дно — сутність" },
-  { id: "fish", emo: "🐟", nm: "Сплеск коропа", cd: 55, req: (m, g) => (g && g.maxWater >= 6000),
-    apply: g => ({ ...g, water: Math.min(g.water + aw(g, 0.05), g.maxWater) }), tip: "Короп плюскоче — трохи води" },
+  // — тінь: коротка перезарядка, легкі дари —
+  { id: "birds", emo: "🐦", nm: "Зграя птахів", cd: 26, kind: "тінь", req: m => m.birdFriend,
+    apply: (g, m) => ({ ...g, shadeT: addT(g.shadeT, 9 + fc3(m)) }), tip: "Зграя затуляє сонце — +тінь (міцніша з друзями)" },
+  { id: "ducks", emo: "🦆", nm: "Качині крила", cd: 34, kind: "тінь", req: m => m.duckFriend,
+    apply: (g, m) => ({ ...g, shadeT: addT(g.shadeT, 11 + fc3(m)) }), tip: "Качки обмахують крильми — +тінь" },
+  { id: "dog", emo: "🐕", nm: "Песик хлюпає", cd: 30, kind: "вбирання", req: m => m.dogFriend,
+    apply: (g, m) => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 11 + fc3(m)) }), tip: "Песик розбризкує — +вбирання" },
+  { id: "frogs", emo: "🐸", nm: "Жаб'ячий хор", cd: 38, kind: "тінь+вбирання", req: m => (m.frogBond || 0) >= 1,
+    apply: (g, m) => ({ ...g, shadeT: addT(g.shadeT, 6 + Math.min(m.frogBond || 0, 6)), absorbBoostT: addT(g.absorbBoostT, 6 + fc3(m)) }), tip: "Хор жаб: +тінь і +вбирання (росте з дружбою)" },
+  { id: "snail", emo: "🐌", nm: "Равликів слиз", cd: 46, kind: "тінь", req: m => m.snailMet,
+    apply: (g, m) => ({ ...g, shadeT: addT(g.shadeT, 14 + fc3(m)) }), tip: "Прохолодний слиз — велика тінь" },
+  { id: "hog", emo: "🦔", nm: "Їжак розпушує", cd: 44, kind: "ґрунт", req: m => m.hogFriend, prey: ["snail"], lock: 9,
+    apply: g => ({ ...g, soil: g.soilMax }), tip: "Розпушує ґрунт — повна волога (равлик ховається)" },
+  // — сутність: довша перезарядка —
+  { id: "cat", emo: "🐈‍⬛", nm: "Котячий замур", cd: 55, kind: "сутність", req: m => m.catPet, prey: ["birds", "ducks"], lock: 11,
+    apply: (g, m) => ({ ...g, pending: g.pending + eAmt(g, 8) * effEss(g) * eMul(m) }), tip: "Кіт муркоче — сутність (птахи й качки тікають)" },
+  { id: "bee", emo: "🐝", nm: "Бджолиний нектар", cd: 52, kind: "сутність", req: m => m.beeFriend,
+    apply: (g, m) => ({ ...g, pending: g.pending + eAmt(g, 11) * effEss(g) * eMul(m) }), tip: "Бджоли діляться нектаром — сутність" },
+  { id: "heron", emo: "🪽", nm: "Чапля будить глибину", cd: 60, kind: "сутність", req: m => m.heronFriend, prey: ["frogs", "fish"], lock: 11,
+    apply: (g, m) => ({ ...g, pending: g.pending + eAmt(g, 14) * effEss(g) * eMul(m) }), tip: "Чапля ворушить дно — сутність (жаби й короп ховаються)" },
+  // — вода: рідкісні, потужні —
+  { id: "fish", emo: "🐟", nm: "Сплеск коропа", cd: 50, kind: "вода", req: (m, g) => (g && g.maxWater >= 6000),
+    apply: (g, m) => ({ ...g, water: Math.min(g.water + aw(g, 0.05 + 0.004 * friendCount(m)), g.maxWater) }), tip: "Короп плюскоче — трохи води" },
+  { id: "fire", emo: "🚒", nm: "Пожежний шланг", cd: 82, kind: "вода", req: m => m.fireFriend, prey: ["birds", "ducks", "frogs"], lock: 8,
+    apply: (g, m) => ({ ...g, water: Math.min(g.water + aw(g, 0.06 + 0.004 * friendCount(m)), g.maxWater) }), tip: "Цистерна доливає води — потужно (гомін лякає звірят)" },
 ];
+// синергія: дві здібності поспіль (вікно комбо) дають додатковий дар
+const SYNERGY = {
+  "birds+frogs": { t: "🌤️ Хор неба й болота", fn: g => ({ ...g, shadeT: addT(g.shadeT, 8) }) },
+  "ducks+frogs": { t: "💦 Болотяний плескіт", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 8) }) },
+  "bee+cat":     { t: "🍯 Лінива дрімота", fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }) },
+  "dog+hog":     { t: "🐾 Землекопи", fn: g => ({ ...g, soil: g.soilMax, absorbBoostT: addT(g.absorbBoostT, 7) }) },
+  "fire+frogs":  { t: "🐸 Жаби в захваті від води", fn: g => ({ ...g, shadeT: addT(g.shadeT, 7) }) },
+};
+const synKey = (a, b) => [a, b].sort().join("+");
 
 /* ---------- helpers ---------- */
 const fmt = (n) => {
@@ -616,15 +637,15 @@ function freshRun(meta) {
     water: 46 + M("memory") * 22 + 40 * M("wellspring") + 30 * M("c_full"), maxWater: 120 + M("memory") * 22 + 40 * M("wellspring") + 25 * M("c_full"),
     day: 1, elapsed: 0, dayLen: 100, sun: 8, speed: 1 + 0.12 * M("swift"), rescues: 0,
     baseEvap: 0.95 * Math.pow(0.96, M("cold")) * Math.pow(0.97, M("permafrost")),
-    deepenMult: 1, mossMult: 1, sunResist: clamp(0.06 * M("c_silt"), 0, 0.85), absorbMult: 1,
+    deepenMult: 1, mossMult: 1, sunResist: clamp(0.06 * M("c_silt"), 0, 0.85), absorbMult: 1 + 0.10 * M("absorb") + 0.12 * M("thirst"),
     soil: 60, soilMax: 60, soilRegen: 3.8 * (1 + 0.25 * M("roots") + 0.25 * M("deeproots")),
     passive: 0.3 * M("spring") + 0.4 * M("spring2") + 0.5 * M("c_spring") + ((meta.frogBond || 0) >= 3 ? 0.1 : 0), leaf: 0,
     shadeT: 0, evapBoostT: 0, absorbBoostT: 0,
     essMult: (1 + 0.12 * M("silver") + 0.15 * M("golddrop")) * (1 + 0.4 * M("c_ess")), essRate: 0.15 + 0.05 * M("essflow"),
     friend: 1 + Math.min(0.6, (meta.frogBond || 0) * 0.05), // дружба з жабою покращує дари подій
-    ecoMult: Math.max(0.12, (1 - 0.06 * M("trees")) * (1 - 0.05 * M("reeds")) * (1 - 0.10 * M("c_eco"))), // еко-дари зменшують потепління
-    abil: { birds: 0, frogs: 0, dog: 0, cat: 0, ducks: 0, snail: 0, bee: 0, hog: 0, heron: 0, fish: 0 },
-    hasFriend: !!(meta.birdFriend || (meta.frogBond || 0) >= 1 || meta.dogFriend || meta.catPet || meta.duckFriend || meta.snailMet || meta.beeFriend || meta.hogFriend || meta.heronFriend),
+    ecoMult: Math.max(0.12, (1 - 0.06 * M("trees")) * (1 - 0.10 * M("c_eco"))), // еко-дари зменшують потепління
+    abil: { birds: 0, frogs: 0, dog: 0, cat: 0, ducks: 0, snail: 0, bee: 0, hog: 0, heron: 0, fish: 0, fire: 0 },
+    hasFriend: !!(meta.birdFriend || (meta.frogBond || 0) >= 1 || meta.dogFriend || meta.catPet || meta.duckFriend || meta.snailMet || meta.beeFriend || meta.hogFriend || meta.heronFriend || meta.fireFriend),
     pending: 0, nextEvent: 14,
     levels: { deepen: 0, silt: 0, widen: 0, moss: 0, vein: 0, lake: 0, summon: 0 },
     weather: NEUTRAL,
@@ -694,7 +715,14 @@ function Reel({ target, spinKey, delay, dur }) {
 }
 
 /* ============================ APP ============================ */
-const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, duckFriend: false, birdFriend: false, beeFriend: false, hogFriend: false, heronFriend: false, frogShy: false, tricked: false, callcd: 0, trees: 0, reeds: 0, swift: 0, fate: 0, seenOnce: {}, sound: true, haptics: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0, c_eco: 0 };
+const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, absorb: 0, thirst: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, duckFriend: false, birdFriend: false, beeFriend: false, hogFriend: false, heronFriend: false, fireFriend: false, frogShy: false, tricked: false, callcd: 0, trees: 0, swift: 0, fate: 0, seenOnce: {}, sound: true, haptics: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0, c_eco: 0 };
+// зведення дублюючих дарів: рівні старих апгрейдів переливаються в той, що лишився
+function migrateMeta(src) {
+  const m = { ...src };
+  if (m.reeds) { m.trees = Math.min(12, (m.trees || 0) + m.reeds); } // Очеретяний пояс → Лісосмуга
+  delete m.reeds;
+  return m;
+}
 
 export default function App() {
   const [phase, setPhase] = useState("loading"); // loading|welcome|menu|forecast|challenge|playing|dead|survived
@@ -711,10 +739,12 @@ export default function App() {
   const [wheelRot, setWheelRot] = useState(0);
   const [eventT, setEventT] = useState(0); // countdown for timed (passing) guests
   const [combo, setCombo] = useState(0); // ability combo display
+  const [abilFx, setAbilFx] = useState(null); // { kind:"syn"|"clash", text } — спливний відгук синергії/конфлікту
   const [rescue, setRescue] = useState(null); // null | "shuffle" | "pick" | "reveal" | "lose" — наперстки на смерті
   const [naperstky, setNaperstky] = useState({ won: false, picked: -1, drop: -1 }); // стан гри в наперстки
-  const comboRef = useRef({ count: 0, last: 0, ids: new Set() });
+  const comboRef = useRef({ count: 0, last: 0, ids: new Set(), lastId: null });
   const comboHideRef = useRef(null);
+  const abilFxRef = useRef(null);
   const resolveEventRef = useRef(null);
   const stageRef = useRef(null);
   const wheelRef = useRef(null); wheelRef.current = wheel;
@@ -781,7 +811,7 @@ export default function App() {
       if (raw) {
         try {
           const d = JSON.parse(raw);
-          if (d.meta) setMeta(m => ({ ...m, ...d.meta, ach: { ...(d.meta.ach || {}) } }));
+          if (d.meta) setMeta(m => ({ ...m, ...migrateMeta(d.meta), ach: { ...(d.meta.ach || {}) } }));
           const resumable = ["playing", "survived", "forecast", "challenge", "dead"];
           if (d.g && resumable.includes(d.phase)) {
             // якщо перезавантажили під час події/колеса — скидаємо «паузу» таймера подій
@@ -954,7 +984,7 @@ export default function App() {
     setMeta(m => ({
       ...m,
       essence: 0, essThisAsc: 0,
-      memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, callcd: 0, trees: 0, reeds: 0, swift: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0,
+      memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, absorb: 0, thirst: 0, luck: 0, moon: 0, callcd: 0, trees: 0, swift: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0,
       clouds: (m.clouds || 0) + gain,
       ascensions: (m.ascensions || 0) + 1,
     }));
@@ -963,22 +993,39 @@ export default function App() {
     setPhase("menu");
   };
   const abilCD = (ab) => Math.max(7, Math.round(ab.cd * (1 - 0.08 * (metaRef.current.callcd || 0)) * (1 - 0.06 * ((gRef.current.levels && gRef.current.levels.summon) || 0))));
+  const flashAbil = (kind, text) => {
+    setAbilFx({ kind, text });
+    clearTimeout(abilFxRef.current);
+    abilFxRef.current = setTimeout(() => setAbilFx(null), 1800);
+  };
   const useAbility = (ab) => {
     if (phaseRef.current !== "playing") return;
     const cur = (gRef.current.abil || {})[ab.id] || 0;
-    if (cur > 0) return;
+    if (cur > 0) return; // на перезарядці або «сполохана» (тимчасово недоступна)
     // комбо: швидке поєднання здібностей (вікно 4с) нарощує лічильник і дає бонус
     const now = Date.now(), c = comboRef.current;
+    const prevId = now - c.last < 4000 ? c.lastId : null;
     if (now - c.last < 4000) c.count++; else { c.count = 1; c.ids = new Set(); }
     c.ids.add(ab.id); c.last = now;
     const cc = c.count, bonus = cc >= 2 ? eAmt(gRef.current, 3 * cc) : 0;
+    // синергія з попередньою здібністю (позитивна комбінація)
+    const syn = prevId && prevId !== ab.id ? SYNERGY[synKey(prevId, ab.id)] : null;
     Sfx.drip(); Haptics.tap(); if (cc >= 2) { Sfx.win(); Haptics.combo(); }
     setG(p => {
-      const n = ab.apply({ ...p });
-      n.abil = { ...(p.abil || {}), [ab.id]: abilCD(ab) };
+      let n = ab.apply({ ...p }, metaRef.current);
+      n.abil = { ...(p.abil || {}) };
+      n.abil[ab.id] = abilCD(ab);
+      // хижак лякає здобич — ті здібності тимчасово недоступні
+      if (ab.prey) for (const id of ab.prey) n.abil[id] = Math.max(n.abil[id] || 0, ab.lock || 10);
+      if (syn) n = syn.fn(n);
       if (bonus) n.pending = n.pending + bonus * effEss(p);
       return n;
     });
+    c.lastId = ab.id;
+    // відгук: синергія важливіша за конфлікт у показі
+    if (syn) flashAbil("syn", syn.t);
+    else if (ab.prey && ab.prey.some(id => ABILITIES.some(x => x.id === id && x.req(metaRef.current, gRef.current))))
+      flashAbil("clash", `${ab.emo} сполохав звірят`);
     setCombo(cc);
     clearTimeout(comboHideRef.current);
     comboHideRef.current = setTimeout(() => setCombo(0), 1700);
@@ -986,6 +1033,7 @@ export default function App() {
     if (cc >= 3) unlock("combo3");
     if (cc >= 5) unlock("combo5");
     if (c.ids.size >= 3) unlock("comboMix");
+    if (syn) unlock("synergy");
   };
   const resolveEvent = (opt) => {
     Sfx.click();
@@ -1188,7 +1236,7 @@ export default function App() {
       if (str.startsWith("KAL1")) str = decodeURIComponent(escape(atob(str.slice(4))));
       const d = JSON.parse(str);
       if (!d.meta) throw new Error("no meta");
-      setMeta(m => ({ ...m, ...d.meta, ach: { ...(m.ach || {}), ...(d.meta.ach || {}) } }));
+      setMeta(m => ({ ...m, ...migrateMeta(d.meta), ach: { ...(m.ach || {}), ...(d.meta.ach || {}) } }));
       setEvent(null); setWheel(null);
       const resumable = ["playing", "survived", "forecast", "challenge", "dead"];
       let nextPhase = "menu";
@@ -1386,6 +1434,7 @@ export default function App() {
         {phase === "playing" && ABILITIES.some(a => a.req(meta, g)) && (
           <div className="kal-abilities reveal">
             {combo >= 2 && <div className="kal-combo" key={combo}>КОМБО ×{combo}!</div>}
+            {abilFx && <div className={"kal-abilfx " + abilFx.kind} key={abilFx.text}>{abilFx.text}</div>}
             {ABILITIES.filter(a => a.req(meta, g)).map(a => {
               const cd = (g.abil && g.abil[a.id]) || 0;
               const max = abilCD(a);

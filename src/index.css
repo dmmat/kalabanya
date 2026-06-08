@@ -437,6 +437,12 @@ body {
   font-family:'Fraunces',serif; font-weight:900; font-size:18px; color:var(--sun);
   text-shadow:0 2px 10px rgba(0,0,0,.6); animation:comboPop .5s cubic-bezier(.2,1.4,.3,1) both; pointer-events:none; }
 @keyframes comboPop { 0%{opacity:0; transform:translateX(-50%) scale(.6) translateY(8px);} 60%{opacity:1; transform:translateX(-50%) scale(1.12);} 100%{opacity:1; transform:translateX(-50%) scale(1);} }
+.kal-abilfx { position:absolute; left:50%; top:-40px; transform:translateX(-50%); z-index:5; white-space:nowrap;
+  font-size:12.5px; font-weight:700; padding:3px 11px; border-radius:99px; pointer-events:none;
+  animation:abilFxPop 1.8s ease both; }
+.kal-abilfx.syn { color:#0e1a10; background:linear-gradient(180deg,#a9e8b6,#74c39a); box-shadow:0 4px 14px rgba(116,195,154,.4); }
+.kal-abilfx.clash { color:#fff; background:linear-gradient(180deg,#e2906a,#b85f3c); box-shadow:0 4px 14px rgba(226,144,106,.4); }
+@keyframes abilFxPop { 0%{opacity:0; transform:translateX(-50%) translateY(8px) scale(.7);} 14%{opacity:1; transform:translateX(-50%) translateY(0) scale(1);} 82%{opacity:1; transform:translateX(-50%) translateY(0) scale(1);} 100%{opacity:0; transform:translateX(-50%) translateY(-8px) scale(.95);} }
 
 /* rescue slot spin + state effect chips */
 @keyframes rescueSpin { to { transform: rotate(360deg); } }
