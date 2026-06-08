@@ -1468,11 +1468,15 @@ export default function App() {
   // клавіатура: Пробіл = торкнутись калабані; 1-9,0 = здібності друзів
   const useAbilityRef = useRef(useAbility); useAbilityRef.current = useAbility;
   useEffect(() => {
-    const onKey = (e) => {
-      if (phaseRef.current !== "playing" || e.metaKey || e.ctrlKey || e.altKey) return;
+    const blocked = () => {
+      if (phaseRef.current !== "playing") return true;
       const ae = document.activeElement;
-      if (ae && (ae.tagName === "TEXTAREA" || ae.tagName === "INPUT")) return;
-      if (e.code === "Space") { e.preventDefault(); absorb(); return; } // як клік по калабані
+      return !!(ae && (ae.tagName === "TEXTAREA" || ae.tagName === "INPUT"));
+    };
+    const onKeyDown = (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || blocked()) return;
+      if (e.code === "Space") { e.preventDefault(); return; } // лише гасимо прокрутку; торкання — на відпусканні
+      if (e.repeat) return; // ігноруємо автоповтор при затисканні
       if (/^[0-9]$/.test(e.key)) {
         const idx = e.key === "0" ? 9 : parseInt(e.key, 10) - 1; // 1→перша … 0→десята
         const list = ABILITIES.filter(a => a.req(metaRef.current, gRef.current));
@@ -1480,8 +1484,13 @@ export default function App() {
         if (ab && ((gRef.current.abil || {})[ab.id] || 0) <= 0) { e.preventDefault(); useAbilityRef.current(ab); }
       }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const onKeyUp = (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || blocked()) return;
+      if (e.code === "Space") { e.preventDefault(); absorb(); } // одне торкання на одне натискання
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    return () => { window.removeEventListener("keydown", onKeyDown); window.removeEventListener("keyup", onKeyUp); };
   }, []); // eslint-disable-line
   // timed guests (равлик, хитруни): йдуть, якщо не вирішити вчасно (авто-відмова — останній варіант)
   useEffect(() => {
