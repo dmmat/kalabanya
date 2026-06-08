@@ -233,7 +233,34 @@ const EVENTS = [
     { b: "Прийняти їхню пам'ять", sf: g => `+${eAmt(g, 42)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 42) * effEss(g) }) },
     { b: "Тихо відпустити", s: "−випар на 26с", fn: g => ({ ...g, shadeT: 26 }) }] },
 
+  /* — глибші зустрічі зі старими друзями (рідкісні, за рівнем прогресу) — */
+  { t: "Жаб'яче весілля", emo: "🐸", art: "frog", req: (g, m) => (m.frogBond || 0) >= 4, weight: 0.5,
+    d: "Кума привела все жаб'яче кодло — у тебе галасливе весілля до самого ранку!", opts: [
+    { b: "Влаштувати свято", sf: g => `+${eAmt(g, 30)} сутності · міцніша дружба`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 30) * effEss(g), shadeT: 24 }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 2 }), luck: 3 },
+    { b: "Попросити тиші", sf: g => `+${aw(g, 0.14)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.14), g.maxWater) }) }] },
+  { t: "Равликова гільдія", emo: "🐌", art: "snail", req: (g, m) => m.snailMet && g.day >= 8, weight: 0.5, timer: 12,
+    d: "Равлик привів старшого з гільдії — на мушлі рідкісний, добірний крам.", opts: [
+    { b: "Купити глибоке русло", sf: g => `−${aw(g, 0.12)} води · +${aw(g, 0.28)} об'єму`, fn: g => ({ ...g, water: g.water - aw(g, 0.12), maxWater: g.maxWater + aw(g, 0.28) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
+    { b: "Купити вічний мул", sf: g => `−${aw(g, 0.10)} води · +опір спеці`, fn: g => ({ ...g, water: g.water - aw(g, 0.10), sunResist: clamp(g.sunResist + 0.10, 0, 0.85) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
+    { b: "Пройти повз", s: "нічого", fn: g => g }] },
+  { t: "Кошенята місячного кота", emo: "🐈‍⬛", art: "cat", req: (g, m) => m.catPet && g.day >= 6, tod: [0.74, 1.0], weight: 0.5,
+    d: "Місячний кіт привів кошенят — вони бавляться у твоїх відблисках.", opts: [
+    { b: "Бавитися з ними", sf: g => `+${eAmt(g, 24)} сутності · спокій`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 24) * effEss(g) }), meta: m => ({ ...m, catPet: true }), luck: 3 },
+    { b: "Дати намилуватись місяцем", s: "−випар на 20с", fn: g => ({ ...g, shadeT: 20 }) }] },
+  { t: "Чапля-провидиця", emo: "🪽", art: "heron", req: (g) => g.day >= 9, weight: 0.5,
+    d: "Стара чапля довго вдивлялася в тебе й прорекла прийдешню погоду.", opts: [
+    { b: "Дослухатись пророцтва", sf: g => `+${eAmt(g, 22)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 22) * effEss(g) }), luck: 1 },
+    { b: "Напоїти віщунку", sf: g => `−${aw(g, 0.10)} води · +вдача`, fn: g => ({ ...g, water: g.water - aw(g, 0.10) }), luck: 2 }] },
+  { t: "Щедрий улов діда", emo: "🎣", art: "fisherman", req: (g) => g.day >= 11, weight: 0.5,
+    d: "Дід-рибалка таки щось упіймав у тобі й на радощах поглибив твоє ложе.", opts: [
+    { b: "Прийняти дарунок", sf: g => `+${aw(g, 0.16)} об'єму · +0.4/с`, fn: g => ({ ...g, maxWater: g.maxWater + aw(g, 0.16), passive: g.passive + 0.4 }) },
+    { b: "Випросити сутність", sf: g => `+${eAmt(g, 34)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 34) * effEss(g) }) }] },
+
   /* — хитруни: на вигляд вигідно, насправді користуються тобою (таємно мінус Вдача) — */
+  { t: "Воронячий борг", emo: "🐦‍⬛", art: "crow", cunning: true, req: (g) => g.day >= 9, weight: 0.6, timer: 9,
+    d: "Той самий крук повернувся: «Цього разу точно віддам борг — лиш позич трохи більше».", opts: [
+    { b: "Знову повірити", sf: g => `−${aw(g, 0.16)} води · «велика віддяка»`, fn: g => ({ ...g, water: g.water - aw(g, 0.16) }), luck: -4 },
+    { b: "Прогнати назавжди", s: "нічого", fn: g => g }] },
   { t: "Спритний крук", emo: "🐦‍⬛", art: "crow", cunning: true, req: (g) => g.day >= 3, weight: 1.0, timer: 10,
     d: "Крук схилив голову й зблиснув оком на твоє срібло: «Дай краплин — поверну скарбом, обіцяю».", opts: [
     { b: "Повірити круку", sf: g => `−${aw(g, 0.10)} води · обіцяє скарб`, fn: g => ({ ...g, water: g.water - aw(g, 0.10) }), luck: -3 },
@@ -313,6 +340,15 @@ const ACHIEVEMENTS = [
   { id: "deepwell", e: "🟦", nm: "Підземне озеро",  dq: "Прокласти шлях до підземного озера." },
   { id: "eternal",  e: "🏵️", nm: "Вічна калабаня",  dq: "Прожити п'ятдесят днів." },
   { id: "ascend",   e: "🌥️", nm: "Велике Випаровування", dq: "Розчинитися в небі та переродитися хмарою." },
+  { id: "pond",     e: "🪷", nm: "Ставок",          dq: "Дорости до об'єму ставка (2.5к)." },
+  { id: "lakeach",  e: "🏞️", nm: "Озеро",           dq: "Дорости до об'єму озера (16к)." },
+  { id: "ocean",    e: "🌊", nm: "Океан",           dq: "Здійснити мрію — дорости до об'єму океану (160к)." },
+  { id: "bestfriend", e: "🐸", nm: "Нерозлийвода",  dq: "Дорости дружбу з жабою до 6-го рівня." },
+  // приховані: текст з'являється лише після відкриття
+  { id: "allfriends", e: "🐾", nm: "Душа компанії", dq: "Заприятелювати з жабою, котом і равликом за один забіг.", hidden: true },
+  { id: "deceived", e: "😈", nm: "Обкручений довкола пальця", dq: "Повестися на солодку обіцянку хитрого гостя.", hidden: true },
+  { id: "lucky",    e: "🍀", nm: "Пещений долею",   dq: "Накопичити дуже високу приховану Вдачу.", hidden: true },
+  { id: "warmed",   e: "🌡️", nm: "Жертва потепління", dq: "Висохнути від глобального потепління (день 20+).", hidden: true },
 ];
 
 /* ---------- helpers ---------- */
@@ -504,6 +540,13 @@ export default function App() {
     setTimeout(() => setToasts(t => t.filter(x => x.id !== tid)), 5200);
     Sfx.ach();
   }, []);
+  // досягнення за об'ємом (мрія рости)
+  const checkVol = useCallback((mw) => {
+    if (mw >= 500) unlock("unfathom");
+    if (mw >= 2500) unlock("pond");
+    if (mw >= 16000) unlock("lakeach");
+    if (mw >= 160000) unlock("ocean");
+  }, [unlock]);
 
   /* ---- load ---- */
   useEffect(() => {
@@ -604,6 +647,7 @@ export default function App() {
             if (n.day >= 7) unlock("sevensuns");
             if (n.day >= 30) unlock("oldpuddle");
             if (n.day >= 50) unlock("eternal");
+            if (n.day >= 20) unlock("warmed"); // висох уже за відчутного потепління
             Sfx.danger();
             setEvent(null); setPhase("dead");
           });
@@ -654,7 +698,7 @@ export default function App() {
     if (u.id === "moss") n.mossMult *= 0.93;
     if (u.id === "vein") n.passive += 0.4;
     if (u.id === "lake") { n.maxWater += 150; n.passive += 0.7; queueMicrotask(() => unlock("deepwell")); }
-    if (n.maxWater >= 500) unlock("unfathom");
+    checkVol(n.maxWater);
     if (n.maxWater > (metaRef.current.maxVol || 0)) setMeta(m => ({ ...m, maxVol: Math.round(n.maxWater) }));
     return n;
   });
@@ -693,18 +737,25 @@ export default function App() {
     setG(prev => {
       const n = opt.fn ? { ...opt.fn(prev) } : { ...prev };
       n.nextEvent = 13 + Math.random() * 8; // відлік до наступної події стартує лише тепер
-      if (n.maxWater >= 500) unlock("unfathom");
+      checkVol(n.maxWater);
       if (n.maxWater > (metaRef.current.maxVol || 0)) setMeta(m => ({ ...m, maxVol: Math.round(n.maxWater) }));
       return n;
     });
     if (opt.meta) setMeta(m => {
       const nm = opt.meta(m);
       if ((nm.frogBond || 0) >= 3) queueMicrotask(() => unlock("kumasya"));
+      if ((nm.frogBond || 0) >= 6) queueMicrotask(() => unlock("bestfriend"));
       if (nm.snailMet) queueMicrotask(() => unlock("merchant"));
       if (nm.catPet) queueMicrotask(() => unlock("mooncat"));
+      if ((nm.frogBond || 0) >= 1 && nm.catPet && nm.snailMet) queueMicrotask(() => unlock("allfriends"));
       return nm;
     });
-    if (opt.luck) setMeta(m => ({ ...m, fate: Math.max(0, (m.fate || 0) + opt.luck) })); // рішення впливають на приховану Вдачу (±)
+    if (opt.luck) setMeta(m => {
+      const fate = Math.max(0, (m.fate || 0) + opt.luck); // рішення впливають на приховану Вдачу (±)
+      if (opt.luck < 0) queueMicrotask(() => unlock("deceived"));
+      if (fate >= 20) queueMicrotask(() => unlock("lucky"));
+      return { ...m, fate };
+    });
     setEvent(null);
   };
   resolveEventRef.current = resolveEvent;
@@ -735,10 +786,11 @@ export default function App() {
       const seg = WHEEL[idx];
       setG(p => {
         const n = seg.fn ? { ...seg.fn(p) } : { ...p };
+        checkVol(n.maxWater);
         if (n.maxWater > (metaRef.current.maxVol || 0)) setMeta(m => ({ ...m, maxVol: Math.round(n.maxWater) }));
         return n;
       });
-      if (seg.luck) setMeta(m => ({ ...m, fate: (m.fate || 0) + seg.luck }));
+      if (seg.luck) setMeta(m => ({ ...m, fate: Math.max(0, (m.fate || 0) + seg.luck) }));
       if (seg.tier === "jackpot" || seg.tier === "good") Sfx.win();
       else if (seg.tier === "bad" || seg.tier === "verybad") Sfx.danger();
       setWheel({ stage: "done", idx });
@@ -1309,10 +1361,11 @@ export default function App() {
             <div className="ach-grid">
               {ACHIEVEMENTS.map(a => {
                 const got = meta.ach && meta.ach[a.id];
+                const secret = a.hidden && !got; // приховане досягнення: текст ховаємо
                 return (
                   <div key={a.id} className={"ach" + (got ? "" : " locked")}>
-                    <div className="ae">{got ? a.e : "🔒"}</div>
-                    <div><div className="an">{a.nm}</div><div className="adq">{a.dq}</div></div>
+                    <div className="ae">{got ? a.e : secret ? "❔" : "🔒"}</div>
+                    <div><div className="an">{secret ? "???" : a.nm}</div><div className="adq">{secret ? "Приховане досягнення" : a.dq}</div></div>
                   </div>
                 );
               })}
