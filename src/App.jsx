@@ -934,6 +934,7 @@ export default function App() {
   const [wheelRot, setWheelRot] = useState(0);
   const [eventT, setEventT] = useState(0); // countdown for timed (passing) guests
   const [combo, setCombo] = useState(0); // ability combo display
+  const [confirmEnd, setConfirmEnd] = useState(false); // підтвердження «завершити забіг» (щоб не міс-клікали)
   const [abilFx, setAbilFx] = useState(null); // { kind:"syn"|"clash", text } — спливний відгук синергії/конфлікту
   const [rescue, setRescue] = useState(null); // null | "shuffle" | "pick" | "reveal" | "lose" — наперстки на смерті
   const [naperstky, setNaperstky] = useState({ won: false, picked: -1, drop: -1 }); // стан гри в наперстки
@@ -1465,7 +1466,7 @@ export default function App() {
     setEvent(null); setPhase("playing");
   };
   const endJourney = () => {
-    Sfx.click();
+    Sfx.click(); setConfirmEnd(false);
     const gained = Math.round(g.pending);
     setResult({ gained, secs: Math.round(g.elapsed), day: g.day, finished: true });
     setMeta(m => ({ ...m, essence: m.essence + gained, runs: m.runs + 1, best: Math.max(m.best, g.day), essThisAsc: (m.essThisAsc || 0) + gained, lifeEss: (m.lifeEss || 0) + gained }));
@@ -1977,6 +1978,7 @@ export default function App() {
                 ))}
               </div>
               <div className="wheel-hub" />
+              {wheel.stage === "done" && <div className="wheel-win" />}
             </div>
             {wheel.stage === "done" ? (() => {
               const rrCost = wheelRerollCost(wheel.rr, g.day);
@@ -2151,8 +2153,18 @@ export default function App() {
               <ResStat l="Вода" v={`${fmt(g.water)} 💧`} />
               <ResStat l="Сутність" v={`◈ ${fmt(g.pending)}`} hi />
             </div>
-            <button className="kal-go" onClick={continueDay}>Зустріти день {g.day + 1} (важче) →</button>
-            <button className="kal-go ghost" onClick={endJourney}>Завершити й забрати ◈ {fmt(Math.round(g.pending))}</button>
+            {!confirmEnd ? (
+              <>
+                <button className="kal-go" onClick={() => { setConfirmEnd(false); continueDay(); }}>Зустріти день {g.day + 1} (важче) →</button>
+                <button className="kal-go ghost" onClick={() => { Sfx.click(); setConfirmEnd(true); }}>Завершити й забрати ◈ {fmt(Math.round(g.pending))}</button>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 13.5, color: "var(--bad)", margin: "4px 0 8px", fontStyle: "italic" }}>Завершити забіг і піти у вівтар? Прогрес цього забігу скинеться.</div>
+                <button className="kal-go" style={{ background: "linear-gradient(180deg,#e0c060,#b8902f)", color: "#1a1206" }} onClick={endJourney}>Так, забрати ◈ {fmt(Math.round(g.pending))}</button>
+                <button className="kal-go ghost" onClick={() => { Sfx.click(); setConfirmEnd(false); }}>Ні, лишитись →</button>
+              </>
+            )}
           </div>
         </div>
       )}
