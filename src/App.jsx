@@ -765,6 +765,7 @@ export default function App() {
 
   /* ---- derived visuals ---- */
   const w = g.weather || NEUTRAL;
+  const luck = fateLuck(meta); // прихована вдача (0..1) — тільки для тонких візуальних натяків
   const ratio = clamp(g.water / g.maxWater, 0.04, 1);
   const size = 130 + ratio * 175;
   const evap = evapPerSec(g);
@@ -1095,7 +1096,8 @@ export default function App() {
             <div className="kal-big" style={{ fontSize: "clamp(24px,6vw,38px)", marginBottom: 4 }}>Колесо Фортуни</div>
             <div style={{ color: "var(--muted)", fontSize: 13, marginBottom: 12 }}>Крутни — і доля сама вирішить: щось чудове, лихе або нічого. Можна й відмовитись.</div>
             <div className="wheel-wrap">
-              <div className="wheel-pointer" />
+              <div className="wheel-aura" style={{ opacity: luck * 0.9 }} />
+              <div className="wheel-pointer" style={{ borderTopColor: mix("#ffffff", "#ffd05a", luck), filter: `drop-shadow(0 2px 3px rgba(0,0,0,.5)) drop-shadow(0 0 ${luck * 7}px rgba(255,205,90,${luck * 0.9}))` }} />
               <div className="wheel" style={{ transform: `rotate(${wheelRot}deg)`, background: `conic-gradient(${WHEEL.map((s, i) => `${s.col} ${i * 45 - 22.5}deg ${(i + 1) * 45 - 22.5}deg`).join(",")})` }}>
                 {WHEEL.map((s, i) => (
                   <div key={i} className="wheel-lbl" style={{ transform: `rotate(${i * 45}deg) translateY(-86px) rotate(${-i * 45}deg)` }}>{s.emo}</div>
