@@ -686,7 +686,7 @@ export default function App() {
     if (!wheel || wheel.stage !== "offer") return;
     const idx = pickWheel(fateLuck(metaRef.current));
     Sfx.spin();
-    setWheelRot(prev => Math.ceil(prev / 360) * 360 + 360 * 6 + (360 - (idx * 45 + 22.5)));
+    setWheelRot(prev => Math.ceil(prev / 360) * 360 + 360 * 6 + ((360 - idx * 45) % 360));
     setWheel({ stage: "spin", idx });
     setTimeout(() => {
       const seg = WHEEL[idx];
@@ -851,8 +851,6 @@ export default function App() {
       )}
 
       <div className="kal-wrap">
-        {/* sticky only while playing + on phones; normal flow elsewhere */}
-        <div className={"kal-stickytop" + (phase === "playing" ? " playing" : "")}>
         {/* TOP */}
         <div className="kal-top reveal">
           <div>
@@ -890,7 +888,8 @@ export default function App() {
           </div>
         )}
 
-        {/* STAGE */}
+        {/* STAGE — pinned (only the puddle card) while playing on phones */}
+        <div className={"kal-stagewrap" + (phase === "playing" ? " sticky" : "")}>
         <div className={"kal-stage reveal" + (phase === "playing" ? " live" : "")} ref={stageRef} onClick={absorb}>
           <div className="kal-sky" style={{ background: sky.gradient }} />
           <div className="kal-stars" style={{ "--star": sky.star, opacity: sky.star }} />
@@ -962,7 +961,7 @@ export default function App() {
           )}
           {phase === "playing" && <div className="kal-hint">торкайся, щоб вбирати · {net >= 0 ? "▲" : "▼"} {fmt(Math.abs(net))}/с {w.icon}</div>}
         </div>
-        </div>{/* end sticky top */}
+        </div>{/* end stage wrap */}
 
         {/* PLAY PANELS */}
         {phase === "playing" && (

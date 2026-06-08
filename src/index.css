@@ -43,13 +43,12 @@ body {
 }
 
 .kal-wrap { position:relative; z-index:2; max-width:980px; margin:0 auto; padding:18px 16px 56px; }
-/* on phones, while playing: pin header + heat + day-cycle + stage; panels scroll under it.
-   In menu / on desktop it's normal flow (no pin, no seam). */
-.kal-stickytop { position:static; }
+/* on phones, while playing: pin ONLY the puddle card (self-contained, opaque) so you can
+   tap it while scrolling the panels. Menu / desktop = normal flow. */
+.kal-stagewrap { position:static; }
 @media (max-width:760px) {
-  .kal-stickytop.playing { position:sticky; top:0; z-index:6; padding-top:8px;
-    background:linear-gradient(180deg,#143842 0%,#0e232c 80%,var(--bg1) 100%);
-    box-shadow:0 16px 18px -14px rgba(0,0,0,.5); }
+  .kal-stagewrap.sticky { position:sticky; top:6px; z-index:6; }
+  .kal-stagewrap.sticky .kal-stage { box-shadow:0 16px 30px -16px rgba(0,0,0,.7); }
 }
 .reveal { animation: up .6s cubic-bezier(.2,.8,.3,1) both; }
 .reveal:nth-child(2){animation-delay:.06s;} .reveal:nth-child(3){animation-delay:.12s;} .reveal:nth-child(4){animation-delay:.18s;}
