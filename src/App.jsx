@@ -885,16 +885,16 @@ const eMul = (m) => 1 + friendCount(m) * 0.045; // дружба підсилює
 // дружби тепер скидаються щозабігу — друзів треба здобувати знову.
 // За велику сутність їх можна «приручити назавжди» у вівтарі (meta.perma).
 const PERMA_FRIENDS = [
-  { id: "frog",  emo: "🐸",  nm: "Жаба Кума",        cost: 6000 },
-  { id: "dog",   emo: "🐕",  nm: "Песик-приятель",   cost: 7000 },
-  { id: "bird",  emo: "🐦",  nm: "Зграя птахів",     cost: 7500 },
-  { id: "duck",  emo: "🦆",  nm: "Качина родина",    cost: 8500 },
-  { id: "snail", emo: "🐌",  nm: "Равлик-крамар",    cost: 9000 },
-  { id: "cat",   emo: "🐈‍⬛", nm: "Місячний кіт",     cost: 11000 },
-  { id: "bee",   emo: "🐝",  nm: "Золоті бджоли",    cost: 12000 },
-  { id: "hog",   emo: "🦔",  nm: "Їжак-садівник",    cost: 13000 },
-  { id: "heron", emo: "🪽",  nm: "Чапля-провидиця",  cost: 15000 },
-  { id: "fire",  emo: "🚒",  nm: "Пожежники",        cost: 18000 },
+  { id: "frog",  emo: "🐸",  nm: "Жаба Кума",        cost: 60000 },
+  { id: "dog",   emo: "🐕",  nm: "Песик-приятель",   cost: 70000 },
+  { id: "bird",  emo: "🐦",  nm: "Зграя птахів",     cost: 80000 },
+  { id: "duck",  emo: "🦆",  nm: "Качина родина",    cost: 95000 },
+  { id: "snail", emo: "🐌",  nm: "Равлик-крамар",    cost: 110000 },
+  { id: "cat",   emo: "🐈‍⬛", nm: "Місячний кіт",     cost: 130000 },
+  { id: "bee",   emo: "🐝",  nm: "Золоті бджоли",    cost: 150000 },
+  { id: "hog",   emo: "🦔",  nm: "Їжак-садівник",    cost: 175000 },
+  { id: "heron", emo: "🪽",  nm: "Чапля-провидиця",  cost: 210000 },
+  { id: "fire",  emo: "🚒",  nm: "Пожежники",        cost: 260000 },
 ];
 const PERMA_FLAG = { frog: "frogBond", dog: "dogFriend", cat: "catPet", duck: "duckFriend", bird: "birdFriend", bee: "beeFriend", hog: "hogFriend", heron: "heronFriend", snail: "snailMet", fire: "fireFriend" };
 // скинути дружби до купленого «назавжди» базису (на старті забігу)
