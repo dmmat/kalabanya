@@ -437,3 +437,12 @@ body {
   font-family:'Fraunces',serif; font-weight:900; font-size:18px; color:var(--sun);
   text-shadow:0 2px 10px rgba(0,0,0,.6); animation:comboPop .5s cubic-bezier(.2,1.4,.3,1) both; pointer-events:none; }
 @keyframes comboPop { 0%{opacity:0; transform:translateX(-50%) scale(.6) translateY(8px);} 60%{opacity:1; transform:translateX(-50%) scale(1.12);} 100%{opacity:1; transform:translateX(-50%) scale(1);} }
+
+/* rescue slot spin + state effect chips */
+@keyframes rescueSpin { to { transform: rotate(360deg); } }
+.kal-fxchips { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+.kal-fxchips span { font-size:12px; padding:3px 9px; border-radius:99px; border:1px solid var(--line);
+  background:rgba(116,195,154,.06); color:var(--ink); white-space:nowrap; }
+.kal-fxchips span.good { color:var(--good); border-color:rgba(143,220,158,.3); }
+.kal-fxchips span.bad { color:var(--bad); border-color:rgba(226,144,106,.3); }
+.kal-fxchips span.idle { border-color:transparent; background:transparent; color:var(--muted); font-style:italic; padding-left:0; }

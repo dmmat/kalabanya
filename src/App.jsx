@@ -339,35 +339,35 @@ const EVENTS = [
     { b: "Замилуватись", sf: g => `+${eAmt(g, 28)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 28) * effEss(g) }) }] },
 
   /* — українські меми та культурні гості (з любов'ю) — */
-  { t: "Пасічник Ющенко", emo: "🐝", req: (g) => g.day >= 2, weight: 0.9,
+  { t: "Пасічник Ющенко", emo: "🐝", req: (g) => g.day >= 2, weight: 0.4,
     d: "Сивий пасічник підійшов із вуликом, примружився й мовив: «Бджоли — це Так!».", opts: [
     { b: "«Так!»", sf: g => `+${eAmt(g, 16)} сутності · мед`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }), meta: m => ({ ...m, beeFriend: true }), luck: 2 },
     { b: "Узяти воскову плівку", s: "−випар на 18с", fn: g => ({ ...g, shadeT: 18 }), meta: m => ({ ...m, beeFriend: true }) }] },
-  { t: "Рій золотих бджіл", emo: "🐝", req: (g, m) => m.beeFriend && g.day >= 4, weight: 0.6,
+  { t: "Рій золотих бджіл", emo: "🐝", req: (g, m) => m.beeFriend && g.day >= 4, weight: 0.35,
     d: "Знайомі бджоли привели цілий рій — гудуть над тобою золотою хмаркою.", opts: [
     { b: "Прийняти медовий дар", sf: g => `+${eAmt(g, 28)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 28) * effEss(g) }), luck: 1 },
     { b: "Попросити воскову плівку", s: "−випар на 22с", fn: g => ({ ...g, shadeT: 22 }) }] },
-  { t: "Кіт Степан завітав", emo: "🐈", req: (g) => g.day >= 2, weight: 0.9,
+  { t: "Кіт Степан завітав", emo: "🐈", req: (g) => g.day >= 2, weight: 0.4,
     d: "Біля тебе флегматично вмостився рудий кіт зі склянкою — точнісінько як на тих картинках.", opts: [
     { b: "Зробити вірусне фото", sf: g => `+${eAmt(g, 14)} сутності · слава`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 14) * effEss(g) }), meta: m => ({ ...m, catPet: true }), luck: 2 },
     { b: "Не турбувати кота", s: "+вбирання на 14с", fn: g => ({ ...g, absorbBoostT: 14 }) }] },
-  { t: "Пес Патрон на службі", emo: "🐕", req: (g) => g.day >= 2, weight: 0.9,
+  { t: "Пес Патрон на службі", emo: "🐕", req: (g) => g.day >= 2, weight: 0.4,
     d: "Маленький джек-рассел у жилетці обнюхав твій берег: «Чисто — мін немає!».", opts: [
     { b: "Подякувати герою", sf: g => `+${eAmt(g, 16)} сутності · спокій`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g), shadeT: 10 }), meta: m => ({ ...m, dogFriend: true }), luck: 2 },
     { b: "Дати водички", sf: g => `−${aw(g, 0.06)} води · +вдача`, fn: g => ({ ...g, water: g.water - aw(g, 0.06) }), meta: m => ({ ...m, dogFriend: true }), luck: 2 }] },
-  { t: "Чорнобаївка", emo: "💥", req: (g) => g.day >= 5, weight: 0.6,
+  { t: "Чорнобаївка", emo: "💥", req: (g) => g.day >= 5, weight: 0.3,
     d: "Тут знову щось пішло не так — уже вкотре. Дивне місце, ця твоя яма.", opts: [
     { b: "Махнути рукою", sf: g => `+${eAmt(g, 12)} сутності (з досвіду)`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 12) * effEss(g) }), luck: 1 },
     { b: "Спробувати ще раз", sf: g => `+${aw(g, 0.08)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.08), g.maxWater) }) }] },
-  { t: "Байрактар над полем", emo: "🛩️", req: (g) => g.day >= 4, weight: 0.6,
+  { t: "Байрактар над полем", emo: "🛩️", req: (g) => g.day >= 4, weight: 0.3,
     d: "Над тобою з тихим дзижчанням пройшов знайомий безпілотник — мов із тієї пісеньки.", opts: [
     { b: "Помахати знизу", s: "+вбирання на 16с · бойовий дух", fn: g => ({ ...g, absorbBoostT: 16 }), luck: 1 },
     { b: "Сховатись у тінь крила", s: "−випар на 16с", fn: g => ({ ...g, shadeT: 16 }) }] },
-  { t: "Червона калина", emo: "🌺", req: (g) => g.day >= 3, weight: 0.7,
+  { t: "Червона калина", emo: "🌺", req: (g) => g.day >= 3, weight: 0.35,
     d: "Над тобою схилилась гілка червоної калини, і десь у вітрі вчувається пісня.", opts: [
     { b: "Підспівати", sf: g => `+${eAmt(g, 14)} сутності · піднесення`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 14) * effEss(g) }), luck: 1 },
     { b: "Вмочити ягідку", sf: g => `+${aw(g, 0.06)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.06), g.maxWater) }) }] },
-  { t: "Доброго вечора!", emo: "🌻", tod: [0.74, 1.0], weight: 0.8,
+  { t: "Доброго вечора!", emo: "🌻", tod: [0.74, 1.0], weight: 0.4,
     d: "Хтось проходить повз і кидає тепле: «Доброго вечора, ми з України!».", opts: [
     { b: "Привітатись у відповідь", s: "+вбирання на 14с · добрий настрій", fn: g => ({ ...g, absorbBoostT: 14 }), luck: 1 },
     { b: "Засоромитись брижами", sf: g => `+${eAmt(g, 10)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 10) * effEss(g) }) }] },
@@ -375,7 +375,7 @@ const EVENTS = [
     d: "У тебе шубовснули чиїсь джинси — ті самі, «за сорок гривень». Легендарна знахідка, раз на життя!", opts: [
     { b: "Виставити на продаж", sf: g => `+${eAmt(g, 40)} сутності (рівно за 40!)`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 40) * effEss(g) }), luck: 2 },
     { b: "Зробити з них тінь", s: "−випар на 40с", fn: g => ({ ...g, shadeT: 40 }) }] },
-  { t: "Кличко латає яму", emo: "🥊", req: (g) => g.day >= 3, weight: 0.6,
+  { t: "Кличко латає яму", emo: "🥊", req: (g) => g.day >= 3, weight: 0.3,
     d: "Сам мер прийшов оглянути твою яму: «Сьогодні-завтра залатаємо. Тому що!» — махнув рукою й кудись зник.", opts: [
     { b: "«Тому що!»", sf: g => `+${eAmt(g, 16)} сутності (за терпіння)`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }), luck: 1 },
     { b: "Дочекатись «ремонту»", sf: g => `−12% об'єму, зате +${eAmt(g, 18)} сутності`, fn: g => { const mw = Math.max(120, Math.round(g.maxWater * 0.88)); return { ...g, maxWater: mw, water: Math.min(g.water, mw), pending: g.pending + eAmt(g, 18) * effEss(g) }; } }] },
@@ -582,7 +582,7 @@ const eAmt = (g, base) => Math.round(base * (1 + (g.day - 1) * 0.12) * (g.friend
 const tempC = (sun) => Math.round(14 + Math.sqrt(clamp(sun, 0, 400) / 400) * 32);
 // глобальне потепління: невідворотний випар, що росте з днем (не блокується нічим).
 // з ~20-25 дня стає відчутним, тож пасив уже не покриває все — треба знову діяти.
-const warmingDrain = (day) => Math.pow(Math.max(0, day - 10), 1.5) * 0.16;
+const warmingDrain = (day) => Math.pow(Math.max(0, day - 10), 1.5) * 0.13;
 // мрія калабані рости: ранг за об'ємом
 const RANKS = [[300, "калабаня"], [900, "велика калабаня"], [2500, "ставок"], [6000, "озерце"], [16000, "озеро"], [50000, "велике озеро"], [160000, "море"]];
 const rankName = (mw) => { for (const [t, n] of RANKS) if (mw < t) return n; return "океан"; };
@@ -595,9 +595,9 @@ function evapPerSec(g) {
   const redu = Math.max(0.5, g.deepenMult * g.mossMult);
   let e = g.baseEvap * redu * sunMul * (1 - g.leaf);
   if (g.shadeT > 0) e *= 0.35;
-  // буст випару від подій: множник + відчутний плоский злив (масштаб від об'єму),
-  // щоб відчувалось навіть коли базовий випар прокачкою зведений майже в нуль
-  if (g.evapBoostT > 0) e = e * 1.8 + (g.maxWater || 120) * 0.007;
+  // буст випару від подій: множник + плоский злив, обмежений доходом (а не об'ємом),
+  // щоб відчувалось, але не вибухало на велетенських калабанях
+  if (g.evapBoostT > 0) e = e * 1.8 + Math.min((g.maxWater || 120) * 0.005, 8 + (g.passive || 0) * 0.8);
   // глобальне потепління: невідворотний випар, що росте з днем (еко-дари трохи зменшують)
   e += warmingDrain(g.day) * (g.ecoMult ?? 1);
   e *= (1 + w.evapMod);
@@ -608,7 +608,7 @@ function freshRun(meta) {
   const M = (k) => meta[k] || 0;
   return {
     water: 46 + M("memory") * 22 + 40 * M("wellspring") + 30 * M("c_full"), maxWater: 120 + M("memory") * 22 + 40 * M("wellspring") + 25 * M("c_full"),
-    day: 1, elapsed: 0, dayLen: 100, sun: 8, speed: 1 + 0.12 * M("swift"),
+    day: 1, elapsed: 0, dayLen: 100, sun: 8, speed: 1 + 0.12 * M("swift"), rescues: 0,
     baseEvap: 0.95 * Math.pow(0.96, M("cold")) * Math.pow(0.97, M("permafrost")),
     deepenMult: 1, mossMult: 1, sunResist: clamp(0.06 * M("c_silt"), 0, 0.85), absorbMult: 1,
     soil: 60, soilMax: 60, soilRegen: 3.8 * (1 + 0.25 * M("roots") + 0.25 * M("deeproots")),
@@ -705,6 +705,7 @@ export default function App() {
   const [wheelRot, setWheelRot] = useState(0);
   const [eventT, setEventT] = useState(0); // countdown for timed (passing) guests
   const [combo, setCombo] = useState(0); // ability combo display
+  const [rescue, setRescue] = useState(null); // null | "spin" | "lose" — рятувальний слот на смерті
   const comboRef = useRef({ count: 0, last: 0, ids: new Set() });
   const comboHideRef = useRef(null);
   const resolveEventRef = useRef(null);
@@ -863,13 +864,13 @@ export default function App() {
           n.water = 0;
           const gained = Math.round(n.pending);
           queueMicrotask(() => {
+            // ще НЕ банкуємо сутність — спершу даємо шанс на рятувальний слот
             setResult({ gained, secs: Math.round(n.elapsed), day: n.day });
-            setMeta(m => ({ ...m, essence: m.essence + gained, runs: m.runs + 1, best: Math.max(m.best, n.day), essThisAsc: (m.essThisAsc || 0) + gained, lifeEss: (m.lifeEss || 0) + gained }));
             if (n.day >= 7) unlock("sevensuns");
             if (n.day >= 30) unlock("oldpuddle");
             if (n.day >= 50) unlock("eternal");
             if (n.day >= 20) unlock("warmed"); // висох уже за відчутного потепління
-            Sfx.danger();
+            Sfx.danger(); Haptics.bad();
             setEvent(null); setPhase("dead");
           });
         }
@@ -1111,6 +1112,32 @@ export default function App() {
     if (g.day >= 30) unlock("oldpuddle");
     if (g.day >= 50) unlock("eternal");
     setPhase("menu");
+  };
+
+  /* ---- death + rescue slot ---- */
+  const rescueCost = () => 1000 * Math.pow(3, gRef.current.rescues || 0);
+  const finalizeDeath = () => { // забанкувати сутність і піти у вівтар
+    Sfx.click();
+    const gained = (resultRef.current && resultRef.current.gained) || 0;
+    const day = (resultRef.current && resultRef.current.day) || gRef.current.day;
+    setMeta(m => ({ ...m, essence: m.essence + gained, runs: m.runs + 1, best: Math.max(m.best, day), essThisAsc: (m.essThisAsc || 0) + gained, lifeEss: (m.lifeEss || 0) + gained }));
+    setRescue(null); setResult(null); setPhase("menu");
+  };
+  const tryRescue = () => {
+    const cost = rescueCost();
+    if ((metaRef.current.essence || 0) < cost || rescue === "spin") return;
+    setMeta(m => ({ ...m, essence: m.essence - cost }));
+    setG(p => ({ ...p, rescues: (p.rescues || 0) + 1 }));
+    setRescue("spin"); Sfx.spin();
+    const chance = clamp(0.42 + fateLuck(metaRef.current) * 0.18, 0.2, 0.7);
+    setTimeout(() => {
+      if (Math.random() < chance) {
+        // врятовано! — наповнюємо й продовжуємо забіг
+        Sfx.win(); Haptics.good();
+        setG(p => ({ ...p, water: Math.round(p.maxWater * 0.45) }));
+        setRescue(null); setResult(null); setEvent(null); setPhase("playing");
+      } else { Sfx.danger(); Haptics.bad(); setRescue("lose"); }
+    }, 1900);
   };
 
   /* ---- export / import ---- */
@@ -1374,18 +1401,21 @@ export default function App() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 13.5 }}>
                 <Stat l="Випар" v={`${fmt(evap)}/с`} c="var(--bad)" />
                 <Stat l="Приплив" v={`+${fmt(g.passive + w.rainPower)}/с`} c="var(--good)" />
-                <Stat l="Вбирання" v={`+${fmt(ABSORB_BASE * g.absorbMult * (g.absorbBoostT > 0 ? 1.9 : 1) * (1 + w.absorbMod))}`} c="var(--water-a)" />
+                <Stat l="Чистий" v={`${net >= 0 ? "+" : "−"}${fmt(Math.abs(net))}/с`} c={net >= 0 ? "var(--good)" : "var(--bad)"} />
+                <Stat l="Вбирання" v={`+${fmt(ABSORB_BASE * g.absorbMult * (g.absorbBoostT > 0 ? 1.9 : 1) * (1 + w.absorbMod))}/тап`} c="var(--water-a)" />
+                <Stat l="Наповнення" v={`${Math.round(clamp(g.water / g.maxWater, 0, 1) * 100)}%`} c="var(--ink)" />
                 <Stat l="Волога ґрунту" v={`${Math.round(g.soil)}%`} c="var(--ink)" />
-                {warmingDrain(g.day) * (g.ecoMult ?? 1) > 0.05
-                  ? <Stat l="Потепління 🌡️" v={`−${fmt(warmingDrain(g.day) * (g.ecoMult ?? 1))}/с`} c="var(--bad)" />
-                  : <Stat l="Опір спеці" v={`${Math.round(g.sunResist * 100)}%`} c="var(--ink)" />}
+                <Stat l="Опір спеці" v={`${Math.round(g.sunResist * 100)}%`} c="var(--ink)" />
+                {warmingDrain(g.day) * (g.ecoMult ?? 1) > 0.05 && <Stat l="Потепління 🌡️" v={`−${fmt(warmingDrain(g.day) * (g.ecoMult ?? 1))}/с`} c="var(--bad)" />}
                 <Stat l="Сутність ◈" v={`${fmt(g.pending)}${w.essMod ? ` ·${(1 + w.essMod).toFixed(1)}×` : ""}`} c="var(--essence)" />
+                {(g.speed || 1) > 1.01 && <Stat l="Швидкість ⏩" v={`×${(g.speed).toFixed(2)}`} c="var(--essence)" />}
               </div>
-              <div style={{ marginTop: 12, fontSize: 12.5, color: "var(--muted)", lineHeight: 1.45, fontStyle: "italic" }}>
-                {g.shadeT > 0 && "У тіні — випар уповільнений. "}
-                {g.evapBoostT > 0 && "Поверхня розкрита — сохнеш швидше. "}
-                {g.absorbBoostT > 0 && "Брижишся — вбираєш активніше. "}
-                {g.shadeT <= 0 && g.evapBoostT <= 0 && g.absorbBoostT <= 0 && "Небо тремтить у твоєму дзеркалі."}
+              <div className="kal-fxchips">
+                {g.shadeT > 0 && <span>🌑 тінь {Math.ceil(g.shadeT)}с</span>}
+                {g.evapBoostT > 0 && <span className="bad">♨️ випар {Math.ceil(g.evapBoostT)}с</span>}
+                {g.absorbBoostT > 0 && <span className="good">💧 вбирання {Math.ceil(g.absorbBoostT)}с</span>}
+                {g.leaf > 0 && <span>🍂 листя −{Math.round(g.leaf * 100)}% випару</span>}
+                {g.shadeT <= 0 && g.evapBoostT <= 0 && g.absorbBoostT <= 0 && g.leaf <= 0 && <span className="idle">Небо тремтить у твоєму дзеркалі…</span>}
               </div>
             </div>
           </div>
@@ -1608,14 +1638,32 @@ export default function App() {
           <div className="kal-panel danger" style={{ textAlign: "center" }}>
             <span className="kal-tag">кінець</span>
             <div className="kal-big" style={{ color: "var(--dry)" }}>Ти висохла.</div>
-            <div className="kal-lore">Остання крапля піднялась у небо парою. На сухій землі лишилось темне коло — пам'ять про те, що тут була вода. З неї проросте нова калабаня.</div>
+            {rescue === "spin" ? (
+              <>
+                <div className="kal-lore">Остання крапля тремтить у повітрі… доля крутить барабан рятунку.</div>
+                <div style={{ fontSize: 64, animation: "rescueSpin .5s linear infinite" }}>🎰</div>
+              </>
+            ) : rescue === "lose" ? (
+              <div className="kal-lore">Слот зупинився на порожнечі. Цього разу небо не зглянулось… ти таки висохла.</div>
+            ) : (
+              <div className="kal-lore">Остання крапля піднялась у небо парою. На сухій землі лишилось темне коло — з нього проросте нова калабаня.</div>
+            )}
             <div className="kal-grid2">
               <ResStat l="Прожито" v={`день ${result.day}`} />
               <ResStat l="Трималась" v={`${result.secs}с`} />
-              <ResStat l="Зібрано сутності" v={`◈ ${fmt(result.gained)}`} hi />
+              <ResStat l="Назбирано сутності" v={`◈ ${fmt(result.gained)}`} hi />
               <ResStat l="Усього мандрівок" v={meta.runs} />
             </div>
-            <button className="kal-go" onClick={() => { Sfx.click(); setPhase("menu"); }}>До вівтаря калабань →</button>
+            {rescue !== "spin" && (() => {
+              const cost = rescueCost(), canAfford = (meta.essence || 0) >= cost;
+              return (
+                <button className="kal-go" disabled={!canAfford} onClick={tryRescue} style={{ opacity: canAfford ? 1 : 0.5, background: "linear-gradient(180deg,#e0c060,#b8902f)", color: "#1a1206" }}>
+                  🎰 {rescue === "lose" ? "Спробувати ще раз" : "Остання надія"} (−◈ {fmt(cost)})
+                </button>
+              );
+            })()}
+            {rescue !== "spin" && <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 6 }}>Слот може врятувати… а може й ні. Сутність списується одразу.</div>}
+            {rescue !== "spin" && <button className="kal-go ghost" onClick={finalizeDeath}>Прийняти долю → до вівтаря (забрати ◈ {fmt(result.gained)})</button>}
           </div>
         </div>
       )}
