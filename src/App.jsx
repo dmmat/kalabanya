@@ -124,6 +124,7 @@ const META_UPGRADES = [
   { id: "silver", emo: "🌙", nm: "Срібна крапля", de: "+12% сутності з мандрівок.", base: 48, growth: 1.74, max: 12 },
   { id: "spring", emo: "⛲", nm: "Вічне джерело", de: "Старт із +0.3/с пасивної води.", base: 70, growth: 1.85, max: 8 },
   { id: "roots",  emo: "🌱", nm: "Глибокі корінці", de: "+25% швидкості наповнення ґрунту.", base: 52, growth: 1.78, max: 8 },
+  { id: "swift",  emo: "⏳", nm: "Стрімкий час", de: "−5с до тривалості дня (легше дожити).", base: 55, growth: 1.8, max: 8 },
   { id: "luck",   emo: "🍀", nm: "Прихильність неба", de: "+1 безкоштовний перекрут прогнозу на день.", base: 70, growth: 2.1, max: 4 },
   { id: "moon",   emo: "🌗", nm: "Срібло сутінків", de: "+15% сутності за виживання до ночі.", base: 85, growth: 1.95, max: 8 },
   { id: "trees",  emo: "🌳", nm: "Лісосмуга", de: "−6% глобального потепління.", base: 90, growth: 1.85, max: 8 },
@@ -588,7 +589,7 @@ function freshRun(meta) {
   const M = (k) => meta[k] || 0;
   return {
     water: 46 + M("memory") * 22 + 40 * M("wellspring") + 30 * M("c_full"), maxWater: 120 + M("memory") * 22 + 40 * M("wellspring") + 25 * M("c_full"),
-    day: 1, elapsed: 0, dayLen: 100, sun: 8,
+    day: 1, elapsed: 0, dayLen: Math.max(55, 100 - 5 * M("swift")), sun: 8,
     baseEvap: 0.95 * Math.pow(0.96, M("cold")) * Math.pow(0.97, M("permafrost")),
     deepenMult: 1, mossMult: 1, sunResist: clamp(0.06 * M("c_silt"), 0, 0.85), absorbMult: 1,
     soil: 60, soilMax: 60, soilRegen: 3.8 * (1 + 0.25 * M("roots") + 0.25 * M("deeproots")),
@@ -668,7 +669,7 @@ function Reel({ target, spinKey, delay, dur }) {
 }
 
 /* ============================ APP ============================ */
-const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, duckFriend: false, birdFriend: false, beeFriend: false, hogFriend: false, heronFriend: false, frogShy: false, tricked: false, callcd: 0, trees: 0, reeds: 0, fate: 0, seenOnce: {}, sound: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0, c_eco: 0 };
+const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, duckFriend: false, birdFriend: false, beeFriend: false, hogFriend: false, heronFriend: false, frogShy: false, tricked: false, callcd: 0, trees: 0, reeds: 0, swift: 0, fate: 0, seenOnce: {}, sound: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0, c_eco: 0 };
 
 export default function App() {
   const [phase, setPhase] = useState("loading"); // loading|welcome|menu|forecast|challenge|playing|dead|survived
@@ -924,7 +925,7 @@ export default function App() {
     setMeta(m => ({
       ...m,
       essence: 0, essThisAsc: 0,
-      memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, callcd: 0, trees: 0, reeds: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0,
+      memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, callcd: 0, trees: 0, reeds: 0, swift: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0,
       clouds: (m.clouds || 0) + gain,
       ascensions: (m.ascensions || 0) + 1,
     }));
