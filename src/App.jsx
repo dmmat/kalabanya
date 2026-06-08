@@ -413,7 +413,7 @@ function Reel({ target, spinKey, delay, dur }) {
 }
 
 /* ============================ APP ============================ */
-const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, fate: 0, sound: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0 };
+const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, fate: 0, sound: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0 };
 
 export default function App() {
   const [phase, setPhase] = useState("loading"); // loading|welcome|menu|forecast|playing|dead|survived
@@ -450,6 +450,24 @@ export default function App() {
   const bootForecast = useRef(false);
 
   useEffect(() => { Sfx.setMuted(!meta.sound); }, [meta.sound]);
+
+  /* ---- keep screen awake while playing (Screen Wake Lock API) ---- */
+  const wakeLockRef = useRef(null);
+  useEffect(() => {
+    const want = phase === "playing" && meta.keepAwake !== false && typeof navigator !== "undefined" && "wakeLock" in navigator;
+    const acquire = async () => {
+      if (!want || wakeLockRef.current || document.visibilityState !== "visible") return;
+      try {
+        wakeLockRef.current = await navigator.wakeLock.request("screen");
+        wakeLockRef.current.addEventListener?.("release", () => { wakeLockRef.current = null; });
+      } catch (e) { wakeLockRef.current = null; }
+    };
+    const release = () => { try { wakeLockRef.current && wakeLockRef.current.release(); } catch (e) {} wakeLockRef.current = null; };
+    if (want) acquire(); else release();
+    const onVis = () => { if (document.visibilityState === "visible") acquire(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => { document.removeEventListener("visibilitychange", onVis); release(); };
+  }, [phase, meta.keepAwake]);
 
   /* ---- achievements ---- */
   const unlock = useCallback((id) => {
@@ -1335,6 +1353,11 @@ export default function App() {
               <div className="emo">{meta.sound ? "🔊" : "🔇"}</div>
               <div className="body"><div className="nm">Звукові ефекти</div><div className="de">Краплі, барабани, фанфари сутінків.</div></div>
               <button className="kal-mini" onClick={() => { setMeta(m => ({ ...m, sound: !m.sound })); Sfx.click(); }}>{meta.sound ? "Увімкнено" : "Вимкнено"}</button>
+            </div>
+            <div className="kal-up" style={{ cursor: "default", marginTop: 6 }}>
+              <div className="emo">{meta.keepAwake !== false ? "📱" : "🌙"}</div>
+              <div className="body"><div className="nm">Не гасити екран</div><div className="de">Тримає екран увімкненим під час гри (тратить більше батареї).</div></div>
+              <button className="kal-mini" onClick={() => { setMeta(m => ({ ...m, keepAwake: m.keepAwake === false ? true : false })); Sfx.click(); }}>{meta.keepAwake !== false ? "Увімкнено" : "Вимкнено"}</button>
             </div>
             <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--line)" }}>
               <div className="seclab">Збереження</div>
