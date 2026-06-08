@@ -190,7 +190,7 @@ const EVENTS = [
     d: "Знайома жаба впізнала твій блиск і знову прийшла погрітись на твоїм краю.", opts: [
     { b: "Прийняти, як рідну", s: "−випар на 20с · міцніша дружба", fn: g => ({ ...g, shadeT: 20 }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 1 }), luck: 2 },
     { b: "Попросити про послугу", s: "+12 сутності", fn: g => ({ ...g, pending: g.pending + 12 * effEss(g) }) }] },
-  { t: "Равлик-крамар", emo: "🐌", art: "snail", req: (g) => g.day >= 3, weight: 1.1,
+  { t: "Равлик-крамар", emo: "🐌", art: "snail", req: (g) => g.day >= 3, weight: 1.1, timer: 12,
     d: "Равлик зі скойкою-крамницею повз твоїм берегом і розклав на мушлі дрібний крам.", opts: [
     { b: "Виміняти мул на захист", s: "−18 води · +опір спеці", fn: g => ({ ...g, water: g.water - 18, sunResist: clamp(g.sunResist + 0.06, 0, 0.85) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
     { b: "Купити краплю глибини", s: "−14 води · +35 об'єму", fn: g => ({ ...g, water: g.water - 14, maxWater: g.maxWater + 35 }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
@@ -220,6 +220,20 @@ const EVENTS = [
     d: "У сутінковій тиші ти чуєш шепіт усіх калабань, що висихали тут до тебе.", opts: [
     { b: "Прийняти їхню пам'ять", s: "+42 сутності", fn: g => ({ ...g, pending: g.pending + 42 * effEss(g) }) },
     { b: "Тихо відпустити", s: "−випар на 26с", fn: g => ({ ...g, shadeT: 26 }) }] },
+
+  /* — хитруни: на вигляд вигідно, насправді користуються тобою (таємно мінус Вдача) — */
+  { t: "Спритний крук", emo: "🐦‍⬛", art: "crow", cunning: true, req: (g) => g.day >= 3, weight: 1.0, timer: 10,
+    d: "Крук схилив голову й зблиснув оком на твоє срібло: «Дай краплин — поверну скарбом, обіцяю».", opts: [
+    { b: "Повірити круку", s: "−26 води · обіцяє скарб", fn: g => ({ ...g, water: g.water - 26 }), luck: -3 },
+    { b: "Не вестись", s: "нічого", fn: g => g }] },
+  { t: "Очеретяний шепіт", emo: "🌾", cunning: true, req: (g) => g.day >= 4, weight: 0.9, timer: 9,
+    d: "З очерету тягнеться вкрадливий шепіт: «Розкрийся ширше — і станеш цілим озером…»", opts: [
+    { b: "Розкритись на шепіт", s: "обіцяє великий об'єм", fn: g => ({ ...g, water: g.water * 0.7, evapBoostT: 18 }), luck: -2 },
+    { b: "Стулитись міцніше", s: "нічого", fn: g => g }] },
+  { t: "Лощава п'явка", emo: "🪱", cunning: true, req: (g) => g.day >= 5, weight: 0.8, timer: 9,
+    d: "Слизька п'явка лащиться до краю: «Я почищу тебе зсередини, будеш як кришталь».", opts: [
+    { b: "Дозволити «почистити»", s: "обіцяє чистоту", fn: g => ({ ...g, water: g.water - 18, evapBoostT: 16 }), luck: -2 },
+    { b: "Струсити геть", s: "+8 води", fn: g => ({ ...g, water: g.water + 8 }) }] },
 ];
 
 /* eligible events filtered by req + час доби (tod), потім зважений вибір */
@@ -414,6 +428,8 @@ export default function App() {
   const [scenesOk, setScenesOk] = useState(true); // illustrated backgrounds present?
   const [wheel, setWheel] = useState(null); // null | { stage:"offer"|"spin"|"done", idx }
   const [wheelRot, setWheelRot] = useState(0);
+  const [eventT, setEventT] = useState(0); // countdown for timed (passing) guests
+  const resolveEventRef = useRef(null);
   const stageRef = useRef(null);
   const wheelRef = useRef(null); wheelRef.current = wheel;
 
@@ -532,6 +548,7 @@ export default function App() {
             if (n.day >= 30) unlock("oldpuddle");
             if (n.day >= 50) unlock("eternal");
             Sfx.dusk();
+            setEvent(null);
             setPhase("survived");
           });
         }
@@ -644,9 +661,23 @@ export default function App() {
       if (nm.catPet) queueMicrotask(() => unlock("mooncat"));
       return nm;
     });
-    if (opt.luck) setMeta(m => ({ ...m, fate: (m.fate || 0) + opt.luck })); // добрі рішення → прихована вдача
+    if (opt.luck) setMeta(m => ({ ...m, fate: Math.max(0, (m.fate || 0) + opt.luck) })); // рішення впливають на приховану Вдачу (±)
     setEvent(null);
   };
+  resolveEventRef.current = resolveEvent;
+  // timed guests (равлик, хитруни): йдуть, якщо не вирішити вчасно (авто-відмова — останній варіант)
+  useEffect(() => {
+    if (!event || !event.timer) { setEventT(0); return; }
+    setEventT(event.timer);
+    const iv = setInterval(() => {
+      setEventT(t => {
+        const nt = t - 0.1;
+        if (nt <= 0) { clearInterval(iv); resolveEventRef.current(event.opts[event.opts.length - 1]); return 0; }
+        return nt;
+      });
+    }, 100);
+    return () => clearInterval(iv);
+  }, [event]);
 
   /* ---- Колесо Фортуни ---- */
   const declineWheel = () => { Sfx.click(); setWheel(null); setG(p => ({ ...p, nextEvent: 13 + Math.random() * 8 })); };
@@ -1083,8 +1114,9 @@ export default function App() {
 
       {/* EVENT */}
       {event && phase === "playing" && (
-        <div className="kal-evt">
+        <div className={"kal-evt" + (event.cunning ? " cunning" : "")}>
           <div className="ehead"><div className="eemo"><span className="eemo-ring" />{event.emo}{event.art && <SafeImg className="eemo-img" src={`${import.meta.env.BASE_URL}events/${event.art}.webp`} />}</div><div className="et">{event.t}</div></div>
+          {event.timer ? <div className="evt-timer"><i style={{ width: `${clamp((eventT / event.timer) * 100, 0, 100)}%` }} /></div> : null}
           <div className="ed">{event.d}</div>
           <div className="opts">{event.opts.map((o, i) => <button key={i} className="kal-btn" onClick={() => resolveEvent(o)}><b>{o.b}</b><small>{o.s}</small></button>)}</div>
         </div>

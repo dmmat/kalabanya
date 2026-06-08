@@ -412,3 +412,8 @@ body {
   background:radial-gradient(circle, rgba(255,206,104,.55), rgba(255,206,104,.12) 55%, transparent 72%);
   filter:blur(9px); transition:opacity .6s ease; animation:auraPulse 3.2s ease-in-out infinite; }
 @keyframes auraPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+
+/* timed-guest countdown (cunning guests look identical to honest ones — on purpose) */
+.evt-timer { height:4px; border-radius:99px; background:rgba(255,255,255,.08); overflow:hidden; margin:0 0 10px; }
+.evt-timer i { display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,var(--water-a),var(--water-b));
+  transition:width .1s linear; }
