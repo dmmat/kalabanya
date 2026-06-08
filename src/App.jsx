@@ -125,6 +125,11 @@ const META_UPGRADES = [
   { id: "roots",  emo: "🌱", nm: "Глибокі корінці", de: "+25% швидкості наповнення ґрунту.", base: 52, growth: 1.78, max: 8 },
   { id: "luck",   emo: "🍀", nm: "Прихильність неба", de: "+1 безкоштовний перекрут прогнозу на день.", base: 70, growth: 2.1, max: 4 },
   { id: "moon",   emo: "🌗", nm: "Срібло сутінків", de: "+15% сутності за виживання до ночі.", base: 85, growth: 1.95, max: 8 },
+  // просунуті дари — відкриваються, коли викупиш базовий повністю
+  { id: "wellspring", emo: "🌊", nm: "Бездонна пам'ять", de: "+40 стартової води та об'єму.", base: 120, growth: 1.8, max: 10, req: m => (m.memory || 0) >= 12 },
+  { id: "permafrost", emo: "🧊", nm: "Вічна мерзлота", de: "−3% базового випару.", base: 150, growth: 1.82, max: 8, req: m => (m.cold || 0) >= 10 },
+  { id: "golddrop", emo: "🪙", nm: "Золота крапля", de: "+15% сутності з мандрівок.", base: 140, growth: 1.8, max: 10, req: m => (m.silver || 0) >= 12 },
+  { id: "deeproots", emo: "🌳", nm: "Прадавнє коріння", de: "+25% наповнення ґрунту.", base: 120, growth: 1.8, max: 8, req: m => (m.roots || 0) >= 8 },
   // глибинні дари — відкриваються лише в довгій грі (рекорд ≥ 8 днів)
   { id: "spring2", emo: "🪨", nm: "Глибинна жила", de: "Старт із +0.4/с пасивної води.", base: 160, growth: 1.92, max: 6, tier: 2 },
   { id: "essflow", emo: "🌫️", nm: "Роса предків", de: "+0.05/с базового збору сутності.", base: 150, growth: 1.9, max: 6, tier: 2 },
@@ -146,7 +151,7 @@ const PRESTIGE_UPGRADES = [
 /* ---------- events ---------- */
 const EVENTS = [
   { t: "Набігла хмара", emo: "☁️", d: "Темна хмара зависла над тобою.", opts: [
-    { b: "Розкритись", sf: g => `+${aw(g, 0.26)} води, +випар на 12с`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.26), g.maxWater), evapBoostT: 12 }) },
+    { b: "Розкритись", sf: g => `+${aw(g, 0.16)} води, та швидко випарується (18с)`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.16), g.maxWater), evapBoostT: 18 }) },
     { b: "Зібратись", sf: g => `+${aw(g, 0.10)} води, безпечно`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.10), g.maxWater) }) }] },
   { t: "Сусідський песик", emo: "🐕", art: "dog", req: (g) => g.day >= 2, weight: 1.1, timer: 10,
     d: "Кудлатий песик підбіг до тебе, висолопив язика й завзято замахав хвостом.", opts: [
@@ -174,7 +179,7 @@ const EVENTS = [
     { b: "Струсити геть", sf: g => `+${aw(g, 0.06)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.06), g.maxWater) }) }] },
   { t: "Сонячне вікно", emo: "🌤️", tod: [0.30, 0.70], weight: 1.4, d: "Хмари розійшлись — пряме проміння впало на тебе.", opts: [
     { b: "Сховатись у бруд", s: "−випар на 18с", fn: g => ({ ...g, shadeT: 18 }) },
-    { b: "Витерпіти", sf: g => `+${aw(g, 0.12)} води, +випар на 16с`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.12), g.maxWater), evapBoostT: 16 }) }] },
+    { b: "Витерпіти", sf: g => `+${aw(g, 0.14)} води, та швидко випарується (16с)`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.14), g.maxWater), evapBoostT: 16 }) }] },
   { t: "Жаба-мандрівниця", emo: "🐸", art: "frog", d: "Жаба обрала твою калабаню за прихисток на ніч.", opts: [
     { b: "Прихистити її", sf: g => `−${aw(g, 0.05)} води · +дружба з жабою`, fn: g => ({ ...g, water: g.water - aw(g, 0.05), shadeT: 16 }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 1 }), luck: 2 },
     { b: "Прогнати геть", sf: g => `+${aw(g, 0.06)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.06), g.maxWater) }) }] },
@@ -427,14 +432,14 @@ function evapPerSec(g) {
 function freshRun(meta) {
   const M = (k) => meta[k] || 0;
   return {
-    water: 46 + M("memory") * 22 + 30 * M("c_full"), maxWater: 120 + M("memory") * 22 + 25 * M("c_full"),
+    water: 46 + M("memory") * 22 + 40 * M("wellspring") + 30 * M("c_full"), maxWater: 120 + M("memory") * 22 + 40 * M("wellspring") + 25 * M("c_full"),
     day: 1, elapsed: 0, dayLen: 100, sun: 8,
-    baseEvap: 0.95 * Math.pow(0.96, M("cold")),
+    baseEvap: 0.95 * Math.pow(0.96, M("cold")) * Math.pow(0.97, M("permafrost")),
     deepenMult: 1, mossMult: 1, sunResist: clamp(0.06 * M("c_silt"), 0, 0.85), absorbMult: 1,
-    soil: 60, soilMax: 60, soilRegen: 3.8 * (1 + 0.25 * M("roots")),
+    soil: 60, soilMax: 60, soilRegen: 3.8 * (1 + 0.25 * M("roots") + 0.25 * M("deeproots")),
     passive: 0.3 * M("spring") + 0.4 * M("spring2") + 0.5 * M("c_spring") + ((meta.frogBond || 0) >= 3 ? 0.1 : 0), leaf: 0,
     shadeT: 0, evapBoostT: 0, absorbBoostT: 0,
-    essMult: (1 + 0.12 * M("silver")) * (1 + 0.4 * M("c_ess")), essRate: 0.15 + 0.05 * M("essflow"),
+    essMult: (1 + 0.12 * M("silver") + 0.15 * M("golddrop")) * (1 + 0.4 * M("c_ess")), essRate: 0.15 + 0.05 * M("essflow"),
     friend: 1 + Math.min(0.6, (meta.frogBond || 0) * 0.05), // дружба з жабою покращує дари подій
     pending: 0, nextEvent: 14,
     levels: { deepen: 0, silt: 0, widen: 0, moss: 0, vein: 0, lake: 0 },
@@ -505,7 +510,7 @@ function Reel({ target, spinKey, delay, dur }) {
 }
 
 /* ============================ APP ============================ */
-const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, fate: 0, sound: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0 };
+const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, fate: 0, sound: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0 };
 
 export default function App() {
   const [phase, setPhase] = useState("loading"); // loading|welcome|menu|forecast|challenge|playing|dead|survived
@@ -757,7 +762,7 @@ export default function App() {
     setMeta(m => ({
       ...m,
       essence: 0, essThisAsc: 0,
-      memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, spring2: 0, essflow: 0, calmsky: 0,
+      memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0,
       clouds: (m.clouds || 0) + gain,
       ascensions: (m.ascensions || 0) + 1,
     }));
@@ -1168,7 +1173,7 @@ export default function App() {
               <span className="kal-tag">між мандрівками</span>
               <div className="kal-lore">Кожна калабаня мріє стати озером, а потай — океаном. Та сонце п'є тебе краплю за краплею, і з кожним днем дужчає потепління. Витрачай <span className="kal-ess">Сутність</span>, що лишили попередні твої «я», й рости далі.</div>
               <div className="seclab">Постійні дари</div>
-              {META_UPGRADES.filter(u => u.tier !== 2).map(u => {
+              {META_UPGRADES.filter(u => u.tier !== 2 && (!u.req || u.req(meta))).map(u => {
                 const lvl = meta[u.id] || 0, maxed = lvl >= u.max, cost = Math.round(u.base * Math.pow(u.growth, lvl)), can = !maxed && meta.essence >= cost;
                 return (
                   <div key={u.id} className={"kal-up meta clickable" + (can || maxed ? "" : " dis")} onClick={() => can && buyMeta(u)} style={maxed ? { cursor: "default", opacity: 0.7 } : {}}>
