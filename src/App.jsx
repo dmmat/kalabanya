@@ -56,6 +56,22 @@ const Sfx = (() => {
   };
 })();
 
+/* ---------- haptics (телефонна вібрація; на iOS Safari — no-op) ---------- */
+const Haptics = (() => {
+  let on = true;
+  const can = typeof navigator !== "undefined" && "vibrate" in navigator;
+  const v = (p) => { if (on && can) { try { navigator.vibrate(p); } catch (e) {} } };
+  return {
+    setOn(x) { on = x; },
+    tap() { v(6); },
+    event() { v(18); },
+    good() { v([0, 16, 36, 16]); },
+    bad() { v([0, 38, 28, 38]); },
+    win() { v([0, 12, 28, 12, 28, 22]); },
+    combo() { v(22); },
+  };
+})();
+
 /* ---------- weather slot symbols ---------- */
 const SYMBOLS = [
   { e: "☀️", nm: "Сонце",   sun: 0.22,             combo: "П Е К Л О",            tier: "danger" },
@@ -67,8 +83,11 @@ const SYMBOLS = [
   { e: "🔥", nm: "Засуха",  sun: 0.42, ess: 0.12,  combo: "ВЕЛИКА ЗАСУХА",        tier: "danger", comboEss: 1.4 },
   { e: "❄️", nm: "Сніг",    evap: -0.22, rain: 0.05, combo: "С Н І Г О П А Д",    tier: "good" },
   { e: "⛈️", nm: "Гроза",   rain: 0.7, abs: 0.1,   combo: "Г Р О З А",           tier: "good", comboRain: 1.8 },
+  { e: "🌪️", nm: "Смерч",   abs: 0.6, sun: 0.1,    combo: "Т О Р Н А Д О",       tier: "good" },
+  { e: "⛅", nm: "Мінливо", sun: -0.05, rain: 0.05, combo: "ХИТКЕ НЕБО",          tier: "norm" },
+  { e: "🌡️", nm: "Спека",   sun: 0.3, evap: 0.08,  combo: "ТЕПЛОВИЙ КУПОЛ",       tier: "danger" },
 ];
-const WEIGHTS = [4, 3, 4, 3, 3, 1, 1.6, 2, 1.4];
+const WEIGHTS = [4, 3, 4, 3, 3, 1, 1.6, 2, 1.4, 1.8, 3, 1.6];
 const NEUTRAL = { rainPower: 0, sunMod: 0, absorbMod: 0, evapMod: 0, essMod: 0, name: "Ще не дивилась у небо", icon: "⛅", idxs: [0, 0, 0], tier: "norm" };
 
 function pickIdx() {
@@ -669,7 +688,7 @@ function Reel({ target, spinKey, delay, dur }) {
 }
 
 /* ============================ APP ============================ */
-const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, duckFriend: false, birdFriend: false, beeFriend: false, hogFriend: false, heronFriend: false, frogShy: false, tricked: false, callcd: 0, trees: 0, reeds: 0, swift: 0, fate: 0, seenOnce: {}, sound: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0, c_eco: 0 };
+const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, duckFriend: false, birdFriend: false, beeFriend: false, hogFriend: false, heronFriend: false, frogShy: false, tricked: false, callcd: 0, trees: 0, reeds: 0, swift: 0, fate: 0, seenOnce: {}, sound: true, haptics: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0, c_eco: 0 };
 
 export default function App() {
   const [phase, setPhase] = useState("loading"); // loading|welcome|menu|forecast|challenge|playing|dead|survived
@@ -709,6 +728,7 @@ export default function App() {
   const bootForecast = useRef(false);
 
   useEffect(() => { Sfx.setMuted(!meta.sound); }, [meta.sound]);
+  useEffect(() => { Haptics.setOn(meta.haptics !== false); }, [meta.haptics]);
 
   /* ---- keep screen awake while playing (Screen Wake Lock API) ---- */
   const wakeLockRef = useRef(null);
@@ -736,7 +756,7 @@ export default function App() {
     const tid = Math.random();
     setToasts(t => [...t, { id: tid, def }]);
     setTimeout(() => setToasts(t => t.filter(x => x.id !== tid)), 5200);
-    Sfx.ach();
+    Sfx.ach(); Haptics.good();
   }, []);
   // досягнення за об'ємом (мрія рости)
   const checkVol = useCallback((mw) => {
@@ -818,8 +838,8 @@ export default function App() {
           n.nextEvent = 99999; // сентинел: жодних нових подій, доки цю не закриють
           // рідко (раз на пару днів) замість звичайної події випадає Колесо Фортуни
           const wheelReady = n.day >= 2 && (n.day - (n.wheelDay ?? -9)) >= 2 && Math.random() < 0.35;
-          if (wheelReady) { n.wheelDay = n.day; setWheel({ stage: "offer" }); }
-          else { const ev = pickEvent(n, metaRef.current); if (ev.once) setMeta(m => ({ ...m, seenOnce: { ...(m.seenOnce || {}), [ev.once]: true } })); setEvent(ev); }
+          if (wheelReady) { n.wheelDay = n.day; Haptics.event(); setWheel({ stage: "offer" }); }
+          else { const ev = pickEvent(n, metaRef.current); if (ev.once) setMeta(m => ({ ...m, seenOnce: { ...(m.seenOnce || {}), [ev.once]: true } })); Haptics.event(); setEvent(ev); }
         }
         if (n.elapsed >= n.dayLen) {
           const bonus = 14 * n.day * effEss(n) * (1 + 0.15 * (metaRef.current.moon || 0));
@@ -874,7 +894,7 @@ export default function App() {
       shown = amt;
       return { ...prev, water: Math.min(prev.water + amt, prev.maxWater), soil: prev.soil - drain };
     });
-    if (shown > 0) Sfx.drip();
+    if (shown > 0) { Sfx.drip(); Haptics.tap(); }
     // ripple at the cursor within the stage
     let x = 50, y = 55; // percentages, fallback to centre
     const rect = stageRef.current && stageRef.current.getBoundingClientRect();
@@ -943,7 +963,7 @@ export default function App() {
     if (now - c.last < 4000) c.count++; else { c.count = 1; c.ids = new Set(); }
     c.ids.add(ab.id); c.last = now;
     const cc = c.count, bonus = cc >= 2 ? eAmt(gRef.current, 3 * cc) : 0;
-    Sfx.drip(); if (cc >= 2) Sfx.win();
+    Sfx.drip(); Haptics.tap(); if (cc >= 2) { Sfx.win(); Haptics.combo(); }
     setG(p => {
       const n = ab.apply({ ...p });
       n.abil = { ...(p.abil || {}), [ab.id]: abilCD(ab) };
@@ -1018,8 +1038,8 @@ export default function App() {
         return n;
       });
       if (seg.luck) setMeta(m => ({ ...m, fate: Math.max(0, (m.fate || 0) + seg.luck) }));
-      if (seg.tier === "jackpot" || seg.tier === "good") Sfx.win();
-      else if (seg.tier === "bad" || seg.tier === "verybad") Sfx.danger();
+      if (seg.tier === "jackpot" || seg.tier === "good") { Sfx.win(); Haptics.good(); }
+      else if (seg.tier === "bad" || seg.tier === "verybad") { Sfx.danger(); Haptics.bad(); }
       setWheel({ stage: "done", idx });
     }, 3300);
   };
@@ -1077,7 +1097,7 @@ export default function App() {
     else enterForecast();
   };
   const acceptChallenge = () => {
-    Sfx.dusk();
+    Sfx.dusk(); Haptics.event();
     dayTaps.current = 0;
     setG(prev => ({ ...prev, weather: applyChallenge(NEUTRAL, prev.day) }));
     setEvent(null); setPhase("playing");
@@ -1749,6 +1769,11 @@ export default function App() {
               <div className="emo">{meta.keepAwake !== false ? "📱" : "🌙"}</div>
               <div className="body"><div className="nm">Не гасити екран</div><div className="de">Тримає екран увімкненим під час гри (тратить більше батареї).</div></div>
               <button className="kal-mini" onClick={() => { setMeta(m => ({ ...m, keepAwake: m.keepAwake === false ? true : false })); Sfx.click(); }}>{meta.keepAwake !== false ? "Увімкнено" : "Вимкнено"}</button>
+            </div>
+            <div className="kal-up" style={{ cursor: "default", marginTop: 6 }}>
+              <div className="emo">{meta.haptics !== false ? "📳" : "🔕"}</div>
+              <div className="body"><div className="nm">Вібрація</div><div className="de">Тактильний відгук на тап і події (телефон).</div></div>
+              <button className="kal-mini" onClick={() => { setMeta(m => ({ ...m, haptics: m.haptics === false ? true : false })); Sfx.click(); Haptics.tap(); }}>{meta.haptics !== false ? "Увімкнено" : "Вимкнено"}</button>
             </div>
             <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--line)" }}>
               <div className="seclab">Збереження</div>
