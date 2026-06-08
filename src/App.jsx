@@ -118,17 +118,17 @@ const runCost = (u, lvl, maxW) => {
   return Math.round(Math.min(c, 0.92 * maxW));
 };
 const META_UPGRADES = [
-  { id: "memory", emo: "🫧", nm: "Глибша пам'ять", de: "+22 стартової води.", base: 18, growth: 1.6, max: 12 },
-  { id: "cold",   emo: "❄️", nm: "Холодна сутність", de: "−4% базового випару.", base: 24, growth: 1.7, max: 10 },
-  { id: "silver", emo: "🌙", nm: "Срібна крапля", de: "+12% сутності з мандрівок.", base: 20, growth: 1.65, max: 12 },
-  { id: "spring", emo: "⛲", nm: "Вічне джерело", de: "Старт із +0.3/с пасивної води.", base: 30, growth: 1.8, max: 8 },
-  { id: "roots",  emo: "🌱", nm: "Глибокі корінці", de: "+25% швидкості наповнення ґрунту.", base: 22, growth: 1.7, max: 8 },
-  { id: "luck",   emo: "🍀", nm: "Прихильність неба", de: "+1 безкоштовний перекрут прогнозу на день.", base: 26, growth: 2.0, max: 4 },
-  { id: "moon",   emo: "🌗", nm: "Срібло сутінків", de: "+15% сутності за виживання до ночі.", base: 34, growth: 1.9, max: 8 },
+  { id: "memory", emo: "🫧", nm: "Глибша пам'ять", de: "+22 стартової води.", base: 40, growth: 1.72, max: 12 },
+  { id: "cold",   emo: "❄️", nm: "Холодна сутність", de: "−4% базового випару.", base: 55, growth: 1.78, max: 10 },
+  { id: "silver", emo: "🌙", nm: "Срібна крапля", de: "+12% сутності з мандрівок.", base: 48, growth: 1.74, max: 12 },
+  { id: "spring", emo: "⛲", nm: "Вічне джерело", de: "Старт із +0.3/с пасивної води.", base: 70, growth: 1.85, max: 8 },
+  { id: "roots",  emo: "🌱", nm: "Глибокі корінці", de: "+25% швидкості наповнення ґрунту.", base: 52, growth: 1.78, max: 8 },
+  { id: "luck",   emo: "🍀", nm: "Прихильність неба", de: "+1 безкоштовний перекрут прогнозу на день.", base: 70, growth: 2.1, max: 4 },
+  { id: "moon",   emo: "🌗", nm: "Срібло сутінків", de: "+15% сутності за виживання до ночі.", base: 85, growth: 1.95, max: 8 },
   // глибинні дари — відкриваються лише в довгій грі (рекорд ≥ 8 днів)
-  { id: "spring2", emo: "🪨", nm: "Глибинна жила", de: "Старт із +0.4/с пасивної води.", base: 60, growth: 1.85, max: 6, tier: 2 },
-  { id: "essflow", emo: "🌫️", nm: "Роса предків", de: "+0.05/с базового збору сутності.", base: 55, growth: 1.8, max: 6, tier: 2 },
-  { id: "calmsky", emo: "🌬️", nm: "Пам'ять зливи", de: "−8% до ціни перекруту прогнозу.", base: 70, growth: 1.9, max: 5, tier: 2 },
+  { id: "spring2", emo: "🪨", nm: "Глибинна жила", de: "Старт із +0.4/с пасивної води.", base: 160, growth: 1.92, max: 6, tier: 2 },
+  { id: "essflow", emo: "🌫️", nm: "Роса предків", de: "+0.05/с базового збору сутності.", base: 150, growth: 1.9, max: 6, tier: 2 },
+  { id: "calmsky", emo: "🌬️", nm: "Пам'ять зливи", de: "−8% до ціни перекруту прогнозу.", base: 170, growth: 1.95, max: 5, tier: 2 },
 ];
 const META_TIER2_DAY = 8; // глибинні дари відкриваються після такого рекорду
 
@@ -652,7 +652,7 @@ export default function App() {
           else setEvent(pickEvent(n, metaRef.current));
         }
         if (n.elapsed >= n.dayLen) {
-          const bonus = 22 * n.day * effEss(n) * (1 + 0.15 * (metaRef.current.moon || 0));
+          const bonus = 14 * n.day * effEss(n) * (1 + 0.15 * (metaRef.current.moon || 0));
           n.pending += bonus;
           const tapsThisDay = dayTaps.current;
           const waterAtDusk = n.water;
