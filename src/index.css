@@ -394,3 +394,17 @@ body {
   .kal-big { font-size:clamp(26px,8vw,40px); }
   .kal-toolbtn { width:34px; height:34px; font-size:15px; }
 }
+
+/* ------------------------------------------------------------------ wheel of fortune */
+.wheel-wrap { position:relative; width:230px; height:230px; max-width:72vw; max-height:72vw; margin:6px auto 14px; }
+.wheel { position:absolute; inset:0; border-radius:50%; border:4px solid rgba(255,255,255,.14);
+  box-shadow:0 14px 44px -10px rgba(0,0,0,.7), inset 0 0 0 8px rgba(8,18,24,.45);
+  transition: transform 3.3s cubic-bezier(.15,.62,.16,1); will-change: transform; }
+.wheel-lbl { position:absolute; left:50%; top:50%; margin:-14px 0 0 -14px; width:28px; height:28px;
+  display:grid; place-items:center; font-size:23px; filter:drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
+.wheel-pointer { position:absolute; top:-8px; left:50%; transform:translateX(-50%); z-index:4;
+  width:0; height:0; border-left:12px solid transparent; border-right:12px solid transparent; border-top:20px solid #fff;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+.wheel-hub { position:absolute; left:50%; top:50%; width:38px; height:38px; transform:translate(-50%,-50%); z-index:3;
+  border-radius:50%; background:radial-gradient(circle at 40% 38%, #fff, #9fc3cf 60%, #46666f);
+  box-shadow:0 2px 10px rgba(0,0,0,.55), 0 0 0 4px rgba(8,18,24,.5); }

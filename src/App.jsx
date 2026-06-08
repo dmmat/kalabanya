@@ -149,7 +149,7 @@ const EVENTS = [
     { b: "Розкритись", s: "+60 води, +випар на 12с", fn: g => ({ ...g, water: g.water + 60, evapBoostT: 12 }) },
     { b: "Зібратись", s: "+18 води, безпечно", fn: g => ({ ...g, water: g.water + 18 }) }] },
   { t: "Спрагла пташка", emo: "🐦", art: "bird", d: "Горобець нахилився попити з тебе.", opts: [
-    { b: "Напоїти", s: "−16 води, +8 сутності", fn: g => ({ ...g, water: g.water - 16, pending: g.pending + 8 * effEss(g) }) },
+    { b: "Напоїти", s: "−16 води, +8 сутності", fn: g => ({ ...g, water: g.water - 16, pending: g.pending + 8 * effEss(g) }), luck: 1 },
     { b: "Завмерти", s: "нічого", fn: g => g }] },
   { t: "Тінь дерева", emo: "🌳", d: "Гілка кинула на тебе прохолоду.", opts: [
     { b: "Сховатись у тіні", s: "−випар на 15с", fn: g => ({ ...g, shadeT: 15 }) },
@@ -167,7 +167,7 @@ const EVENTS = [
     { b: "Сховатись у бруд", s: "−випар на 18с", fn: g => ({ ...g, shadeT: 18 }) },
     { b: "Витерпіти", s: "+24 води, +випар на 16с", fn: g => ({ ...g, water: g.water + 24, evapBoostT: 16 }) }] },
   { t: "Жаба-мандрівниця", emo: "🐸", art: "frog", d: "Жаба обрала твою калабаню за прихисток на ніч.", opts: [
-    { b: "Прихистити її", s: "−10 води · +дружба з жабою", fn: g => ({ ...g, water: g.water - 10, shadeT: 16 }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 1 }) },
+    { b: "Прихистити її", s: "−10 води · +дружба з жабою", fn: g => ({ ...g, water: g.water - 10, shadeT: 16 }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 1 }), luck: 2 },
     { b: "Прогнати геть", s: "+12 води", fn: g => ({ ...g, water: g.water + 12 }) }] },
   { t: "Дитячий кораблик", emo: "⛵", art: "boat", d: "Дитина пустила паперовий човник твоїми водами.", opts: [
     { b: "Гойдати лагідно", s: "+вбирання на 14с", fn: g => ({ ...g, absorbBoostT: 14 }) },
@@ -188,19 +188,19 @@ const EVENTS = [
   /* — гості, що приходять лише з часом (req) та персонажі з пам'яттю (meta) — */
   { t: "Жаба Кума повертається", emo: "🐸", art: "frog", req: (g, m) => (m.frogBond || 0) >= 1, weight: 1.4,
     d: "Знайома жаба впізнала твій блиск і знову прийшла погрітись на твоїм краю.", opts: [
-    { b: "Прийняти, як рідну", s: "−випар на 20с · міцніша дружба", fn: g => ({ ...g, shadeT: 20 }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 1 }) },
+    { b: "Прийняти, як рідну", s: "−випар на 20с · міцніша дружба", fn: g => ({ ...g, shadeT: 20 }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 1 }), luck: 2 },
     { b: "Попросити про послугу", s: "+12 сутності", fn: g => ({ ...g, pending: g.pending + 12 * effEss(g) }) }] },
   { t: "Равлик-крамар", emo: "🐌", art: "snail", req: (g) => g.day >= 3, weight: 1.1,
     d: "Равлик зі скойкою-крамницею повз твоїм берегом, мляво ворухнувши ріжком.", opts: [
-    { b: "Виміняти мул на захист", s: "−18 води · +опір спеці", fn: g => ({ ...g, water: g.water - 18, sunResist: clamp(g.sunResist + 0.06, 0, 0.85) }), meta: m => ({ ...m, snailMet: true }) },
-    { b: "Купити краплю глибини", s: "−14 води · +35 об'єму", fn: g => ({ ...g, water: g.water - 14, maxWater: g.maxWater + 35 }), meta: m => ({ ...m, snailMet: true }) }] },
+    { b: "Виміняти мул на захист", s: "−18 води · +опір спеці", fn: g => ({ ...g, water: g.water - 18, sunResist: clamp(g.sunResist + 0.06, 0, 0.85) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
+    { b: "Купити краплю глибини", s: "−14 води · +35 об'єму", fn: g => ({ ...g, water: g.water - 14, maxWater: g.maxWater + 35 }), meta: m => ({ ...m, snailMet: true }), luck: 1 }] },
   { t: "Чапля на одній нозі", emo: "🪽", art: "heron", req: (g) => g.day >= 4, weight: 0.9,
     d: "Сіра чапля завмерла над тобою, видивляючись щось у твоїй глибині.", opts: [
-    { b: "Поділитися водою", s: "−30 води · +20 сутності", fn: g => ({ ...g, water: g.water - 30, pending: g.pending + 20 * effEss(g) }) },
+    { b: "Поділитися водою", s: "−30 води · +20 сутності", fn: g => ({ ...g, water: g.water - 30, pending: g.pending + 20 * effEss(g) }), luck: 2 },
     { b: "Скаламутитись", s: "безпечно, чапля летить геть", fn: g => g }] },
   { t: "Місячний кіт", emo: "🐈‍⬛", art: "cat", req: (g) => g.day >= 4, tod: [0.74, 1.0], weight: 1.4,
     d: "Чорний кіт прийшов нечутно хлебтати місяць із твоєї поверхні.", opts: [
-    { b: "Погладити брижами", s: "+16 сутності · спокій", fn: g => ({ ...g, pending: g.pending + 16 * effEss(g) }), meta: m => ({ ...m, catPet: true }) },
+    { b: "Погладити брижами", s: "+16 сутності · спокій", fn: g => ({ ...g, pending: g.pending + 16 * effEss(g) }), meta: m => ({ ...m, catPet: true }), luck: 2 },
     { b: "Завмерти дзеркалом", s: "−випар на 18с", fn: g => ({ ...g, shadeT: 18 }) }] },
   { t: "Дід-рибалка", emo: "🎣", art: "fisherman", req: (g) => g.day >= 6, weight: 0.8,
     d: "Старий присів поряд і закинув вудку просто в тебе, ніби ти — ціле озеро.", opts: [
@@ -231,6 +231,42 @@ function pickEvent(g, meta) {
   let r = Math.random() * tot;
   for (const e of pool) { r -= (e.weight || 1); if (r <= 0) return e; }
   return pool[pool.length - 1] || EVENTS[0];
+}
+
+/* ---------- Колесо Фортуни (рідкісне) + прихована Вдача ---------- */
+// прихований коефіцієнт вдачі 0..1 з накопичених добрих рішень (meta.fate)
+const fateLuck = (meta) => clamp((meta.fate || 0) / 24, 0, 1);
+const WHEEL = [
+  { emo: "🌈", nm: "Джекпот", tier: "jackpot", col: "#cdb4f6", w: 1,
+    fn: g => ({ ...g, water: g.maxWater, maxWater: g.maxWater + 80, pending: g.pending + 60 * effEss(g) }),
+    msg: "Небо розщедрилось: повна вода, +об'єм і повна жменя сутності!" },
+  { emo: "💎", nm: "Скарб", tier: "good", col: "#7fe8b0", w: 2,
+    fn: g => ({ ...g, pending: g.pending + 40 * effEss(g) }), msg: "На дні зблиснув скарб — багато сутності." },
+  { emo: "💧", nm: "Повінь", tier: "good", col: "#5fd6e8", w: 2,
+    fn: g => ({ ...g, water: g.maxWater }), msg: "Раптова повінь наповнила тебе по вінця." },
+  { emo: "🍀", nm: "Доля", tier: "good", col: "#9be8c0", w: 2, luck: 3,
+    fn: g => ({ ...g, pending: g.pending + 12 * effEss(g) }), msg: "Тобі усміхнулась доля — вдача зросла." },
+  { emo: "➖", nm: "Нічого", tier: "none", col: "#3a4a52", w: 3,
+    fn: g => g, msg: "Колесо завмерло на порожнечі. Нічого не сталось." },
+  { emo: "🥀", nm: "Посуха", tier: "bad", col: "#f0a86a", w: 2,
+    fn: g => ({ ...g, water: g.water * 0.5, evapBoostT: 14 }), msg: "Війнуло жаром — пів води й сильніший випар." },
+  { emo: "🕳️", nm: "Провал", tier: "bad", col: "#e07a5a", w: 1.6,
+    fn: g => ({ ...g, water: g.water * 0.6, maxWater: Math.max(120, Math.round(g.maxWater * 0.8)) }), msg: "Дно просіло — менше об'єму й води." },
+  { emo: "💀", nm: "Безодня", tier: "verybad", col: "#c0504a", w: 1,
+    fn: g => ({ ...g, water: Math.min(g.water, g.maxWater * 0.06) }), msg: "Тріщина випила тебе майже до останньої краплі." },
+];
+function pickWheel(luck) {
+  const ws = WHEEL.map(s => {
+    let w = s.w;
+    if (s.tier === "jackpot" || s.tier === "good") w *= (1 + 1.3 * luck);
+    else if (s.tier === "bad") w *= (1 - 0.6 * luck);
+    else if (s.tier === "verybad") w *= (1 - 0.85 * luck);
+    return Math.max(0.05, w);
+  });
+  const tot = ws.reduce((a, b) => a + b, 0);
+  let r = Math.random() * tot;
+  for (let i = 0; i < ws.length; i++) { r -= ws[i]; if (r <= 0) return i; }
+  return WHEEL.length - 1;
 }
 
 /* ---------- achievements ---------- */
@@ -361,7 +397,7 @@ function Reel({ target, spinKey, delay, dur }) {
 }
 
 /* ============================ APP ============================ */
-const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, sound: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0 };
+const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, fate: 0, sound: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0 };
 
 export default function App() {
   const [phase, setPhase] = useState("loading"); // loading|welcome|menu|forecast|playing|dead|survived
@@ -374,7 +410,10 @@ export default function App() {
   const [popup, setPopup] = useState(null); // null | "codex" | "ach" | "settings"
   const [toasts, setToasts] = useState([]);
   const [scenesOk, setScenesOk] = useState(true); // illustrated backgrounds present?
+  const [wheel, setWheel] = useState(null); // null | { stage:"offer"|"spin"|"done", idx }
+  const [wheelRot, setWheelRot] = useState(0);
   const stageRef = useRef(null);
+  const wheelRef = useRef(null); wheelRef.current = wheel;
 
   // forecast slot state
   const [reels, setReels] = useState([0, 0, 0]);
@@ -415,7 +454,9 @@ export default function App() {
           if (d.meta) setMeta(m => ({ ...m, ...d.meta, ach: { ...(d.meta.ach || {}) } }));
           const resumable = ["playing", "survived", "forecast", "dead"];
           if (d.g && resumable.includes(d.phase)) {
-            setG(gg => ({ ...gg, ...d.g, weather: d.g.weather || NEUTRAL }));
+            // якщо перезавантажили під час події/колеса — скидаємо «паузу» таймера подій
+            const ne = (d.g.nextEvent == null || d.g.nextEvent >= 9999) ? 6 + Math.random() * 6 : d.g.nextEvent;
+            setG(gg => ({ ...gg, ...d.g, weather: d.g.weather || NEUTRAL, nextEvent: ne }));
             if (d.phase === "dead") {
               if (d.result) { setResult(d.result); setPhase("dead"); }
               else setPhase("menu"); // run already banked, just no screen to show
@@ -453,6 +494,7 @@ export default function App() {
     const dt = 0.1;
     const iv = setInterval(() => {
       setG(prev => {
+        if (wheelRef.current) return prev; // Колесо Фортуни ставить день на паузу
         const n = { ...prev };
         n.elapsed += dt;
         const t = clamp(n.elapsed / n.dayLen, 0, 1);
@@ -470,7 +512,10 @@ export default function App() {
         if (n.water >= n.maxWater - 0.5) unlock("rainchild");
         if (n.nextEvent <= 0 && !event) {
           n.nextEvent = 99999; // сентинел: жодних нових подій, доки цю не закриють
-          setEvent(pickEvent(n, metaRef.current));
+          // рідко (раз на пару днів) замість звичайної події випадає Колесо Фортуни
+          const wheelReady = n.day >= 2 && (n.day - (n.wheelDay ?? -9)) >= 2 && Math.random() < 0.35;
+          if (wheelReady) { n.wheelDay = n.day; setWheel({ stage: "offer" }); }
+          else setEvent(pickEvent(n, metaRef.current));
         }
         if (n.elapsed >= n.dayLen) {
           const bonus = 22 * n.day * effEss(n) * (1 + 0.15 * (metaRef.current.moon || 0));
@@ -597,7 +642,31 @@ export default function App() {
       if (nm.catPet) queueMicrotask(() => unlock("mooncat"));
       return nm;
     });
+    if (opt.luck) setMeta(m => ({ ...m, fate: (m.fate || 0) + opt.luck })); // добрі рішення → прихована вдача
     setEvent(null);
+  };
+
+  /* ---- Колесо Фортуни ---- */
+  const declineWheel = () => { Sfx.click(); setWheel(null); setG(p => ({ ...p, nextEvent: 13 + Math.random() * 8 })); };
+  const closeWheel = () => { Sfx.click(); setWheel(null); setG(p => ({ ...p, nextEvent: 13 + Math.random() * 8 })); };
+  const spinWheel = () => {
+    if (!wheel || wheel.stage !== "offer") return;
+    const idx = pickWheel(fateLuck(metaRef.current));
+    Sfx.spin();
+    setWheelRot(prev => Math.ceil(prev / 360) * 360 + 360 * 6 + (360 - (idx * 45 + 22.5)));
+    setWheel({ stage: "spin", idx });
+    setTimeout(() => {
+      const seg = WHEEL[idx];
+      setG(p => {
+        const n = seg.fn ? { ...seg.fn(p) } : { ...p };
+        if (n.maxWater > (metaRef.current.maxVol || 0)) setMeta(m => ({ ...m, maxVol: Math.round(n.maxWater) }));
+        return n;
+      });
+      if (seg.luck) setMeta(m => ({ ...m, fate: (m.fate || 0) + seg.luck }));
+      if (seg.tier === "jackpot" || seg.tier === "good") Sfx.win();
+      else if (seg.tier === "bad" || seg.tier === "verybad") Sfx.danger();
+      setWheel({ stage: "done", idx });
+    }, 3300);
   };
 
   /* ---- slot spin ---- */
@@ -1015,6 +1084,38 @@ export default function App() {
           <div className="ehead"><div className="eemo"><span className="eemo-ring" />{event.emo}{event.art && <SafeImg className="eemo-img" src={`${import.meta.env.BASE_URL}events/${event.art}.webp`} />}</div><div className="et">{event.t}</div></div>
           <div className="ed">{event.d}</div>
           <div className="opts">{event.opts.map((o, i) => <button key={i} className="kal-btn" onClick={() => resolveEvent(o)}><b>{o.b}</b><small>{o.s}</small></button>)}</div>
+        </div>
+      )}
+
+      {/* WHEEL OF FORTUNE (rare) */}
+      {wheel && (
+        <div className="kal-over">
+          <div className="kal-panel" style={{ textAlign: "center" }}>
+            <span className="kal-tag">рідкісне</span>
+            <div className="kal-big" style={{ fontSize: "clamp(24px,6vw,38px)", marginBottom: 4 }}>Колесо Фортуни</div>
+            <div style={{ color: "var(--muted)", fontSize: 13, marginBottom: 12 }}>Крутни — і доля сама вирішить: щось чудове, лихе або нічого. Можна й відмовитись.</div>
+            <div className="wheel-wrap">
+              <div className="wheel-pointer" />
+              <div className="wheel" style={{ transform: `rotate(${wheelRot}deg)`, background: `conic-gradient(${WHEEL.map((s, i) => `${s.col} ${i * 45 - 22.5}deg ${(i + 1) * 45 - 22.5}deg`).join(",")})` }}>
+                {WHEEL.map((s, i) => (
+                  <div key={i} className="wheel-lbl" style={{ transform: `rotate(${i * 45}deg) translateY(-86px) rotate(${-i * 45}deg)` }}>{s.emo}</div>
+                ))}
+              </div>
+              <div className="wheel-hub" />
+            </div>
+            {wheel.stage === "done" ? (
+              <div className="bannerin">
+                <div className="fc-name" style={{ color: WHEEL[wheel.idx].tier === "jackpot" ? "var(--essence)" : WHEEL[wheel.idx].tier === "good" ? "var(--good)" : WHEEL[wheel.idx].tier === "none" ? "var(--muted)" : "var(--bad)" }}>{WHEEL[wheel.idx].emo} {WHEEL[wheel.idx].nm}</div>
+                <div style={{ fontSize: 13.5, color: "#cfe6ea", margin: "8px 0 2px", fontStyle: "italic" }}>{WHEEL[wheel.idx].msg}</div>
+                <button className="kal-go" onClick={closeWheel}>Далі →</button>
+              </div>
+            ) : (
+              <>
+                <button className="kal-go" disabled={wheel.stage === "spin"} onClick={spinWheel} style={{ opacity: wheel.stage === "spin" ? 0.5 : 1 }}>🎡 Крутити колесо</button>
+                <button className="kal-go ghost" disabled={wheel.stage === "spin"} onClick={declineWheel} style={{ opacity: wheel.stage === "spin" ? 0.5 : 1 }}>Відмовитися</button>
+              </>
+            )}
+          </div>
         </div>
       )}
 
