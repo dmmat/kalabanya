@@ -585,6 +585,9 @@ const SYNERGY = {
   "fire+frogs":  { t: "🐸 Жаби в захваті від води", fn: g => ({ ...g, shadeT: addT(g.shadeT, 7) }) },
 };
 const synKey = (a, b) => [a, b].sort().join("+");
+// як назвати сполоханих звірят (знахідний відмінок) для повідомлення «хижак сполохав…»
+const PREY_ACC = { birds: "птахів", ducks: "качок", frogs: "жаб", fish: "коропа", snail: "равлика" };
+const joinUa = (arr) => arr.length <= 1 ? (arr[0] || "") : arr.slice(0, -1).join(", ") + " і " + arr[arr.length - 1];
 
 /* ---------- helpers ---------- */
 const fmt = (n) => {
@@ -1022,10 +1025,14 @@ export default function App() {
       return n;
     });
     c.lastId = ab.id;
-    // відгук: синергія важливіша за конфлікт у показі
-    if (syn) flashAbil("syn", syn.t);
-    else if (ab.prey && ab.prey.some(id => ABILITIES.some(x => x.id === id && x.req(metaRef.current, gRef.current))))
-      flashAbil("clash", `${ab.emo} сполохав звірят`);
+    // відгук гравцю: синергія (зелена) / конфлікт — хто сполоханий (червона). Комбо ×N показує окремий напис.
+    const scared = ab.prey ? ab.prey.filter(id => ABILITIES.some(x => x.id === id && x.req(metaRef.current, gRef.current))) : [];
+    if (syn) flashAbil("syn", `Синергія · ${syn.t}`);
+    if (scared.length) {
+      const names = joinUa(scared.map(id => PREY_ACC[id] || id));
+      const showClash = () => flashAbil("clash", `${ab.emo} сполохав ${names} — тимчасово недоступні`);
+      if (syn) setTimeout(showClash, 950); else showClash(); // не перебивати синергію миттєво
+    }
     setCombo(cc);
     clearTimeout(comboHideRef.current);
     comboHideRef.current = setTimeout(() => setCombo(0), 1700);
@@ -1149,7 +1156,8 @@ export default function App() {
   const continueDay = () => {
     Sfx.click();
     const nd = g.day + 1;
-    setG(prev => ({ ...prev, day: prev.day + 1, elapsed: 0, sun: 6, dayLen: prev.dayLen + 6, nextEvent: 12 + Math.random() * 6 }));
+    // новий день — листяний прихисток («до кінця дня») спадає
+    setG(prev => ({ ...prev, day: prev.day + 1, elapsed: 0, sun: 6, dayLen: prev.dayLen + 6, nextEvent: 12 + Math.random() * 6, leaf: 0 }));
     if (challengeForDay(nd)) { dayTaps.current = 0; setEvent(null); setPhase("challenge"); } // День Випробування — без слота
     else enterForecast();
   };
