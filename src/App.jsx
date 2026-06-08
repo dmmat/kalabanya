@@ -124,7 +124,7 @@ const META_UPGRADES = [
   { id: "silver", emo: "🌙", nm: "Срібна крапля", de: "+12% сутності з мандрівок.", base: 48, growth: 1.74, max: 12 },
   { id: "spring", emo: "⛲", nm: "Вічне джерело", de: "Старт із +0.3/с пасивної води.", base: 70, growth: 1.85, max: 8 },
   { id: "roots",  emo: "🌱", nm: "Глибокі корінці", de: "+25% швидкості наповнення ґрунту.", base: 52, growth: 1.78, max: 8 },
-  { id: "swift",  emo: "⏳", nm: "Стрімкий час", de: "−5с до тривалості дня (легше дожити).", base: 55, growth: 1.8, max: 8 },
+  { id: "swift",  emo: "⏩", nm: "Стрімкий час", de: "+12% швидкості гри (усе те саме, лише швидше).", base: 200, growth: 1.9, max: 12 },
   { id: "luck",   emo: "🍀", nm: "Прихильність неба", de: "+1 безкоштовний перекрут прогнозу на день.", base: 70, growth: 2.1, max: 4 },
   { id: "moon",   emo: "🌗", nm: "Срібло сутінків", de: "+15% сутності за виживання до ночі.", base: 85, growth: 1.95, max: 8 },
   { id: "trees",  emo: "🌳", nm: "Лісосмуга", de: "−6% глобального потепління.", base: 90, growth: 1.85, max: 8 },
@@ -589,7 +589,7 @@ function freshRun(meta) {
   const M = (k) => meta[k] || 0;
   return {
     water: 46 + M("memory") * 22 + 40 * M("wellspring") + 30 * M("c_full"), maxWater: 120 + M("memory") * 22 + 40 * M("wellspring") + 25 * M("c_full"),
-    day: 1, elapsed: 0, dayLen: Math.max(55, 100 - 5 * M("swift")), sun: 8,
+    day: 1, elapsed: 0, dayLen: 100, sun: 8, speed: 1 + 0.12 * M("swift"),
     baseEvap: 0.95 * Math.pow(0.96, M("cold")) * Math.pow(0.97, M("permafrost")),
     deepenMult: 1, mossMult: 1, sunResist: clamp(0.06 * M("c_silt"), 0, 0.85), absorbMult: 1,
     soil: 60, soilMax: 60, soilRegen: 3.8 * (1 + 0.25 * M("roots") + 0.25 * M("deeproots")),
@@ -793,10 +793,10 @@ export default function App() {
   /* ---- game loop ---- */
   useEffect(() => {
     if (phase !== "playing") return;
-    const dt = 0.1;
     const iv = setInterval(() => {
       setG(prev => {
         if (wheelRef.current) return prev; // Колесо Фортуни ставить день на паузу
+        const dt = 0.1 * (prev.speed || 1); // «Стрімкий час» — усе те саме, лише швидше
         const n = { ...prev };
         n.elapsed += dt;
         const t = clamp(n.elapsed / n.dayLen, 0, 1);
