@@ -164,7 +164,7 @@ const META_UPGRADES = [
   { id: "luck",   emo: "🍀", nm: "Прихильність неба", de: "+1 безкоштовний перекрут прогнозу на день.", base: 70, growth: 2.1, max: 4 },
   { id: "moon",   emo: "🌗", nm: "Срібло сутінків", de: "+15% сутності за виживання до ночі.", base: 85, growth: 1.95, max: 8 },
   { id: "trees",  emo: "🌳", nm: "Лісосмуга", de: "−6% глобального потепління.", base: 84, growth: 1.84, max: 12 },
-  { id: "callcd", emo: "📣", nm: "Поклик друзів", de: "−8% перезарядки дружніх здібностей.", base: 60, growth: 1.78, max: 6, req: m => m.birdFriend || (m.frogBond || 0) >= 1 || m.dogFriend || m.catPet || m.duckFriend || m.snailMet || m.beeFriend || m.hogFriend || m.heronFriend || m.fireFriend },
+  { id: "callcd", emo: "📣", nm: "Поклик друзів", de: "−8% перезарядки дружніх здібностей.", base: 60, growth: 1.78, max: 6, req: m => m.everFriend || Object.keys(m.perma || {}).length > 0 },
   // просунуті дари — відкриваються, коли викупиш базовий повністю
   { id: "wellspring", emo: "🌊", nm: "Бездонна пам'ять", de: "+40 стартової води та об'єму.", base: 120, growth: 1.8, max: 10, req: m => (m.memory || 0) >= 12 },
   { id: "permafrost", emo: "🧊", nm: "Вічна мерзлота", de: "−3% базового випару.", base: 150, growth: 1.82, max: 8, req: m => (m.cold || 0) >= 10 },
@@ -701,6 +701,28 @@ const FRIEND_KEYS = ["frogBond", "dogFriend", "catPet", "duckFriend", "birdFrien
 const friendCount = (m) => FRIEND_KEYS.reduce((s, k) => s + (m && m[k] ? 1 : 0), 0);
 const fc3 = (m) => Math.floor(friendCount(m) / 3); // +1 кожні 3 друзі
 const eMul = (m) => 1 + friendCount(m) * 0.045; // дружба підсилює дари сутності
+// дружби тепер скидаються щозабігу — друзів треба здобувати знову.
+// За велику сутність їх можна «приручити назавжди» у вівтарі (meta.perma).
+const PERMA_FRIENDS = [
+  { id: "frog",  emo: "🐸",  nm: "Жаба Кума",        cost: 6000 },
+  { id: "dog",   emo: "🐕",  nm: "Песик-приятель",   cost: 7000 },
+  { id: "bird",  emo: "🐦",  nm: "Зграя птахів",     cost: 7500 },
+  { id: "duck",  emo: "🦆",  nm: "Качина родина",    cost: 8500 },
+  { id: "snail", emo: "🐌",  nm: "Равлик-крамар",    cost: 9000 },
+  { id: "cat",   emo: "🐈‍⬛", nm: "Місячний кіт",     cost: 11000 },
+  { id: "bee",   emo: "🐝",  nm: "Золоті бджоли",    cost: 12000 },
+  { id: "hog",   emo: "🦔",  nm: "Їжак-садівник",    cost: 13000 },
+  { id: "heron", emo: "🪽",  nm: "Чапля-провидиця",  cost: 15000 },
+  { id: "fire",  emo: "🚒",  nm: "Пожежники",        cost: 18000 },
+];
+const PERMA_FLAG = { frog: "frogBond", dog: "dogFriend", cat: "catPet", duck: "duckFriend", bird: "birdFriend", bee: "beeFriend", hog: "hogFriend", heron: "heronFriend", snail: "snailMet", fire: "fireFriend" };
+// скинути дружби до купленого «назавжди» базису (на старті забігу)
+const friendBaseline = (perma) => {
+  const p = perma || {};
+  const b = { frogBond: p.frog ? 1 : 0, frogShy: false };
+  for (const k of ["dog", "cat", "duck", "bird", "bee", "hog", "heron", "snail", "fire"]) b[PERMA_FLAG[k]] = !!p[k];
+  return b;
+};
 const ABILITIES = [
   // — тінь: коротка перезарядка, легкі дари —
   { id: "birds", emo: "🐦", nm: "Зграя птахів", cd: 26, kind: "тінь", req: m => m.birdFriend,
@@ -873,12 +895,27 @@ function Reel({ target, spinKey, delay, dur }) {
 }
 
 /* ============================ APP ============================ */
-const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, absorb: 0, thirst: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, abyss: 0, tickets: {}, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, duckFriend: false, birdFriend: false, beeFriend: false, hogFriend: false, heronFriend: false, fireFriend: false, frogShy: false, tricked: false, callcd: 0, trees: 0, swift: 0, fate: 0, seenOnce: {}, sound: true, haptics: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0, c_eco: 0 };
+const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, absorb: 0, thirst: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, abyss: 0, tickets: {}, perma: {}, everFriend: false, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, duckFriend: false, birdFriend: false, beeFriend: false, hogFriend: false, heronFriend: false, fireFriend: false, frogShy: false, tricked: false, callcd: 0, trees: 0, swift: 0, fate: 0, seenOnce: {}, sound: true, haptics: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0, c_eco: 0 };
 // зведення дублюючих дарів: рівні старих апгрейдів переливаються в той, що лишився
 function migrateMeta(src) {
   const m = { ...src };
   if (m.reeds) { m.trees = Math.min(12, (m.trees || 0) + m.reeds); } // Очеретяний пояс → Лісосмуга
   delete m.reeds;
+  // дружби стали щозабіговими — наявних у старих гравців друзів робимо «приручені назавжди»
+  if (!m.perma) {
+    m.perma = {};
+    if (m.frogBond) m.perma.frog = true;
+    if (m.dogFriend) m.perma.dog = true;
+    if (m.catPet) m.perma.cat = true;
+    if (m.duckFriend) m.perma.duck = true;
+    if (m.birdFriend) m.perma.bird = true;
+    if (m.beeFriend) m.perma.bee = true;
+    if (m.hogFriend) m.perma.hog = true;
+    if (m.heronFriend) m.perma.heron = true;
+    if (m.snailMet) m.perma.snail = true;
+    if (m.fireFriend) m.perma.fire = true;
+    if (Object.keys(m.perma).length) m.everFriend = true;
+  }
   return m;
 }
 
@@ -1241,7 +1278,9 @@ export default function App() {
       if (nm.catPet) queueMicrotask(() => unlock("mooncat"));
       if (nm.duckFriend) queueMicrotask(() => unlock("ducks"));
       if ((nm.frogBond || 0) >= 1 && nm.catPet && nm.snailMet) queueMicrotask(() => unlock("allfriends"));
-      return nm;
+      const gained = friendCount(nm) > friendCount(m);
+      if (gained) queueMicrotask(() => setG(p => ({ ...p, hasFriend: true }))); // відкрити «Гучніший поклик» цього забігу
+      return { ...nm, everFriend: m.everFriend || friendCount(nm) > 0 };
     });
     if (opt.luck) setMeta(m => {
       const fate = Math.max(0, (m.fate || 0) + opt.luck); // рішення впливають на приховану Вдачу (±)
@@ -1366,10 +1405,18 @@ export default function App() {
   };
   const startJourney = () => {
     Sfx.click(); dayTaps.current = 0;
-    setG(freshRun(meta)); // freshRun копіює придбані квитки у забіг
-    setMeta(m => ({ ...m, tickets: {} })); // квитки діють лише цей забіг — забираємо з вівтаря
+    // новий забіг: дружби скидаються до купленого «назавжди» базису — друзів треба здобувати знову
+    const m2 = { ...meta, ...friendBaseline(meta.perma) };
+    setG(freshRun(m2)); // freshRun бачить скинуті дружби й копіює квитки у забіг
+    setMeta({ ...m2, tickets: {} }); // квитки діють лише цей забіг — забираємо з вівтаря
     setEvent(null); setResult(null); enterForecast();
   };
+  // приручити друга назавжди (дорого, за сутність) — стартуватиме з тобою щозабігу
+  const buyPerma = (f) => setMeta(m => {
+    if ((m.perma || {})[f.id] || m.essence < f.cost) return m;
+    Sfx.click(); Haptics.tap();
+    return { ...m, essence: m.essence - f.cost, perma: { ...(m.perma || {}), [f.id]: true }, everFriend: true };
+  });
   // купити квиток на фестиваль (за сутність) — діятиме наступний забіг
   const buyTicket = (f) => setMeta(m => {
     if ((m.tickets || {})[f.id] || m.essence < f.ticket) return m;
@@ -1827,6 +1874,22 @@ export default function App() {
               })}
             </div>
 
+            <div className="kal-card reveal" style={{ marginTop: 14 }}>
+              <span className="kal-tag">друзі назавжди</span>
+              <div className="kal-lore">Тепер дружби <b>скидаються щозабігу</b> — друзів треба здобувати знову через події. Та за <b>дуже багато</b> <span className="kal-ess">Сутності</span> можна <b>приручити</b> когось назавжди — і він стартуватиме з тобою в кожному забігу.</div>
+              {PERMA_FRIENDS.map(f => {
+                const owned = !!(meta.perma || {})[f.id];
+                const can = !owned && meta.essence >= f.cost;
+                return (
+                  <div key={f.id} className={"kal-up clickable" + (owned ? "" : can ? "" : " dis")} onClick={() => can && buyPerma(f)} style={owned ? { cursor: "default", borderColor: "var(--water-a)" } : {}}>
+                    <div className="emo">{f.emo}</div>
+                    <div className="body"><div className="nm">{f.nm}<span className="lvl">друг</span></div><div className="de">{owned ? "приручений назавжди" : "стартуватиме з тобою щозабігу"}</div></div>
+                    <div className="cost" style={owned ? { color: "var(--good)" } : {}}>{owned ? "✓ назавжди" : `◈ ${fmt(f.cost)}`}</div>
+                  </div>
+                );
+              })}
+            </div>
+
             {(meta.ascensions > 0 || (meta.lifeEss || 0) >= PRESTIGE_UNLOCK || (meta.best || 0) >= 12) && (() => {
               const gain = cloudsFrom(meta.essThisAsc);
               return (
@@ -2160,7 +2223,7 @@ export default function App() {
             <h4>Гості</h4>
             <ul>
               <li>Час від часу приходять <b>гості</b> з вибором. Деякі <b>не дуже чесні</b>: на вигляд обіцяють добро, а потай користуються тобою — навчишся їх упізнавати.</li>
-              <li>Декого знаєш давно — <b>дружба</b> (жаба, кіт, равлик…) росте й покращує дари подій. Глибші зустрічі приходять лише з прогресом.</li>
+              <li><b>Дружба</b> (жаба, кіт, равлик…) дає активні <b>здібності</b> на забіг, але <b>скидається щозабігу</b> — друзів треба здобувати знову через події. За велику <span className="kal-ess">Сутність</span> у вівтарі можна <b>приручити</b> когось назавжди.</li>
               <li>Деякі гості мають <b>таймер</b>: не вирішиш — підуть (обереться безпечний варіант). Події не «стакаються».</li>
               <li>Деякі зустрічі <b>розгалужуються</b>: твій вибір веде до наступної сцени з новим рішенням (сундук, загадка, верба…).</li>
             </ul>
