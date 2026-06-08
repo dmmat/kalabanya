@@ -503,6 +503,7 @@ const ACHIEVEMENTS = [
   { id: "combo3",   e: "✨", nm: "Зграя помічників", dq: "Скласти комбо з 3 здібностей поспіль.", hidden: true },
   { id: "combo5",   e: "🎆", nm: "Симфонія друзів",  dq: "Скласти комбо ×5.", hidden: true },
   { id: "comboMix", e: "🌈", nm: "Усі гуртом",       dq: "В одному комбо — 3 різні здібності.", hidden: true },
+  { id: "shrek",    e: "🧅", nm: "Це моє болото!",   dq: "Так замулитись, що калабаня стала справжнім болотом.", hidden: true },
 ];
 
 /* ---------- Дні Випробувань: кожен 10-й день — особливий, без прокруту погоди ---------- */
@@ -916,7 +917,7 @@ export default function App() {
     const n = { ...prev, water: prev.water - cost, levels: { ...prev.levels, [u.id]: lvl + 1 } };
     // additive capacity — помірний ріст об'єму (від софт-локу захищає стеля ціни 92% у runCost)
     if (u.id === "deepen") { n.maxWater += 50 + lvl * 10; n.deepenMult *= 0.97; }
-    if (u.id === "silt") n.sunResist = clamp(n.sunResist + 0.08, 0, 0.85);
+    if (u.id === "silt") { n.sunResist = clamp(n.sunResist + 0.08, 0, 0.85); if (n.levels.silt >= 10) queueMicrotask(() => unlock("shrek")); }
     if (u.id === "widen") { n.absorbMult += 0.6; n.soilMax += 40; n.maxWater += 30; n.baseEvap += 0.04; }
     if (u.id === "moss") n.mossMult *= 0.93;
     if (u.id === "vein") n.passive += 0.4;
