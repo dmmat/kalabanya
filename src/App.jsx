@@ -706,7 +706,8 @@ export default function App() {
   const [wheelRot, setWheelRot] = useState(0);
   const [eventT, setEventT] = useState(0); // countdown for timed (passing) guests
   const [combo, setCombo] = useState(0); // ability combo display
-  const [rescue, setRescue] = useState(null); // null | "spin" | "lose" — рятувальний слот на смерті
+  const [rescue, setRescue] = useState(null); // null | "shuffle" | "pick" | "reveal" | "lose" — наперстки на смерті
+  const [naperstky, setNaperstky] = useState({ won: false, picked: -1, drop: -1 }); // стан гри в наперстки
   const comboRef = useRef({ count: 0, last: 0, ids: new Set() });
   const comboHideRef = useRef(null);
   const resolveEventRef = useRef(null);
@@ -1129,25 +1130,38 @@ export default function App() {
     setMeta(m => ({ ...m, essence: m.essence + gained, runs: m.runs + 1, best: Math.max(m.best, day), essThisAsc: (m.essThisAsc || 0) + gained, lifeEss: (m.lifeEss || 0) + gained }));
     setRescue(null); setResult(null); setPhase("menu");
   };
+  const rescuing = rescue === "shuffle" || rescue === "pick" || rescue === "reveal";
   const tryRescue = () => {
     const cost = rescueCost();
-    if (rescuePool() < cost || rescue === "spin") return;
+    if (rescuePool() < cost || rescuing) return;
     // спершу списуємо із сутності цього забігу, решту (якщо треба) — з банку
     const fromRun = Math.min(gRef.current.pending || 0, cost);
     const fromBank = cost - fromRun;
     setG(p => ({ ...p, rescues: (p.rescues || 0) + 1, pending: Math.max(0, (p.pending || 0) - fromRun) }));
     if (fromBank > 0) setMeta(m => ({ ...m, essence: Math.max(0, m.essence - fromBank) }));
     setResult(r => (r ? { ...r, gained: Math.max(0, Math.round((r.gained || 0) - fromRun)) } : r));
-    setRescue("spin"); Sfx.spin();
+    // результат вирішено заздалегідь (наперстки «підкручені» — шанс той самий, що й був)
     const chance = clamp(0.42 + fateLuck(metaRef.current) * 0.18, 0.2, 0.7);
+    setNaperstky({ won: Math.random() < chance, picked: -1, drop: -1 });
+    setRescue("shuffle"); Sfx.spin();
+    setTimeout(() => setRescue("pick"), 1100); // перемішали — обирай наперсток
+  };
+  const pickNaperstok = (i) => {
+    if (rescue !== "pick") return;
+    Sfx.click(); Haptics.tap();
+    const won = naperstky.won;
+    // крапля під обраним, якщо виграш; інакше — під одним з інших наперстків
+    const others = [0, 1, 2].filter(s => s !== i);
+    const drop = won ? i : others[Math.floor(Math.random() * 2)];
+    setNaperstky(n => ({ ...n, picked: i, drop }));
+    setRescue("reveal");
     setTimeout(() => {
-      if (Math.random() < chance) {
-        // врятовано! — наповнюємо й продовжуємо забіг
+      if (won) {
         Sfx.win(); Haptics.good();
         setG(p => ({ ...p, water: Math.round(p.maxWater * 0.45) }));
         setRescue(null); setResult(null); setEvent(null); setPhase("playing");
       } else { Sfx.danger(); Haptics.bad(); setRescue("lose"); }
-    }, 1900);
+    }, 1500);
   };
 
   /* ---- export / import ---- */
@@ -1648,15 +1662,36 @@ export default function App() {
           <div className="kal-panel danger" style={{ textAlign: "center" }}>
             <span className="kal-tag">кінець</span>
             <div className="kal-big" style={{ color: "var(--dry)" }}>Ти висохла.</div>
-            {rescue === "spin" ? (
-              <>
-                <div className="kal-lore">Остання крапля тремтить у повітрі… доля крутить барабан рятунку.</div>
-                <div style={{ fontSize: 64, animation: "rescueSpin .5s linear infinite" }}>🎰</div>
-              </>
+            {rescuing ? (
+              <div className="kal-lore">
+                {rescue === "shuffle" ? "Шахрай долі тасує наперстки… стеж, де крапля життя."
+                  : rescue === "pick" ? "Під одним із наперстків — крапля. Обери, не схибивши."
+                  : naperstky.won ? "Наперсток підіймається… а під ним блищить крапля!"
+                  : "Наперсток порожній. Крапля була не тут…"}
+              </div>
             ) : rescue === "lose" ? (
-              <div className="kal-lore">Слот зупинився на порожнечі. Цього разу небо не зглянулось… ти таки висохла.</div>
+              <div className="kal-lore">Цього разу наперстки тебе ошукали… ти таки висохла.</div>
             ) : (
               <div className="kal-lore">Остання крапля піднялась у небо парою. На сухій землі лишилось темне коло — з нього проросте нова калабаня.</div>
+            )}
+            {rescuing && (
+              <div className={"kal-naperstky" + (rescue === "shuffle" ? " shuffling" : "")}>
+                {[0, 1, 2].map(i => (
+                  <button
+                    key={i}
+                    className={"naperstok"
+                      + (rescue === "reveal" ? " lift" : "")
+                      + (rescue === "reveal" && naperstky.drop === i ? " has-drop" : "")
+                      + (naperstky.picked === i ? " picked" : "")}
+                    disabled={rescue !== "pick"}
+                    onClick={() => pickNaperstok(i)}
+                  >
+                    <span className="pea">💧</span>
+                    <span className="cup" />
+                    <span className="shadow" />
+                  </button>
+                ))}
+              </div>
             )}
             <div className="kal-grid2">
               <ResStat l="Прожито" v={`день ${result.day}`} />
@@ -1664,16 +1699,16 @@ export default function App() {
               <ResStat l="Назбирано сутності" v={`◈ ${fmt(result.gained)}`} hi />
               <ResStat l="Усього мандрівок" v={meta.runs} />
             </div>
-            {rescue !== "spin" && (() => {
+            {!rescuing && (() => {
               const cost = rescueCost(), canAfford = rescuePool() >= cost;
               return (
                 <button className="kal-go" disabled={!canAfford} onClick={tryRescue} style={{ opacity: canAfford ? 1 : 0.5, background: "linear-gradient(180deg,#e0c060,#b8902f)", color: "#1a1206" }}>
-                  🎰 {rescue === "lose" ? "Спробувати ще раз" : "Остання надія"} (−◈ {fmt(cost)})
+                  🥃 {rescue === "lose" ? "Зіграти ще раз" : "Зіграти в наперстки"} (−◈ {fmt(cost)})
                 </button>
               );
             })()}
-            {rescue !== "spin" && <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 6 }}>Слот може врятувати… а може й ні. Ціна — {Math.round(rescuePct() * 100)}% сутності, списується одразу й дорожчає щоразу.</div>}
-            {rescue !== "spin" && <button className="kal-go ghost" onClick={finalizeDeath}>Прийняти долю → до вівтаря (забрати ◈ {fmt(result.gained)})</button>}
+            {!rescuing && <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 6 }}>Наперстки можуть врятувати… а можуть і ні. Ціна — {Math.round(rescuePct() * 100)}% сутності, списується одразу й дорожчає щоразу.</div>}
+            {!rescuing && <button className="kal-go ghost" onClick={finalizeDeath}>Прийняти долю → до вівтаря (забрати ◈ {fmt(result.gained)})</button>}
           </div>
         </div>
       )}
@@ -1779,8 +1814,8 @@ export default function App() {
             <h4>Сутінки й Велике Випаровування</h4>
             <p>Доживши до <b>сутінків</b>, обери: важчий новий день чи забрати Сутність. А коли назбираєш досвіду — наважся на <b>Велике Випаровування</b> ☁: скидаєш сутність і дари, та отримуєш вічні <span className="kal-clouds">Хмари</span> й небесні дари. Нескінченне переродження.</p>
 
-            <h4>Остання надія</h4>
-            <p>Коли висихаєш — пропонується <b>🎰 рятувальний слот</b>. Заплати <b>відсоток зібраної сутності</b> (на старті — щонайменше 1 тис.) і крути: пощастить — калабаня наповнюється й мандрівка триває далі; ні — спробуй ще, але ціна щоразу дорожчає. Вища Вдача підвищує шанс. Можна й просто <b>прийняти долю</b> та забрати всю сутність.</p>
+            <h4>Остання надія — наперстки</h4>
+            <p>Коли висихаєш — шахрай долі пропонує зіграти в <b>🥃 наперстки</b>. Заплати <b>відсоток зібраної сутності</b> (на старті — щонайменше 1 тис.), стеж за тасуванням і обери наперсток: під одним сховано <b>краплю життя</b>. Угадаєш — калабаня наповнюється й мандрівка триває; схибиш — спробуй ще, але ціна щоразу дорожчає. Вища <b>Вдача</b> підвищує шанс. Можна й просто <b>прийняти долю</b> та забрати всю сутність.</p>
 
             <h4>Досягнення</h4>
             <p>За подвиги даються <b>досягнення</b> (🏆). Деякі — <b>приховані</b> (показуються як «???», поки не відкриєш).</p>
