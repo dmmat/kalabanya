@@ -152,6 +152,7 @@ const RUN_UPGRADES = [
 // ціна = більше з експоненти (рання гра) та частки від об'єму (пізня гра),
 // але ніколи не вище 92% об'єму → апгрейд завжди можна накопичити (без софт-локу за будь-якої стратегії)
 const runCost = (u, lvl, maxW, disc = 1) => {
+  lvl = lvl || 0; // захист: новододані апгрейди можуть не мати рівня у старих збереженнях → не дати NaN-ціні
   const c = Math.max(u.base * Math.pow(u.growth, lvl), (u.frac || 0) * maxW);
   return Math.max(1, Math.round(Math.min(c, 0.92 * maxW) * disc));
 };
@@ -183,7 +184,7 @@ const META_UPGRADES = [
 const META_TIER2_DAY = 8; // глибинні дари відкриваються після такого рекорду
 
 /* ---------- prestige: «Велике Випаровування» ---------- */
-const PRESTIGE_UNLOCK = 1200; // скільки сутності за все треба заробити, щоб відкрити престиж
+const PRESTIGE_UNLOCK = 100000; // скільки сутності за все треба заробити, щоб відкрити престиж (середина гри, а не 1-й забіг)
 const cloudsFrom = (essThisAsc) => Math.floor(Math.sqrt((essThisAsc || 0) / 200));
 const PRESTIGE_UPGRADES = [
   { id: "c_ess",    emo: "🌫️", nm: "Небесна пам'ять", de: "+40% сутності за кожен рівень.", base: 1, growth: 2.0, max: 10 },
@@ -897,17 +898,18 @@ const fc3 = (m) => Math.floor(friendCount(m) / 3); // +1 кожні 3 друзі
 const eMul = (m) => 1 + friendCount(m) * 0.045; // дружба підсилює дари сутності
 // дружби тепер скидаються щозабігу — друзів треба здобувати знову.
 // За велику сутність їх можна «приручити назавжди» у вівтарі (meta.perma).
+// ціни перераховано під нову (розмірозалежну) економіку сутності — кожен друг це реальна ціль
 const PERMA_FRIENDS = [
-  { id: "frog",  emo: "🐸",  nm: "Жаба Кума",        cost: 22000 },
-  { id: "dog",   emo: "🐕",  nm: "Песик-приятель",   cost: 28000 },
-  { id: "bird",  emo: "🐦",  nm: "Зграя птахів",     cost: 34000 },
-  { id: "duck",  emo: "🦆",  nm: "Качина родина",    cost: 42000 },
-  { id: "snail", emo: "🐌",  nm: "Равлик-крамар",    cost: 50000 },
-  { id: "cat",   emo: "🐈‍⬛", nm: "Місячний кіт",     cost: 62000 },
-  { id: "bee",   emo: "🐝",  nm: "Золоті бджоли",    cost: 76000 },
-  { id: "hog",   emo: "🦔",  nm: "Їжак-садівник",    cost: 92000 },
-  { id: "heron", emo: "🪽",  nm: "Чапля-провидиця",  cost: 115000 },
-  { id: "fire",  emo: "🚒",  nm: "Пожежники",        cost: 140000 },
+  { id: "frog",  emo: "🐸",  nm: "Жаба Кума",        cost: 3000 },
+  { id: "dog",   emo: "🐕",  nm: "Песик-приятель",   cost: 4500 },
+  { id: "bird",  emo: "🐦",  nm: "Зграя птахів",     cost: 6500 },
+  { id: "duck",  emo: "🦆",  nm: "Качина родина",    cost: 9000 },
+  { id: "snail", emo: "🐌",  nm: "Равлик-крамар",    cost: 12000 },
+  { id: "cat",   emo: "🐈‍⬛", nm: "Місячний кіт",     cost: 16000 },
+  { id: "bee",   emo: "🐝",  nm: "Золоті бджоли",    cost: 21000 },
+  { id: "hog",   emo: "🦔",  nm: "Їжак-садівник",    cost: 27000 },
+  { id: "heron", emo: "🪽",  nm: "Чапля-провидиця",  cost: 34000 },
+  { id: "fire",  emo: "🚒",  nm: "Пожежники",        cost: 44000 },
 ];
 const PERMA_FLAG = { frog: "frogBond", dog: "dogFriend", cat: "catPet", duck: "duckFriend", bird: "birdFriend", bee: "beeFriend", hog: "hogFriend", heron: "heronFriend", snail: "snailMet", fire: "fireFriend" };
 // скинути дружби до купленого «назавжди» базису (на старті забігу)
@@ -973,14 +975,20 @@ const mix = (c1, c2, t) => {
   return `rgb(${Math.round(r1 + (r2 - r1) * t)},${Math.round(g1 + (g2 - g1) * t)},${Math.round(b1 + (b2 - b1) * t)})`;
 };
 const effEss = (g) => g.essMult * (1 + (g.weather ? g.weather.essMod : 0));
-// масштаб подій до прогресу: водні суми = частка об'єму; сутність росте з днем І дружбою з жабою
+// дохід сутності тепер РОСТЕ З РОЗМІРОМ калабані (sqrt → сильна, але спадна віддача):
+// що більша калабаня — то більше сутності/с і за виживання. Зростати = головна мета,
+// а не «лишатися малою й фармити дні». Орієнтир — стартовий об'єм (120).
+const sizeMul = (mw) => Math.pow(Math.max(1, mw || 120) / 120, 0.5);
+// масштаб подій до прогресу: водні суми = частка об'єму; сутність злегка росте з днем і дружбою
 const aw = (g, frac, floor = 8) => Math.max(floor, Math.round((g.maxWater || 120) * frac));
-const eAmt = (g, base) => Math.round(base * (1 + (g.day - 1) * 0.12) * (g.friend || 1));
+const eAmt = (g, base) => Math.round(base * (1 + (g.day - 1) * 0.06) * (g.friend || 1));
 // внутрішня «спека» (sun) — ігрова інтенсивність; для показу мапимо у правдоподібний °C
 const tempC = (sun) => Math.round(14 + Math.sqrt(clamp(sun, 0, 400) / 400) * 32);
-// глобальне потепління: невідворотний випар, що росте з днем (не блокується нічим).
-// з ~20-25 дня стає відчутним, тож пасив уже не покриває все — треба знову діяти.
-const warmingDrain = (day) => Math.pow(Math.max(0, day - 10), 1.5) * 0.13;
+// глобальне потепління: невідворотний випар, що росте з днем І з розміром калабані
+// (більша гладь — більше випаровує). Завдяки цьому ЖОДЕН забіг не безсмертний: пасив
+// зрештою програє потеплінню за будь-якого об'єму, а зростати — це усвідомлений ризик
+// (більший дохід, але важче втриматись). Еко-дари лише ВІДТЕРМІНОВУЮТЬ, не скасовують.
+const warmingDrain = (day, maxWater) => Math.pow(Math.max(0, day - 10), 1.5) * 0.17 * Math.pow(Math.max(1, maxWater || 120) / 120, 0.35);
 // мрія калабані рости: ранг за об'ємом
 const RANKS = [[300, "калабаня"], [900, "велика калабаня"], [2500, "ставок"], [6000, "озерце"], [16000, "озеро"], [50000, "велике озеро"], [160000, "море"], [400000, "велике море"], [1000000, "Північний Льодовитий океан"], [3000000, "Індійський океан"], [10000000, "Атлантичний океан"], [35000000, "Тихий океан"]];
 const rankName = (mw) => { for (const [t, n] of RANKS) if (mw < t) return n; return "Світовий океан"; };
@@ -997,7 +1005,7 @@ function evapPerSec(g) {
   // щоб відчувалось, але не вибухало на велетенських калабанях
   if (g.evapBoostT > 0) e = e * 1.8 + Math.min((g.maxWater || 120) * 0.005, 8 + (g.passive || 0) * 0.8);
   // глобальне потепління: невідворотний випар, що росте з днем (еко-дари трохи зменшують)
-  e += warmingDrain(g.day) * (g.ecoMult ?? 1);
+  e += warmingDrain(g.day, g.maxWater) * (g.ecoMult ?? 1);
   e *= (1 + w.evapMod);
   return Math.max(0, e);
 }
@@ -1012,16 +1020,16 @@ function freshRun(meta) {
     soil: 60, soilMax: 60, soilRegen: 3.8 * (1 + 0.25 * M("roots") + 0.25 * M("deeproots")),
     passive: 0.3 * M("spring") + 0.4 * M("spring2") + 0.5 * M("c_spring") + 0.03 * M("abyss") + ((meta.frogBond || 0) >= 3 ? 0.1 : 0), leaf: 0,
     shadeT: 0, evapBoostT: 0, absorbBoostT: 0, cheapT: 0,
-    essMult: (1 + 0.12 * M("silver") + 0.15 * M("golddrop")) * (1 + 0.4 * M("c_ess")), essRate: 0.15 + 0.05 * M("essflow"),
+    essMult: (1 + 0.12 * M("silver") + 0.15 * M("golddrop")) * (1 + 0.4 * M("c_ess")), essRate: 0.10 + 0.05 * M("essflow"),
     friend: 1 + Math.min(0.6, (meta.frogBond || 0) * 0.05), // дружба з жабою покращує дари подій
-    ecoMult: Math.max(0.12, (1 - 0.06 * M("trees")) * (1 - 0.10 * M("c_eco"))), // еко-дари зменшують потепління
+    ecoMult: Math.max(0.55, (1 - 0.06 * M("trees")) * (1 - 0.10 * M("c_eco"))), // еко-дари ВІДТЕРМІНОВУЮТЬ потепління (не скасовують)
     abil: { birds: 0, frogs: 0, dog: 0, cat: 0, ducks: 0, snail: 0, bee: 0, hog: 0, heron: 0, fish: 0, fire: 0 },
     hasFriend: !!(meta.birdFriend || (meta.frogBond || 0) >= 1 || meta.dogFriend || meta.catPet || meta.duckFriend || meta.snailMet || meta.beeFriend || meta.hogFriend || meta.heronFriend || meta.fireFriend),
     pending: 0, nextEvent: 14, festival: false, festAt: 0,
     tickets: { ...(meta.tickets || {}) }, // придбані квитки на фестивалі діють цей забіг
     seed: (Math.random() * 4294967296) >>> 0, // сід забігу для детермінованого прогнозу
     fcIdx: 0, fcFree: 0, // № перекруту прогнозу цього дня та скільки безкоштовних витрачено (зберігаються → рефреш не змінює небо)
-    levels: { deepen: 0, silt: 0, widen: 0, moss: 0, vein: 0, lake: 0, summon: 0 },
+    levels: { deepen: 0, silt: 0, widen: 0, moss: 0, vein: 0, lake: 0, trench: 0, summon: 0 },
     weather: NEUTRAL,
   };
 }
@@ -1264,7 +1272,7 @@ export default function App() {
         n.soil = w.challenge === "dust" ? Math.max(0, n.soil - 4 * dt) : clamp(n.soil + n.soilRegen * dt, 0, n.soilMax);
         const evap = evapPerSec(n);
         n.water = Math.min(n.water + (n.passive + w.rainPower - evap) * dt, n.maxWater);
-        n.pending += (n.essRate || 0.15) * effEss(n) * dt;
+        n.pending += (n.essRate || 0.10) * sizeMul(n.maxWater) * effEss(n) * dt; // збір сутності росте з розміром
         if (!event) n.nextEvent -= dt; // таймер паузиться, поки відкрите вікно події
         if (n.water >= n.maxWater - 0.5) unlock("rainchild");
         // не запускати подій/Колесо в останні ~13с дня (щоб не вискакували перед сутінками)
@@ -1288,7 +1296,7 @@ export default function App() {
           }
         }
         if (n.elapsed >= n.dayLen) {
-          const bonus = 14 * n.day * effEss(n) * (1 + 0.15 * (metaRef.current.moon || 0));
+          const bonus = 5 * sizeMul(n.maxWater) * effEss(n) * (1 + 0.15 * (metaRef.current.moon || 0)); // дар за виживання до сутінків — за РОЗМІР, а не за номер дня
           n.pending += bonus;
           const tapsThisDay = dayTaps.current;
           const waterAtDusk = n.water;
@@ -2013,8 +2021,9 @@ export default function App() {
                 <Stat l="Наповнення" v={`${Math.round(clamp(g.water / g.maxWater, 0, 1) * 100)}%`} c="var(--ink)" />
                 <Stat l="Волога ґрунту" v={`${Math.round(g.soil)}%`} c="var(--ink)" />
                 <Stat l="Опір спеці 🟤" v={`${Math.round(g.sunResist * 100)}%`} c="var(--ink)" />
-                {warmingDrain(g.day) * (g.ecoMult ?? 1) * (1 + w.evapMod) > 0.05 && <Stat l="Потепління 🌡️" v={`−${fmt(warmingDrain(g.day) * (g.ecoMult ?? 1) * (1 + w.evapMod))}/с`} c="var(--bad)" />}
+                {warmingDrain(g.day, g.maxWater) * (g.ecoMult ?? 1) * (1 + w.evapMod) > 0.05 && <Stat l="Потепління 🌡️" v={`−${fmt(warmingDrain(g.day, g.maxWater) * (g.ecoMult ?? 1) * (1 + w.evapMod))}/с`} c="var(--bad)" />}
                 <Stat l="Сутність ◈" v={`${fmt(g.pending)}${w.essMod ? ` ·${(1 + w.essMod).toFixed(1)}×` : ""}`} c="var(--essence)" />
+                <Stat l="Збір ◈ (більша калабаня — більше)" v={`+${fmt((g.essRate || 0.10) * sizeMul(g.maxWater) * effEss(g))}/с`} c="var(--essence)" />
                 {(g.speed || 1) > 1.01 && <Stat l="Швидкість ⏩" v={`×${(g.speed).toFixed(2)}`} c="var(--essence)" />}
               </div>
               <div className="kal-fxchips">

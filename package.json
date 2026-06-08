@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sim": "node sim/analyze.mjs compare"
   },
   "dependencies": {
     "react": "^19.2.7",
