@@ -435,6 +435,10 @@ body {
 .kal-abil .ab-ring { position:absolute; inset:0; z-index:0; border-radius:50%; overflow:hidden; }
 .kal-abil .ab-num { position:absolute; inset:0; z-index:2; display:grid; place-items:center;
   font-family:'Spline Sans Mono',monospace; font-size:14px; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.8); }
+.kal-abil .ab-key { position:absolute; top:-5px; right:-5px; z-index:3; min-width:15px; height:15px; padding:0 3px;
+  display:grid; place-items:center; border-radius:5px; font-family:'Spline Sans Mono',monospace; font-size:10px; font-weight:600;
+  background:rgba(8,18,24,.92); color:var(--water-a); border:1px solid rgba(116,195,154,.4); }
+@media (hover:none){ .kal-abil .ab-key { display:none; } } /* на телефоні клавіш нема */
 /* custom hover tooltip for abilities (краще за стандартний title) */
 .kal-abil .ab-tip { position:absolute; bottom:calc(100% + 10px); left:50%; transform:translateX(-50%) translateY(6px);
   width:max-content; max-width:230px; z-index:40; pointer-events:none; opacity:0; transition:opacity .14s, transform .14s;

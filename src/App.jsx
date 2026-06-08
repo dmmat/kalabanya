@@ -741,7 +741,21 @@ const FESTIVALS = [
         opts: [{ b: "Замилуватись візерунком", sf: g => `+${eAmt(g, 20)} сутності · +вдача`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 20) * effEss(g) }), luck: 2 }] },
       { t: "Гопак!", emo: "💃", flash: true, timer: 5, d: "Танцюристи закружляли гопак, аж бризки полетіли навсібіч!",
         opts: [{ b: "Підхопити ритм", sf: g => `+${eAmt(g, 12)} сутності · +вбирання`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 12) * effEss(g), absorbBoostT: addT(g.absorbBoostT, 14) }) }] },
-      { t: "Фінальний салют РЕСПУБЛІКИ", emo: "🎇", d: "Небо вибухнуло золотим феєрверком — увесь майдан гукає «Слава!». Свято лишає тебе повною по вінця.",
+      { t: "Кулі в небо", emo: "🎈", flash: true, timer: 5, d: "Сотні барвистих кульок зринули в небо й відбились у твоїй гладі.",
+        opts: [{ b: "Загадати з ними бажання", sf: g => `+${eAmt(g, 12)} сутності · +вдача`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 12) * effEss(g) }), luck: 1 }] },
+      { t: "Медова ярмарка", emo: "🍯", d: "Пасічники розклали барила — мед, медовуха, перга. Чим почастуєшся?",
+        opts: [
+          { b: "Скуштувати медовухи", sf: g => `+${aw(g, 0.12)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.12), g.maxWater) }) },
+          { b: "Виміняти стільники на блиск", sf: g => `+${eAmt(g, 22)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 22) * effEss(g) }) }] },
+      { t: "Трембіта над майданом", emo: "🪈", flash: true, timer: 6, d: "Протяжний голос трембіти прокотився над натовпом — мурашки по воді.",
+        opts: [{ b: "Завмерти в тиші", s: "−випар на 24с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 24) }) }] },
+      { t: "Вуличні артисти", emo: "🤹", d: "Жонглери, ходулісти й вогнедихи влаштували виставу просто над тобою.",
+        opts: [
+          { b: "Кидати їм у відбиток монетки", sf: g => `+${eAmt(g, 24)} сутності · +вдача`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 24) * effEss(g) }), luck: 2 },
+          { b: "Ловити іскри вогнедихів", s: "+вбирання на 16с", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 16) }) }] },
+      { t: "Водограй ожив", emo: "⛲", flash: true, timer: 5, d: "На площі вдарив святковий водограй — бризки долетіли й до тебе!",
+        opts: [{ b: "Зловити струмінь", sf: g => `+${aw(g, 0.16)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.16), g.maxWater) }) }] },
+      { t: "Фінальний салют РЕСПУБЛІКИ", emo: "🎇", finale: true, d: "Небо вибухнуло золотим феєрверком — увесь майдан гукає «Слава!». Свято лишає тебе повною по вінця.",
         opts: [{ b: "Слава!", sf: g => `повна вода · +${eAmt(g, 40)} сутності`, fn: g => ({ ...g, water: g.maxWater, pending: g.pending + eAmt(g, 40) * effEss(g) }), luck: 3 }] },
     ] },
 
@@ -763,7 +777,21 @@ const FESTIVALS = [
           { b: "Зварити з нього сутність", sf: g => `+${eAmt(g, 14)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 14) * effEss(g) }) }] },
       { t: "Стейдж-дайв!", emo: "🤘", flash: true, timer: 5, d: "Фанат стрибнув зі сцени на руки натовпу — бризки злетіли аж до тебе!",
         opts: [{ b: "Спіймати хвилю", sf: g => `+${eAmt(g, 10)} сутності · +вбирання`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 10) * effEss(g), absorbBoostT: addT(g.absorbBoostT, 14) }) }] },
-      { t: "Хедлайнер виходить", emo: "🎤", d: "Останній рифф розриває ніч — фаєри спалахують, і над сценою проливається вода з гармат.",
+      { t: "Гітарний рифф", emo: "🎸", flash: true, timer: 5, d: "Соло-гітарист вийшов на край сцени й видав рифф, від якого тремтить повітря.",
+        opts: [{ b: "Резонувати", sf: g => `+${eAmt(g, 16)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }) }] },
+      { t: "Водяна гармата на натовп", emo: "💦", flash: true, timer: 5, d: "Щоб охолодити розпашілих фанатів, увімкнули водяну гармату — і тобі перепало!",
+        opts: [{ b: "Підставитись під струмінь", sf: g => `+${aw(g, 0.18)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.18), g.maxWater) }) }] },
+      { t: "Фуд-корт", emo: "🌭", d: "Запахло гриллю, бургерами й кукурудзою. Чим підживишся?",
+        opts: [
+          { b: "Млинці з начинкою", sf: g => `+${eAmt(g, 20)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 20) * effEss(g) }) },
+          { b: "Лимонад із льодом", sf: g => `+${aw(g, 0.1)} води · прохолода`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.1), g.maxWater), shadeT: addT(g.shadeT, 14) }) }] },
+      { t: "Кинули мерч", emo: "🧢", d: "Зі сцени полетіли футболки й кепки — щось упало просто на тебе.",
+        opts: [
+          { b: "Продати раритетну футболку", sf: g => `+${eAmt(g, 22)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 22) * effEss(g) }) },
+          { b: "Лишити на згадку", s: "+вдача", fn: g => g, luck: 2 }] },
+      { t: "Серкл-піт!", emo: "🌀", flash: true, timer: 5, d: "Натовп розкрутив величезне коло — здійнялась курява й вихор.",
+        opts: [{ b: "Закрутитись вихором", s: "+вбирання на 18с", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 18) }) }] },
+      { t: "Хедлайнер виходить", emo: "🎤", finale: true, d: "Останній рифф розриває ніч — фаєри спалахують, і над сценою проливається вода з гармат.",
         opts: [{ b: "Розчинитись у звуці", sf: g => `повна вода · +${eAmt(g, 36)} сутності`, fn: g => ({ ...g, water: g.maxWater, pending: g.pending + eAmt(g, 36) * effEss(g) }), luck: 2 }] },
     ] },
 
@@ -783,7 +811,21 @@ const FESTIVALS = [
         opts: [
           { b: "Гріти боки біля ватри", sf: g => `+${eAmt(g, 20)} сутності · +вдача`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 20) * effEss(g) }), luck: 2 },
           { b: "Дзеркалити зорі", s: "−випар на 20с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 20) }) }] },
-      { t: "Фінал на головній сцені", emo: "🎆", d: "Хедлайнер врубив фінал — над юрбою злітають конфеті й холодні струмені води.",
+      { t: "Карпатський туман", emo: "🌁", flash: true, timer: 6, d: "З гір накотила прохолодна імла й огорнула сцену молочною завісою.",
+        opts: [{ b: "Сховатись у тумані", s: "−випар на 26с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 26) }) }] },
+      { t: "Бринза й вино", emo: "🧀", d: "Карпатські ґазди розклали бринзу, гуслянку й тепле вино.",
+        opts: [
+          { b: "Продегустувати на блиск", sf: g => `+${eAmt(g, 22)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 22) * effEss(g) }) },
+          { b: "Запити гуслянкою", sf: g => `+${aw(g, 0.12)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.12), g.maxWater) }) }] },
+      { t: "Акустичний сет", emo: "🎸", flash: true, timer: 6, d: "На малій сцені заграли тихий акустичний сет — натовп присів на траву.",
+        opts: [{ b: "Розчулитись", sf: g => `+${eAmt(g, 12)} сутності · −випар на 16с`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 12) * effEss(g), shadeT: addT(g.shadeT, 16) }) }] },
+      { t: "Стіна смерті", emo: "🤟", flash: true, timer: 5, d: "Натовп розступився надвоє й за командою вокаліста зійшовся стіною!",
+        opts: [{ b: "Влитись у зіткнення", sf: g => `+${eAmt(g, 14)} сутності · +вбирання`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 14) * effEss(g), absorbBoostT: addT(g.absorbBoostT, 14) }) }] },
+      { t: "Намети фестивалю", emo: "🏕️", d: "Поле вкрилось наметами — хтось уже бренькає на гітарі біля свого.",
+        opts: [
+          { b: "Слухати пісні до ранку", sf: g => `+${eAmt(g, 18)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 18) * effEss(g) }), luck: 1 },
+          { b: "Подрімати в холодку", s: "−випар на 22с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 22) }) }] },
+      { t: "Фінал на головній сцені", emo: "🎆", finale: true, d: "Хедлайнер врубив фінал — над юрбою злітають конфеті й холодні струмені води.",
         opts: [{ b: "Стрибати під біт", sf: g => `повна вода · +${eAmt(g, 34)} сутності`, fn: g => ({ ...g, water: g.maxWater, pending: g.pending + eAmt(g, 34) * effEss(g) }), luck: 2 }] },
     ] },
 
@@ -801,7 +843,21 @@ const FESTIVALS = [
           { b: "Розлитись хвилею", sf: g => `+${aw(g, 0.14)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.14), g.maxWater) }) }] },
       { t: "Дощ конфеті", emo: "💫", flash: true, timer: 5, d: "Гармати випустили тонни конфеті — вони осіли на тобі золотими цятками.",
         opts: [{ b: "Зібрати блиск", sf: g => `+${eAmt(g, 16)} сутності · +вдача`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }), luck: 1 }] },
-      { t: "Закриття Atlas", emo: "🎇", d: "Фінальний дроп, стіна вогню й водяні гармати — головна сцена прощається до наступного року.",
+      { t: "Стіна звуку", emo: "🔊", flash: true, timer: 5, d: "Дроп вдарив так, що по тобі пішла справжня звукова хвиля.",
+        opts: [{ b: "Завібрувати всім тілом", sf: g => `+${eAmt(g, 18)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 18) * effEss(g) }) }] },
+      { t: "Тебе показали на айдекрані!", emo: "🤳", flash: true, timer: 5, d: "Камера вихопила твій блиск — і кинула на гігантський екран над сценою. Слава!",
+        opts: [{ b: "Засяяти на всю арену", sf: g => `+${eAmt(g, 20)} сутності · +вдача`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 20) * effEss(g) }), luck: 2 }] },
+      { t: "Крижані бари", emo: "🧊", d: "Уздовж арени — бари з льодом, коктейлями й безкоштовною водою.",
+        opts: [
+          { b: "Набрати води по вінця", sf: g => `+${aw(g, 0.16)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.16), g.maxWater) }) },
+          { b: "Виміняти лід на блиск", sf: g => `+${eAmt(g, 22)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 22) * effEss(g) }) }] },
+      { t: "Диско-куля над водою", emo: "🪩", flash: true, timer: 5, d: "Велетенська дзеркальна куля розсипала тисячу зайчиків по твоїй поверхні.",
+        opts: [{ b: "Ловити відблиски", s: "+вбирання на 18с", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 18) }) }] },
+      { t: "Бекстейдж-перепустка", emo: "🎟️", d: "Хтось загубив бекстейдж-браслет — і він заблищав на твоєму дні.",
+        opts: [
+          { b: "Майнути браслетом за блиск", sf: g => `+${eAmt(g, 28)} сутності · +вдача`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 28) * effEss(g) }), luck: 2 },
+          { b: "Підглянути в риддер-зоні джерело", sf: g => `+${aw(g, 0.18)} об'єму`, fn: g => ({ ...g, maxWater: g.maxWater + aw(g, 0.18) }) }] },
+      { t: "Закриття Atlas", emo: "🎇", finale: true, d: "Фінальний дроп, стіна вогню й водяні гармати — головна сцена прощається до наступного року.",
         opts: [{ b: "Розчинитись у фіналі", sf: g => `повна вода · +${eAmt(g, 48)} сутності`, fn: g => ({ ...g, water: g.maxWater, pending: g.pending + eAmt(g, 48) * effEss(g) }), luck: 3 }] },
     ] },
 ];
@@ -938,7 +994,7 @@ function freshRun(meta) {
     ecoMult: Math.max(0.12, (1 - 0.06 * M("trees")) * (1 - 0.10 * M("c_eco"))), // еко-дари зменшують потепління
     abil: { birds: 0, frogs: 0, dog: 0, cat: 0, ducks: 0, snail: 0, bee: 0, hog: 0, heron: 0, fish: 0, fire: 0 },
     hasFriend: !!(meta.birdFriend || (meta.frogBond || 0) >= 1 || meta.dogFriend || meta.catPet || meta.duckFriend || meta.snailMet || meta.beeFriend || meta.hogFriend || meta.heronFriend || meta.fireFriend),
-    pending: 0, nextEvent: 14, festival: false,
+    pending: 0, nextEvent: 14, festival: false, festAt: 0,
     tickets: { ...(meta.tickets || {}) }, // придбані квитки на фестивалі діють цей забіг
     seed: (Math.random() * 4294967296) >>> 0, // сід забігу для детермінованого прогнозу
     fcIdx: 0, fcFree: 0, // № перекруту прогнозу цього дня та скільки безкоштовних витрачено (зберігаються → рефреш не змінює небо)
@@ -1010,27 +1066,15 @@ function Reel({ target, spinKey, delay, dur }) {
 }
 
 /* ============================ APP ============================ */
-const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, absorb: 0, thirst: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, abyss: 0, tickets: {}, perma: {}, everFriend: false, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, duckFriend: false, birdFriend: false, beeFriend: false, hogFriend: false, heronFriend: false, fireFriend: false, frogShy: false, tricked: false, callcd: 0, trees: 0, swift: 0, fate: 0, seenOnce: {}, sound: true, haptics: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0, c_eco: 0 };
+const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, absorb: 0, thirst: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, abyss: 0, tickets: {}, perma: {}, permaWipe: true, everFriend: false, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, duckFriend: false, birdFriend: false, beeFriend: false, hogFriend: false, heronFriend: false, fireFriend: false, frogShy: false, tricked: false, callcd: 0, trees: 0, swift: 0, fate: 0, seenOnce: {}, sound: true, haptics: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0, c_eco: 0 };
 // зведення дублюючих дарів: рівні старих апгрейдів переливаються в той, що лишився
 function migrateMeta(src) {
   const m = { ...src };
   if (m.reeds) { m.trees = Math.min(12, (m.trees || 0) + m.reeds); } // Очеретяний пояс → Лісосмуга
   delete m.reeds;
-  // дружби стали щозабіговими — наявних у старих гравців друзів робимо «приручені назавжди»
-  if (!m.perma) {
-    m.perma = {};
-    if (m.frogBond) m.perma.frog = true;
-    if (m.dogFriend) m.perma.dog = true;
-    if (m.catPet) m.perma.cat = true;
-    if (m.duckFriend) m.perma.duck = true;
-    if (m.birdFriend) m.perma.bird = true;
-    if (m.beeFriend) m.perma.bee = true;
-    if (m.hogFriend) m.perma.hog = true;
-    if (m.heronFriend) m.perma.heron = true;
-    if (m.snailMet) m.perma.snail = true;
-    if (m.fireFriend) m.perma.fire = true;
-    if (Object.keys(m.perma).length) m.everFriend = true;
-  }
+  // дружби стали щозабіговими; «приручення назавжди» треба КУПУВАТИ за сутність.
+  // одноразово прибираємо помилково «подаровані» назавжди дружби (їх ніхто не купував).
+  if (!m.permaWipe) { m.perma = {}; m.permaWipe = true; }
   return m;
 }
 
@@ -1073,7 +1117,6 @@ export default function App() {
   const phaseRef = useRef(phase); phaseRef.current = phase;
   const metaRef = useRef(meta); metaRef.current = meta;
   const dayTaps = useRef(0);
-  const festTimer = useRef(null);
   const festEventsRef = useRef([]);
   const resultRef = useRef(result); resultRef.current = result;
   const bootForecast = useRef(false);
@@ -1202,10 +1245,22 @@ export default function App() {
         // не запускати подій/Колесо в останні ~13с дня (щоб не вискакували перед сутінками)
         if (n.nextEvent <= 0 && !event && (n.dayLen - n.elapsed) > 13) {
           n.nextEvent = 99999; // сентинел: жодних нових подій, доки цю не закриють
-          // рідко (раз на пару днів) замість звичайної події випадає Колесо Фортуни
-          const wheelReady = n.day >= 2 && (n.day - (n.wheelDay ?? -9)) >= 2 && Math.random() < 0.35;
-          if (wheelReady) { n.wheelDay = n.day; Haptics.event(); setWheel({ stage: "offer" }); }
-          else { let ev = pickEvent(n, metaRef.current); if (ev.riddle) ev = makeRiddleEvent(); if (ev.once) setMeta(m => ({ ...m, seenOnce: { ...(m.seenOnce || {}), [ev.once]: true } })); Haptics.event(); setEvent(ev); }
+          let fired = false;
+          const fest = n.festival ? festEventsRef.current : null;
+          if (fest && fest.length) {
+            const lastIdx = fest.length - 1, at = n.festAt || 0;
+            const nearDusk = (n.dayLen - n.elapsed) < 30;
+            // інтро — завжди перше; фінал — гарантовано під кінець дня; між тим святкові події вперемішку зі звичайними
+            if (at === 0) { n.festAt = 1; Haptics.event(); setEvent({ ...fest[0], fest: true }); fired = true; }
+            else if (nearDusk && fest[lastIdx] && fest[lastIdx].finale && at <= lastIdx) { n.festAt = lastIdx + 1; Haptics.event(); setEvent({ ...fest[lastIdx], fest: true }); fired = true; }
+            else if (at < lastIdx && Math.random() < 0.6) { n.festAt = at + 1; Haptics.event(); setEvent({ ...fest[at], fest: true }); fired = true; }
+          }
+          if (!fired) {
+            // рідко (раз на пару днів) замість звичайної події випадає Колесо Фортуни (не на фестивалі)
+            const wheelReady = !n.festival && n.day >= 2 && (n.day - (n.wheelDay ?? -9)) >= 2 && Math.random() < 0.35;
+            if (wheelReady) { n.wheelDay = n.day; Haptics.event(); setWheel({ stage: "offer" }); }
+            else { let ev = pickEvent(n, metaRef.current); if (ev.riddle) ev = makeRiddleEvent(); if (ev.once) setMeta(m => ({ ...m, seenOnce: { ...(m.seenOnce || {}), [ev.once]: true } })); Haptics.event(); setEvent(ev); }
+          }
         }
         if (n.elapsed >= n.dayLen) {
           const bonus = 14 * n.day * effEss(n) * (1 + 0.15 * (metaRef.current.moon || 0));
@@ -1378,11 +1433,10 @@ export default function App() {
   const resolveEvent = (opt) => {
     Sfx.click();
     if (opt.sfx === "win") { Sfx.win(); Haptics.good(); } else if (opt.sfx === "bad") { Sfx.danger(); Haptics.bad(); }
-    const isFest = !!(event && event.fest); // святкова подія — поведінка ланцюжком
     setG(prev => {
       const n = opt.fn ? { ...opt.fn(prev) } : { ...prev };
-      // на Фестивалі звичайні події не спавняться — лише наша черга
-      n.nextEvent = isFest || prev.festival ? 99999 : 13 + Math.random() * 8;
+      // на фестивалі святкові й звичайні події чергуються через звичайний спавнер
+      n.nextEvent = prev.festival ? 7 + Math.random() * 6 : 13 + Math.random() * 8;
       checkVol(n.maxWater);
       if (n.maxWater > (metaRef.current.maxVol || 0)) setMeta(m => ({ ...m, maxVol: Math.round(n.maxWater) }));
       return n;
@@ -1409,13 +1463,26 @@ export default function App() {
     const nxt = opt.then ? (typeof opt.then === "function" ? opt.then(gRef.current, metaRef.current) : opt.then) : null;
     if (nxt) { Haptics.event(); setEvent(nxt); return; }
     setEvent(null);
-    // Фестиваль: одразу запускаємо наступну святкову подію з черги
-    if (isFest && festEventsRef.current[event.festNext]) {
-      clearTimeout(festTimer.current);
-      festTimer.current = setTimeout(() => fireFest(event.festNext), 650 + Math.random() * 350);
-    }
   };
   resolveEventRef.current = resolveEvent;
+  // клавіатура: Пробіл = торкнутись калабані; 1-9,0 = здібності друзів
+  const useAbilityRef = useRef(useAbility); useAbilityRef.current = useAbility;
+  useEffect(() => {
+    const onKey = (e) => {
+      if (phaseRef.current !== "playing" || e.metaKey || e.ctrlKey || e.altKey) return;
+      const ae = document.activeElement;
+      if (ae && (ae.tagName === "TEXTAREA" || ae.tagName === "INPUT")) return;
+      if (e.code === "Space") { e.preventDefault(); absorb(); return; } // як клік по калабані
+      if (/^[0-9]$/.test(e.key)) {
+        const idx = e.key === "0" ? 9 : parseInt(e.key, 10) - 1; // 1→перша … 0→десята
+        const list = ABILITIES.filter(a => a.req(metaRef.current, gRef.current));
+        const ab = list[idx];
+        if (ab && ((gRef.current.abil || {})[ab.id] || 0) <= 0) { e.preventDefault(); useAbilityRef.current(ab); }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []); // eslint-disable-line
   // timed guests (равлик, хитруни): йдуть, якщо не вирішити вчасно (авто-відмова — останній варіант)
   useEffect(() => {
     if (!event || !event.timer) { setEventT(0); return; }
@@ -1556,24 +1623,16 @@ export default function App() {
     else if (challengeForDay(nd)) { dayTaps.current = 0; setEvent(null); setPhase("challenge"); } // День Випробування — без слота
     else enterForecast();
   };
-  // ФЕСТИВАЛІ — святковий день із чергою подій
-  const fireFest = (i) => {
-    const ev = festEventsRef.current[i];
-    if (!ev) { setG(p => ({ ...p, nextEvent: 99999 })); return; } // події скінчились — святкова тиша до сутінків
-    Haptics.event();
-    setEvent({ ...ev, fest: true, festNext: i + 1 });
-  };
+  // ФЕСТИВАЛІ — святкові події вперемішку зі звичайними (спавнер сам чергує)
   const startFestival = () => {
     const fest = festivalForDay(gRef.current.day);
     if (!fest) { enterForecast(); return; }
     Sfx.dusk(); Haptics.event();
     dayTaps.current = 0;
-    festEventsRef.current = fest.events;
-    setG(prev => ({ ...prev, festival: true, weather: fest.weather, elapsed: 0, sun: 3, nextEvent: 99999, water: Math.min(prev.maxWater, prev.water + aw(prev, 0.15)) }));
+    festEventsRef.current = fest.events; // черга святкових подій (спавнер бере наступну за g.festAt)
+    setG(prev => ({ ...prev, festival: true, festAt: 0, weather: fest.weather, elapsed: 0, sun: 3, nextEvent: 1.2, water: Math.min(prev.maxWater, prev.water + aw(prev, 0.15)) }));
     setEvent(null); setPhase("playing");
     queueMicrotask(() => unlock("festival"));
-    clearTimeout(festTimer.current);
-    festTimer.current = setTimeout(() => fireFest(0), 800);
   };
   const acceptChallenge = () => {
     Sfx.dusk(); Haptics.event();
@@ -1858,9 +1917,10 @@ export default function App() {
           <div className="kal-abilities reveal">
             {combo >= 2 && <div className="kal-combo" key={combo}>КОМБО ×{combo}!</div>}
             {abilFx && <div className={"kal-abilfx " + abilFx.kind} key={abilFx.text}>{abilFx.text}</div>}
-            {ABILITIES.filter(a => a.req(meta, g)).map(a => {
+            {ABILITIES.filter(a => a.req(meta, g)).map((a, i) => {
               const cd = (g.abil && g.abil[a.id]) || 0;
               const max = abilCD(a);
+              const hot = i < 9 ? String(i + 1) : i === 9 ? "0" : null; // 1-9, 0 для десятої
               const preyEmos = (a.prey || []).map(id => (ABILITIES.find(x => x.id === id) || {}).emo).filter(Boolean);
               const synEmos = Object.keys(SYNERGY).filter(k => k.split("+").includes(a.id))
                 .map(k => (ABILITIES.find(x => x.id === k.split("+").find(id => id !== a.id)) || {}).emo).filter(Boolean);
@@ -1869,10 +1929,11 @@ export default function App() {
                   {cd > 0 && <span className="ab-ring" style={{ background: `conic-gradient(rgba(0,0,0,.55) ${(cd / max) * 360}deg, transparent 0)` }} />}
                   <span className="ab-emo">{a.emo}</span>
                   {cd > 0 && <span className="ab-num">{Math.ceil(cd)}</span>}
+                  {hot && cd <= 0 && <span className="ab-key">{hot}</span>}
                   <span className="ab-tip">
                     <b>{a.emo} {a.nm}</b>
                     <i>{a.tip}</i>
-                    <em>Перезарядка ~{max}с · {a.kind}{cd > 0 ? ` · ще ${Math.ceil(cd)}с` : ""}</em>
+                    <em>Перезарядка ~{max}с · {a.kind}{hot ? ` · клавіша ${hot}` : ""}{cd > 0 ? ` · ще ${Math.ceil(cd)}с` : ""}</em>
                     {synEmos.length > 0 && <span className="good">Синергія: {synEmos.join(" ")}</span>}
                     {preyEmos.length > 0 && <span className="bad">Лякає: {preyEmos.join(" ")}</span>}
                   </span>
@@ -2326,6 +2387,7 @@ export default function App() {
               <li><b>Торкайся калабані</b> — вбираєш вологу з ґрунту (ґрунт повільно відновлюється).</li>
               <li><b>Поглиблення</b> — витрачай воду на покращення поточної мандрівки: глибина, ряска, жили, а <b>🟤 Намулитись</b> додає <b>опору спеці</b>.</li>
               <li><b>Постійні дари</b> — між мандрівками витрачай Сутність на вічні бонуси.</li>
+              <li><b>⌨️ Клавіатура:</b> <b>Пробіл</b> — торкнутись калабані (як клік), клавіші <b>1–9 та 0</b> — активувати здібності друзів за порядком.</li>
             </ul>
 
             <h4>Стан калабані</h4>
