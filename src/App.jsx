@@ -349,7 +349,35 @@ const ACHIEVEMENTS = [
   { id: "deceived", e: "😈", nm: "Обкручений довкола пальця", dq: "Повестися на солодку обіцянку хитрого гостя.", hidden: true },
   { id: "lucky",    e: "🍀", nm: "Пещений долею",   dq: "Накопичити дуже високу приховану Вдачу.", hidden: true },
   { id: "warmed",   e: "🌡️", nm: "Жертва потепління", dq: "Висохнути від глобального потепління (день 20+).", hidden: true },
+  { id: "trial",    e: "🚀", nm: "Загартована",      dq: "Пережити День Випробування." },
 ];
+
+/* ---------- Дні Випробувань: кожен 10-й день — особливий, без прокруту погоди ---------- */
+const CHALLENGE_EVERY = 10;
+const CHALLENGES = [
+  { id: "heat", emo: "☀️", nm: "Аномальна спека", tone: "danger",
+    warn: "Синоптики обіцяють аномальну спеку.", desc: "Спекотніше за звичай — тримай запас води.",
+    apply: w => ({ ...w, sunMod: (w.sunMod || 0) + 0.7 }) },
+  { id: "rocket", emo: "🚀", nm: "Запуск ракети", tone: "danger",
+    warn: "Поряд космодром — буде запуск ракети. Чекай на пекло.", desc: "Пекельний жар від ракетних двигунів. Переживи його!",
+    apply: w => ({ ...w, sunMod: (w.sunMod || 0) + 1.3, evapMod: (w.evapMod || 0) + 0.15 }) },
+  { id: "drought", emo: "🔥", nm: "Велика засуха", tone: "danger",
+    warn: "Насувається велика засуха — без жодної краплі.", desc: "Ні дощу — лиш жар і нещадний випар.",
+    apply: w => ({ ...w, sunMod: (w.sunMod || 0) + 0.8, rainPower: 0, evapMod: (w.evapMod || 0) + 0.25 }) },
+  { id: "dust", emo: "🌪️", nm: "Курна буря", tone: "danger",
+    warn: "Іде курна буря — ґрунт пересохне, вбирати буде нічим.", desc: "Ґрунт мертвий: вбирання не діє. Виживай на запасі та припливі.",
+    apply: w => ({ ...w, sunMod: (w.sunMod || 0) + 0.4 }) },
+  { id: "eclipse", emo: "🌑", nm: "Сонячне затемнення", tone: "good",
+    warn: "Близиться сонячне затемнення — благодатна прохолода.", desc: "Затемнення дарує перепочинок: майже без випару.",
+    apply: w => ({ ...w, sunMod: (w.sunMod || 0) - 0.7, evapMod: (w.evapMod || 0) - 0.5 }) },
+];
+const challengeForDay = (day) => (day >= CHALLENGE_EVERY && day % CHALLENGE_EVERY === 0) ? CHALLENGES[(day / CHALLENGE_EVERY - 1) % CHALLENGES.length] : null;
+const nextChallengeDay = (day) => (Math.floor(day / CHALLENGE_EVERY) + 1) * CHALLENGE_EVERY;
+const applyChallenge = (w, day) => {
+  const ch = challengeForDay(day); if (!ch) return w;
+  const nw = ch.apply({ ...(w || NEUTRAL) });
+  return { ...nw, name: ch.nm, icon: ch.emo, tier: ch.tone, challenge: ch.id };
+};
 
 /* ---------- helpers ---------- */
 const fmt = (n) => {
@@ -478,7 +506,7 @@ function Reel({ target, spinKey, delay, dur }) {
 const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, fate: 0, sound: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0 };
 
 export default function App() {
-  const [phase, setPhase] = useState("loading"); // loading|welcome|menu|forecast|playing|dead|survived
+  const [phase, setPhase] = useState("loading"); // loading|welcome|menu|forecast|challenge|playing|dead|survived
   const [g, setG] = useState(() => freshRun({}));
   const [meta, setMeta] = useState(DEFAULT_META);
   const [event, setEvent] = useState(null);
@@ -557,7 +585,7 @@ export default function App() {
         try {
           const d = JSON.parse(raw);
           if (d.meta) setMeta(m => ({ ...m, ...d.meta, ach: { ...(d.meta.ach || {}) } }));
-          const resumable = ["playing", "survived", "forecast", "dead"];
+          const resumable = ["playing", "survived", "forecast", "challenge", "dead"];
           if (d.g && resumable.includes(d.phase)) {
             // якщо перезавантажили під час події/колеса — скидаємо «паузу» таймера подій
             const ne = (d.g.nextEvent == null || d.g.nextEvent >= 9999) ? 6 + Math.random() * 6 : d.g.nextEvent;
@@ -608,8 +636,9 @@ export default function App() {
         n.shadeT = Math.max(0, n.shadeT - dt);
         n.evapBoostT = Math.max(0, n.evapBoostT - dt);
         n.absorbBoostT = Math.max(0, n.absorbBoostT - dt);
-        n.soil = clamp(n.soil + n.soilRegen * dt, 0, n.soilMax);
         const w = n.weather || NEUTRAL;
+        // курна буря: ґрунт пересихає й не відновлюється (вбирати нічим)
+        n.soil = w.challenge === "dust" ? Math.max(0, n.soil - 4 * dt) : clamp(n.soil + n.soilRegen * dt, 0, n.soilMax);
         const evap = evapPerSec(n);
         n.water = Math.min(n.water + (n.passive + w.rainPower - evap) * dt, n.maxWater);
         n.pending += (n.essRate || 0.15) * effEss(n) * dt;
@@ -631,6 +660,7 @@ export default function App() {
             unlock("firstdew");
             if (tapsThisDay === 0) unlock("mirror");
             if (waterAtDusk <= 5) unlock("lastdrop");
+            if (challengeForDay(n.day)) unlock("trial");
             if (n.day >= 7) unlock("sevensuns");
             if (n.day >= 30) unlock("oldpuddle");
             if (n.day >= 50) unlock("eternal");
@@ -845,8 +875,16 @@ export default function App() {
   };
   const continueDay = () => {
     Sfx.click();
+    const nd = g.day + 1;
     setG(prev => ({ ...prev, day: prev.day + 1, elapsed: 0, sun: 6, dayLen: prev.dayLen + 6, nextEvent: 12 + Math.random() * 6 }));
-    enterForecast();
+    if (challengeForDay(nd)) { dayTaps.current = 0; setEvent(null); setPhase("challenge"); } // День Випробування — без слота
+    else enterForecast();
+  };
+  const acceptChallenge = () => {
+    Sfx.dusk();
+    dayTaps.current = 0;
+    setG(prev => ({ ...prev, weather: applyChallenge(NEUTRAL, prev.day) }));
+    setEvent(null); setPhase("playing");
   };
   const endJourney = () => {
     Sfx.click();
@@ -880,7 +918,7 @@ export default function App() {
       if (!d.meta) throw new Error("no meta");
       setMeta(m => ({ ...m, ...d.meta, ach: { ...(m.ach || {}), ...(d.meta.ach || {}) } }));
       setEvent(null); setWheel(null);
-      const resumable = ["playing", "survived", "forecast", "dead"];
+      const resumable = ["playing", "survived", "forecast", "challenge", "dead"];
       let nextPhase = "menu";
       if (d.g && resumable.includes(d.phase)) {
         const ne = (d.g.nextEvent == null || d.g.nextEvent >= 9999) ? 6 + Math.random() * 6 : d.g.nextEvent;
@@ -1264,6 +1302,23 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* CHALLENGE DAY (no forecast — fact, not warning) */}
+      {phase === "challenge" && (() => {
+        const ch = challengeForDay(g.day) || CHALLENGES[0];
+        return (
+          <div className="kal-over">
+            <div className={"kal-panel" + (ch.tone === "danger" ? " danger" : ch.tone === "good" ? " win" : "")} style={{ textAlign: "center" }}>
+              <span className="kal-tag">день {g.day} · випробування</span>
+              <div style={{ fontSize: 56, lineHeight: 1, margin: "6px 0 2px" }}>{ch.emo}</div>
+              <div className="kal-big" style={{ fontSize: "clamp(26px,6.5vw,40px)", color: ch.tone === "good" ? "var(--water-a)" : "var(--bad)" }}>{ch.nm}</div>
+              <div className="kal-lore">{ch.desc}</div>
+              <div style={{ fontSize: 12.5, color: "var(--muted)", margin: "-6px 0 4px", fontStyle: "italic" }}>Сьогодні прогнозу немає — небо вирішило за тебе.</div>
+              <button className="kal-go" onClick={acceptChallenge}>Зустріти випробування →</button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* FORECAST SLOT */}
       {phase === "forecast" && (
