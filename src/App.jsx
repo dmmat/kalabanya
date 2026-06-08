@@ -604,7 +604,7 @@ const applyChallenge = (w, day) => {
    Кожен фест має власну погоду й тему. Торкатися калабані не можна — лише святкувати,
    а події (зокрема короткі «флеш») линуть одна за одною. */
 const FESTIVALS = [
-  { id: "respublika", day: 12, emo: "🎉", nm: "ФЕСТИВАЛЬ РЕСПУБЛІКА", color: "var(--water-a)", tone: "win", ticket: 120,
+  { id: "respublika", day: 12, emo: "🎉", nm: "ФЕСТИВАЛЬ РЕСПУБЛІКА", color: "var(--water-a)", tone: "win", ticket: 650,
     intro: "Дванадцятий день — велике свято! Небо дарує зливу-благодать, тож торкатися тебе нікому не дають — лише святкуй. Гості, музика й дива линуть одне за одним.",
     weather: { rainPower: 2.6, sunMod: -0.5, absorbMod: 0, evapMod: -0.35, essMod: 0.6, name: "ФЕСТИВАЛЬ РЕСПУБЛІКА", icon: "🎉", idxs: [1, 1, 1], tier: "jackpot", festival: true },
     events: [
@@ -630,7 +630,7 @@ const FESTIVALS = [
         opts: [{ b: "Слава!", sf: g => `повна вода · +${eAmt(g, 40)} сутності`, fn: g => ({ ...g, water: g.maxWater, pending: g.pending + eAmt(g, 40) * effEss(g) }), luck: 3 }] },
     ] },
 
-  { id: "fainemisto", day: 18, emo: "🎸", nm: "ФАЙНЕ МІСТО", color: "var(--sun)", tone: "danger", ticket: 180,
+  { id: "fainemisto", day: 18, emo: "🎸", nm: "ФАЙНЕ МІСТО", color: "var(--sun)", tone: "danger", ticket: 1400,
     intro: "Тернопільське «Файне місто» гримить роком під палючим сонцем — спека, драйв і засуха! Води з неба обмаль, тож лови дари зі сцени.",
     weather: { rainPower: 0.7, sunMod: 0.35, absorbMod: 0, evapMod: 0.08, essMod: 0.5, name: "ФАЙНЕ МІСТО · спека", icon: "🎸", idxs: [6, 6, 6], tier: "danger", festival: true },
     events: [
@@ -652,7 +652,7 @@ const FESTIVALS = [
         opts: [{ b: "Розчинитись у звуці", sf: g => `повна вода · +${eAmt(g, 36)} сутності`, fn: g => ({ ...g, water: g.maxWater, pending: g.pending + eAmt(g, 36) * effEss(g) }), luck: 2 }] },
     ] },
 
-  { id: "zakhid", day: 24, emo: "🤘", nm: "ЗАХІД ФЕСТ", color: "var(--good)", tone: "win", ticket: 240,
+  { id: "zakhid", day: 24, emo: "🤘", nm: "ЗАХІД ФЕСТ", color: "var(--good)", tone: "win", ticket: 2600,
     intro: "Львівський «Захід» — прохолодний вітер, сонце крізь хмари і панк-енергія. Свіжо, гучно й весело!",
     weather: { rainPower: 0.9, sunMod: 0.1, absorbMod: 0.2, evapMod: -0.2, essMod: 0.5, name: "ЗАХІД ФЕСТ · прохолода", icon: "🤘", idxs: [2, 2, 2], tier: "good", festival: true },
     events: [
@@ -672,7 +672,7 @@ const FESTIVALS = [
         opts: [{ b: "Стрибати під біт", sf: g => `повна вода · +${eAmt(g, 34)} сутності`, fn: g => ({ ...g, water: g.maxWater, pending: g.pending + eAmt(g, 34) * effEss(g) }), luck: 2 }] },
     ] },
 
-  { id: "atlas", day: 29, emo: "🎶", nm: "ATLAS WEEKEND", color: "var(--essence)", tone: "win", ticket: 320,
+  { id: "atlas", day: 29, emo: "🎶", nm: "ATLAS WEEKEND", color: "var(--essence)", tone: "win", ticket: 4200,
     intro: "Київський Atlas Weekend — найбільша сцена країни, тисячі вогнів, лазери й нескінченний драйв. Сутність ллється рікою!",
     weather: { rainPower: 1.2, sunMod: -0.1, absorbMod: 0.3, evapMod: -0.1, essMod: 0.9, name: "ATLAS WEEKEND", icon: "🎶", idxs: [5, 5, 5], tier: "jackpot", festival: true },
     events: [
