@@ -176,12 +176,12 @@ const PRESTIGE_UPGRADES = [
 /* ---------- events ---------- */
 const EVENTS = [
   { t: "Набігла хмара", emo: "☁️", d: "Темна хмара зависла над тобою.", opts: [
-    { b: "Розкритись", sf: g => `+${aw(g, 0.16)} води, та швидко випарується (18с)`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.16), g.maxWater), evapBoostT: 18 }) },
+    { b: "Розкритись", sf: g => `+${aw(g, 0.16)} води, та швидко випарується (18с)`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.16), g.maxWater), evapBoostT: addT(g.evapBoostT, 18) }) },
     { b: "Зібратись", sf: g => `+${aw(g, 0.10)} води, безпечно`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.10), g.maxWater) }) }] },
   { t: "Сусідський песик", emo: "🐕", art: "dog", req: (g) => g.day >= 2, weight: 1.1, timer: 10,
     d: "Кудлатий песик підбіг до тебе, висолопив язика й завзято замахав хвостом.", opts: [
     { b: "Дати напитися", sf: g => `−${aw(g, 0.08)} води · +вдача`, fn: g => ({ ...g, water: g.water - aw(g, 0.08) }), meta: m => ({ ...m, dogFriend: true }), luck: 1 },
-    { b: "Хай «позначить»", sf: g => `+${aw(g, 0.11)} води, та каламутна (+випар)`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.11), g.maxWater), evapBoostT: 9 }) },
+    { b: "Хай «позначить»", sf: g => `+${aw(g, 0.11)} води, та каламутна (+випар)`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.11), g.maxWater), evapBoostT: addT(g.evapBoostT, 9) }) },
     { b: "Відігнати", s: "нічого", fn: g => g }] },
   { t: "Дощовий хробак", emo: "🐛", art: "worm", req: (g) => g.day >= 2, weight: 1.0,
     d: "Після вологи з ґрунту виповз рожевий хробачок і блаженно скрутився у твоїй прохолоді.", opts: [
@@ -191,8 +191,8 @@ const EVENTS = [
     { b: "Напоїти", sf: g => `−${aw(g, 0.07)} води, +${eAmt(g, 8)} сутності`, fn: g => ({ ...g, water: g.water - aw(g, 0.07), pending: g.pending + eAmt(g, 8) * effEss(g) }), meta: m => ({ ...m, birdFriend: true }), luck: 1 },
     { b: "Завмерти", s: "нічого", fn: g => g }] },
   { t: "Тінь дерева", emo: "🌳", d: "Гілка кинула на тебе прохолоду.", opts: [
-    { b: "Сховатись у тіні", s: "−випар на 15с", fn: g => ({ ...g, shadeT: 15 }) },
-    { b: "Ловити сонце", s: "+вбирання на 15с", fn: g => ({ ...g, absorbBoostT: 15 }) }] },
+    { b: "Сховатись у тіні", s: "−випар на 15с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 15) }) },
+    { b: "Ловити сонце", s: "+вбирання на 15с", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 15) }) }] },
   { t: "Тріщина в землі", emo: "🪨", d: "Поряд розверзлась суха тріщина.", opts: [
     { b: "Просочитись глибше", sf: g => `−30% води, +${aw(g, 0.14)} об'єму`, fn: g => ({ ...g, water: g.water * 0.7, maxWater: g.maxWater + aw(g, 0.14) }) },
     { b: "Лишитись", s: "нічого", fn: g => g }] },
@@ -203,19 +203,19 @@ const EVENTS = [
     { b: "Прийняти прихисток", s: "−12% випару до кінця дня", fn: g => ({ ...g, leaf: Math.min(0.6, g.leaf + 0.12) }) },
     { b: "Струсити геть", sf: g => `+${aw(g, 0.06)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.06), g.maxWater) }) }] },
   { t: "Сонячне вікно", emo: "🌤️", tod: [0.30, 0.70], weight: 1.4, d: "Хмари розійшлись — пряме проміння впало на тебе.", opts: [
-    { b: "Сховатись у бруд", s: "−випар на 18с", fn: g => ({ ...g, shadeT: 18 }) },
-    { b: "Витерпіти", sf: g => `+${aw(g, 0.14)} води, та швидко випарується (16с)`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.14), g.maxWater), evapBoostT: 16 }) }] },
+    { b: "Сховатись у бруд", s: "−випар на 18с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 18) }) },
+    { b: "Витерпіти", sf: g => `+${aw(g, 0.14)} води, та швидко випарується (16с)`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.14), g.maxWater), evapBoostT: addT(g.evapBoostT, 16) }) }] },
   { t: "Жаба-мандрівниця", emo: "🐸", art: "frog", d: "Жаба обрала твою калабаню за прихисток на ніч.", opts: [
-    { b: "Прихистити її", sf: g => `−${aw(g, 0.05)} води · +дружба з жабою`, fn: g => ({ ...g, water: g.water - aw(g, 0.05), shadeT: 16 }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 1 }), luck: 2 },
+    { b: "Прихистити її", sf: g => `−${aw(g, 0.05)} води · +дружба з жабою`, fn: g => ({ ...g, water: g.water - aw(g, 0.05), shadeT: addT(g.shadeT, 16) }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 1 }), luck: 2 },
     { b: "Прогнати геть", sf: g => `+${aw(g, 0.06)} води · жаба ображається`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.06), g.maxWater) }), meta: m => ({ ...m, frogShy: true }) }] },
   { t: "Дитячий кораблик", emo: "⛵", art: "boat", d: "Дитина пустила паперовий човник твоїми водами.", opts: [
-    { b: "Гойдати лагідно", s: "+вбирання на 14с", fn: g => ({ ...g, absorbBoostT: 14 }) },
+    { b: "Гойдати лагідно", s: "+вбирання на 14с", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 14) }) },
     { b: "Поглинути човник", sf: g => `+${aw(g, 0.07)} води, +${eAmt(g, 6)} сутності`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.07), g.maxWater), pending: g.pending + eAmt(g, 6) * effEss(g) }) }] },
   { t: "Нічний приморозок", emo: "🧊", tod: [0, 0.16], weight: 1.8, d: "Досвітній холод скував твою поверхню тонкою кригою.", opts: [
-    { b: "Скутися льодом", s: "−випар на 22с", fn: g => ({ ...g, shadeT: 22 }) },
+    { b: "Скутися льодом", s: "−випар на 22с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 22) }) },
     { b: "Берегти тепло глибин", sf: g => `−${aw(g, 0.04)} води, +${eAmt(g, 10)} сутності`, fn: g => ({ ...g, water: g.water - aw(g, 0.04), pending: g.pending + eAmt(g, 10) * effEss(g) }) }] },
   { t: "Вітер-пустун", emo: "🍃", d: "Пустотливий вітер заграв над твоєю гладдю.", opts: [
-    { b: "Піддатися вітру", sf: g => `−${aw(g, 0.07)} води, +вбирання на 16с`, fn: g => ({ ...g, water: g.water - aw(g, 0.07), absorbBoostT: 16 }) },
+    { b: "Піддатися вітру", sf: g => `−${aw(g, 0.07)} води, +вбирання на 16с`, fn: g => ({ ...g, water: g.water - aw(g, 0.07), absorbBoostT: addT(g.absorbBoostT, 16) }) },
     { b: "Притихнути", sf: g => `+${eAmt(g, 8)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 8) * effEss(g) }) }] },
   { t: "Через яму — фура", emo: "🚚", art: "truck", d: "Важка фура з гуркотом увігналася просто в яму, де ти лежиш. Колеса здіймають хвилю.", opts: [
     { b: "Дати проїхати", sf: g => `−40% води, +${aw(g, 0.18)} об'єму (яма глибшає)`, fn: g => ({ ...g, water: g.water * 0.6, maxWater: g.maxWater + aw(g, 0.18) }) },
@@ -226,7 +226,7 @@ const EVENTS = [
 
   { t: "Жаба Кума повертається", emo: "🐸", art: "frog", req: (g, m) => (m.frogBond || 0) >= 1, weight: 1.4,
     d: "Знайома жаба впізнала твій блиск і знову прийшла погрітись на твоїм краю.", opts: [
-    { b: "Прийняти, як рідну", s: "−випар на 20с · міцніша дружба", fn: g => ({ ...g, shadeT: 20 }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 1 }), luck: 2 },
+    { b: "Прийняти, як рідну", s: "−випар на 20с · міцніша дружба", fn: g => ({ ...g, shadeT: addT(g.shadeT, 20) }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 1 }), luck: 2 },
     { b: "Попросити про послугу", sf: g => `+${eAmt(g, 16)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }) }] },
   { t: "Равлик-крамар", emo: "🐌", art: "snail", req: (g) => g.day >= 3, weight: 1.1, timer: 12,
     d: "Равлик зі скойкою-крамницею повз твоїм берегом і розклав на мушлі дрібний крам.", opts: [
@@ -241,7 +241,7 @@ const EVENTS = [
   { t: "Місячний кіт", emo: "🐈‍⬛", art: "cat", req: (g) => g.day >= 4, tod: [0.74, 1.0], weight: 1.4,
     d: "Чорний кіт прийшов нечутно хлебтати місяць із твоєї поверхні.", opts: [
     { b: "Погладити брижами", sf: g => `+${eAmt(g, 16)} сутності · спокій`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }), meta: m => ({ ...m, catPet: true }), luck: 2 },
-    { b: "Завмерти дзеркалом", s: "−випар на 18с", fn: g => ({ ...g, shadeT: 18 }) }] },
+    { b: "Завмерти дзеркалом", s: "−випар на 18с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 18) }) }] },
   { t: "Дід-рибалка", emo: "🎣", art: "fisherman", req: (g) => g.day >= 6, weight: 0.8,
     d: "Старий присів поряд і закинув вудку просто в тебе, ніби ти — ціле озеро.", opts: [
     { b: "Підіграти озером", sf: g => `+${eAmt(g, 26)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 26) * effEss(g) }) },
@@ -261,12 +261,12 @@ const EVENTS = [
   { t: "Відлуння старих калабань", emo: "🌌", req: (g, m) => (m.best || 0) >= 10, weight: 0.7,
     d: "У сутінковій тиші ти чуєш шепіт усіх калабань, що висихали тут до тебе.", opts: [
     { b: "Прийняти їхню пам'ять", sf: g => `+${eAmt(g, 42)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 42) * effEss(g) }) },
-    { b: "Тихо відпустити", s: "−випар на 26с", fn: g => ({ ...g, shadeT: 26 }) }] },
+    { b: "Тихо відпустити", s: "−випар на 26с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 26) }) }] },
 
   /* — глибші зустрічі зі старими друзями (рідкісні, за рівнем прогресу) — */
   { t: "Жаб'яче весілля", emo: "🐸", art: "frog", req: (g, m) => (m.frogBond || 0) >= 4, weight: 0.5,
     d: "Кума привела все жаб'яче кодло — у тебе галасливе весілля до самого ранку!", opts: [
-    { b: "Влаштувати свято", sf: g => `+${eAmt(g, 30)} сутності · міцніша дружба`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 30) * effEss(g), shadeT: 24 }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 2 }), luck: 3 },
+    { b: "Влаштувати свято", sf: g => `+${eAmt(g, 30)} сутності · міцніша дружба`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 30) * effEss(g), shadeT: addT(g.shadeT, 24) }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 2 }), luck: 3 },
     { b: "Попросити тиші", sf: g => `+${aw(g, 0.14)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.14), g.maxWater) }) }] },
   { t: "Равликова гільдія", emo: "🐌", art: "snail", req: (g, m) => m.snailMet && g.day >= 8, weight: 0.5, timer: 12,
     d: "Равлик привів старшого з гільдії — на мушлі рідкісний, добірний крам.", opts: [
@@ -276,7 +276,7 @@ const EVENTS = [
   { t: "Кошенята місячного кота", emo: "🐈‍⬛", art: "cat", req: (g, m) => m.catPet && g.day >= 6, tod: [0.74, 1.0], weight: 0.5,
     d: "Місячний кіт привів кошенят — вони бавляться у твоїх відблисках.", opts: [
     { b: "Бавитися з ними", sf: g => `+${eAmt(g, 24)} сутності · спокій`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 24) * effEss(g) }), meta: m => ({ ...m, catPet: true }), luck: 3 },
-    { b: "Дати намилуватись місяцем", s: "−випар на 20с", fn: g => ({ ...g, shadeT: 20 }) }] },
+    { b: "Дати намилуватись місяцем", s: "−випар на 20с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 20) }) }] },
   { t: "Чапля-провидиця", emo: "🪽", art: "heron", req: (g) => g.day >= 9, weight: 0.5,
     d: "Стара чапля довго вдивлялася в тебе й прорекла прийдешню погоду.", opts: [
     { b: "Дослухатись пророцтва", sf: g => `+${eAmt(g, 22)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 22) * effEss(g) }), luck: 1 },
@@ -289,7 +289,7 @@ const EVENTS = [
   /* — більше різноманіття: природа, дрібнота, дива — */
   { t: "Світлячки", emo: "✨", tod: [0.78, 1.0], weight: 0.9,
     d: "У сутінках над тобою закружляли світлячки, мов живі зорі.", opts: [
-    { b: "Замилуватися", sf: g => `+${eAmt(g, 12)} сутності · спокій`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 12) * effEss(g), shadeT: 12 }), luck: 1 },
+    { b: "Замилуватися", sf: g => `+${eAmt(g, 12)} сутності · спокій`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 12) * effEss(g), shadeT: addT(g.shadeT, 12) }), luck: 1 },
     { b: "Зловити одного в дзеркало", sf: g => `+${eAmt(g, 18)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 18) * effEss(g) }) }] },
   { t: "Грибний дощ", emo: "🍄", weight: 1.0,
     d: "Теплий грибний дощик сипнув на тебе дрібним сріблом.", opts: [
@@ -297,7 +297,7 @@ const EVENTS = [
     { b: "Зібрати на сутність", sf: g => `+${eAmt(g, 10)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 10) * effEss(g) }) }] },
   { t: "Бабка над гладдю", emo: "🦋", weight: 0.9,
     d: "Прозора бабка присіла на твою поверхню, ледь торкнувшись.", opts: [
-    { b: "Завмерти дзеркалом", s: "+вбирання на 14с", fn: g => ({ ...g, absorbBoostT: 14 }), luck: 1 },
+    { b: "Завмерти дзеркалом", s: "+вбирання на 14с", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 14) }), luck: 1 },
     { b: "Брижнути, щоб злетіла", sf: g => `+${aw(g, 0.05)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.05), g.maxWater) }) }] },
   { t: "Бджілка напитись", emo: "🐝", weight: 1.0,
     d: "Руда бджілка сіла на край і обережно п'є.", opts: [
@@ -313,7 +313,7 @@ const EVENTS = [
     { b: "Сховати в мул", sf: g => `+${eAmt(g, 8)} сутності · +вдача`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 8) * effEss(g) }), luck: 1 }] },
   { t: "Парасолька-втікачка", emo: "☂️", weight: 0.8,
     d: "Вітер прикотив до тебе чиюсь загублену парасольку — вона лягла тінню.", opts: [
-    { b: "Сховатись у тінь", s: "−випар на 22с", fn: g => ({ ...g, shadeT: 22 }) },
+    { b: "Сховатись у тінь", s: "−випар на 22с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 22) }) },
     { b: "Відпустити далі", sf: g => `+${aw(g, 0.06)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.06), g.maxWater) }) }] },
   { t: "Спраглий їжачок", emo: "🦔", req: (g) => g.day >= 3, weight: 0.9,
     d: "Колючий їжачок дріботить до тебе попити перед довгою дорогою.", opts: [
@@ -322,7 +322,7 @@ const EVENTS = [
   { t: "Перекотиполе", emo: "🌾", req: (g) => g.day >= 4, weight: 0.8,
     d: "Сухий клубок перекотиполя зачепився за твій край — пахне посухою.", opts: [
     { b: "Напоїти його", sf: g => `−${aw(g, 0.05)} води · нехай зеленіє`, fn: g => ({ ...g, water: g.water - aw(g, 0.05) }), luck: 1 },
-    { b: "Струсити геть", s: "+вбирання на 12с", fn: g => ({ ...g, absorbBoostT: 12 }) }] },
+    { b: "Струсити геть", s: "+вбирання на 12с", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 12) }) }] },
 
   /* — істоти, що приходять лише як виростеш (мрія стати озером) — */
   { t: "Качка з виводком", emo: "🦆", req: (g) => g.maxWater >= 2500, weight: 0.8,
@@ -331,8 +331,8 @@ const EVENTS = [
     { b: "Лишити воду собі", sf: g => `+${aw(g, 0.06)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.06), g.maxWater) }) }] },
   { t: "Каченята вернулись", emo: "🐤", req: (g, m) => m.duckFriend && g.maxWater >= 2500, weight: 0.6,
     d: "Підрослі каченята впізнали тебе й привели всю зграю — у тобі вирує життя.", opts: [
-    { b: "Радіти гостям", sf: g => `+${eAmt(g, 26)} сутності · спокій`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 26) * effEss(g), shadeT: 14 }), luck: 2 },
-    { b: "Навчити плавати", s: "+вбирання на 18с", fn: g => ({ ...g, absorbBoostT: 18 }) }] },
+    { b: "Радіти гостям", sf: g => `+${eAmt(g, 26)} сутності · спокій`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 26) * effEss(g), shadeT: addT(g.shadeT, 14) }), luck: 2 },
+    { b: "Навчити плавати", s: "+вбирання на 18с", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 18) }) }] },
   { t: "Перший короп", emo: "🐟", req: (g) => g.maxWater >= 6000, weight: 0.7,
     d: "У твоїй глибині зблиснув лускою короп — ти вже майже озеро!", opts: [
     { b: "Дати йому дім", sf: g => `+${aw(g, 0.10)} об'єму · +вдача`, fn: g => ({ ...g, maxWater: g.maxWater + aw(g, 0.10) }), luck: 1 },
@@ -342,18 +342,18 @@ const EVENTS = [
   { t: "Пасічник Ющенко", emo: "🐝", req: (g) => g.day >= 2, weight: 0.4,
     d: "Сивий пасічник підійшов із вуликом, примружився й мовив: «Бджоли — це Так!».", opts: [
     { b: "«Так!»", sf: g => `+${eAmt(g, 16)} сутності · мед`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }), meta: m => ({ ...m, beeFriend: true }), luck: 2 },
-    { b: "Узяти воскову плівку", s: "−випар на 18с", fn: g => ({ ...g, shadeT: 18 }), meta: m => ({ ...m, beeFriend: true }) }] },
+    { b: "Узяти воскову плівку", s: "−випар на 18с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 18) }), meta: m => ({ ...m, beeFriend: true }) }] },
   { t: "Рій золотих бджіл", emo: "🐝", req: (g, m) => m.beeFriend && g.day >= 4, weight: 0.35,
     d: "Знайомі бджоли привели цілий рій — гудуть над тобою золотою хмаркою.", opts: [
     { b: "Прийняти медовий дар", sf: g => `+${eAmt(g, 28)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 28) * effEss(g) }), luck: 1 },
-    { b: "Попросити воскову плівку", s: "−випар на 22с", fn: g => ({ ...g, shadeT: 22 }) }] },
+    { b: "Попросити воскову плівку", s: "−випар на 22с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 22) }) }] },
   { t: "Кіт Степан завітав", emo: "🐈", req: (g) => g.day >= 2, weight: 0.4,
     d: "Біля тебе флегматично вмостився рудий кіт зі склянкою — точнісінько як на тих картинках.", opts: [
     { b: "Зробити вірусне фото", sf: g => `+${eAmt(g, 14)} сутності · слава`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 14) * effEss(g) }), meta: m => ({ ...m, catPet: true }), luck: 2 },
-    { b: "Не турбувати кота", s: "+вбирання на 14с", fn: g => ({ ...g, absorbBoostT: 14 }) }] },
+    { b: "Не турбувати кота", s: "+вбирання на 14с", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 14) }) }] },
   { t: "Пес Патрон на службі", emo: "🐕", req: (g) => g.day >= 2, weight: 0.4,
     d: "Маленький джек-рассел у жилетці обнюхав твій берег: «Чисто — мін немає!».", opts: [
-    { b: "Подякувати герою", sf: g => `+${eAmt(g, 16)} сутності · спокій`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g), shadeT: 10 }), meta: m => ({ ...m, dogFriend: true }), luck: 2 },
+    { b: "Подякувати герою", sf: g => `+${eAmt(g, 16)} сутності · спокій`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g), shadeT: addT(g.shadeT, 10) }), meta: m => ({ ...m, dogFriend: true }), luck: 2 },
     { b: "Дати водички", sf: g => `−${aw(g, 0.06)} води · +вдача`, fn: g => ({ ...g, water: g.water - aw(g, 0.06) }), meta: m => ({ ...m, dogFriend: true }), luck: 2 }] },
   { t: "Чорнобаївка", emo: "💥", req: (g) => g.day >= 5, weight: 0.3,
     d: "Тут знову щось пішло не так — уже вкотре. Дивне місце, ця твоя яма.", opts: [
@@ -361,20 +361,20 @@ const EVENTS = [
     { b: "Спробувати ще раз", sf: g => `+${aw(g, 0.08)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.08), g.maxWater) }) }] },
   { t: "Байрактар над полем", emo: "🛩️", req: (g) => g.day >= 4, weight: 0.3,
     d: "Над тобою з тихим дзижчанням пройшов знайомий безпілотник — мов із тієї пісеньки.", opts: [
-    { b: "Помахати знизу", s: "+вбирання на 16с · бойовий дух", fn: g => ({ ...g, absorbBoostT: 16 }), luck: 1 },
-    { b: "Сховатись у тінь крила", s: "−випар на 16с", fn: g => ({ ...g, shadeT: 16 }) }] },
+    { b: "Помахати знизу", s: "+вбирання на 16с · бойовий дух", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 16) }), luck: 1 },
+    { b: "Сховатись у тінь крила", s: "−випар на 16с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 16) }) }] },
   { t: "Червона калина", emo: "🌺", req: (g) => g.day >= 3, weight: 0.35,
     d: "Над тобою схилилась гілка червоної калини, і десь у вітрі вчувається пісня.", opts: [
     { b: "Підспівати", sf: g => `+${eAmt(g, 14)} сутності · піднесення`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 14) * effEss(g) }), luck: 1 },
     { b: "Вмочити ягідку", sf: g => `+${aw(g, 0.06)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.06), g.maxWater) }) }] },
   { t: "Доброго вечора!", emo: "🌻", tod: [0.74, 1.0], weight: 0.4,
     d: "Хтось проходить повз і кидає тепле: «Доброго вечора, ми з України!».", opts: [
-    { b: "Привітатись у відповідь", s: "+вбирання на 14с · добрий настрій", fn: g => ({ ...g, absorbBoostT: 14 }), luck: 1 },
+    { b: "Привітатись у відповідь", s: "+вбирання на 14с · добрий настрій", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 14) }), luck: 1 },
     { b: "Засоромитись брижами", sf: g => `+${eAmt(g, 10)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 10) * effEss(g) }) }] },
   { t: "Штани за 40 гривень", emo: "👖", once: "pants", req: (g) => g.day >= 2, weight: 0.5,
     d: "У тебе шубовснули чиїсь джинси — ті самі, «за сорок гривень». Легендарна знахідка, раз на життя!", opts: [
     { b: "Виставити на продаж", sf: g => `+${eAmt(g, 40)} сутності (рівно за 40!)`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 40) * effEss(g) }), luck: 2 },
-    { b: "Зробити з них тінь", s: "−випар на 40с", fn: g => ({ ...g, shadeT: 40 }) }] },
+    { b: "Зробити з них тінь", s: "−випар на 40с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 40) }) }] },
   { t: "Кличко латає яму", emo: "🥊", req: (g) => g.day >= 3, weight: 0.3,
     d: "Сам мер прийшов оглянути твою яму: «Сьогодні-завтра залатаємо. Тому що!» — махнув рукою й кудись зник.", opts: [
     { b: "«Тому що!»", sf: g => `+${eAmt(g, 16)} сутності (за терпіння)`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }), luck: 1 },
@@ -384,11 +384,11 @@ const EVENTS = [
   { t: "Песик-приятель", emo: "🐕", art: "dog", req: (g, m) => m.dogFriend && g.day >= 4, weight: 0.6,
     d: "Той самий песик, якого ти напоїв, прибіг знову — приніс у зубах щось блискуче й завзято завиляв хвостом.", opts: [
     { b: "Прийняти дарунок", sf: g => `+${eAmt(g, 18)} сутності · +вдача`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 18) * effEss(g) }), luck: 2 },
-    { b: "Погратися замість того", s: "+вбирання на 18с · вірний друг", fn: g => ({ ...g, absorbBoostT: 18 }), luck: 1 }] },
+    { b: "Погратися замість того", s: "+вбирання на 18с · вірний друг", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 18) }), luck: 1 }] },
   { t: "Жаб'яче віче", emo: "🐸", art: "frog", req: (g, m) => (m.frogBond || 0) >= 2, weight: 0.6,
     d: "Жаби зібрались коло тебе на раду — гадають, як помогти тобі вирости в озеро.", opts: [
     { b: "Прийняти поміч громади", sf: g => `+${aw(g, 0.18)} об'єму`, fn: g => ({ ...g, maxWater: g.maxWater + aw(g, 0.18) }), luck: 1 },
-    { b: "Попросити колискову", sf: g => `+${eAmt(g, 22)} сутності · −випар на 16с`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 22) * effEss(g), shadeT: 16 }) }] },
+    { b: "Попросити колискову", sf: g => `+${eAmt(g, 22)} сутності · −випар на 16с`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 22) * effEss(g), shadeT: addT(g.shadeT, 16) }) }] },
   { t: "Скривджена Кума", emo: "🐸", art: "frog", req: (g, m) => m.frogShy && (m.frogBond || 0) < 2, weight: 0.7,
     d: "Жаба, яку ти колись прогнав, скоса визирає з очерету й не наближається.", opts: [
     { b: "Щиро перепросити", sf: g => `−${aw(g, 0.06)} води · знову дружба`, fn: g => ({ ...g, water: g.water - aw(g, 0.06) }), meta: m => ({ ...m, frogShy: false, frogBond: (m.frogBond || 0) + 1 }), luck: 2 },
@@ -414,11 +414,11 @@ const EVENTS = [
     { b: "Не вестись", s: "нічого", fn: g => g }] },
   { t: "Очеретяний шепіт", emo: "🌾", cunning: true, req: (g) => g.day >= 4, weight: 0.9, timer: 9,
     d: "З очерету тягнеться вкрадливий шепіт: «Розкрийся ширше — і станеш цілим озером…»", opts: [
-    { b: "Розкритись на шепіт", s: "обіцяє великий об'єм", fn: g => ({ ...g, water: g.water * 0.7, evapBoostT: 18 }), luck: -2 },
+    { b: "Розкритись на шепіт", s: "обіцяє великий об'єм", fn: g => ({ ...g, water: g.water * 0.7, evapBoostT: addT(g.evapBoostT, 18) }), luck: -2 },
     { b: "Стулитись міцніше", s: "нічого", fn: g => g }] },
   { t: "Лощава п'явка", emo: "🪱", cunning: true, req: (g) => g.day >= 5, weight: 0.8, timer: 9,
     d: "Слизька п'явка лащиться до краю: «Я почищу тебе зсередини, будеш як кришталь».", opts: [
-    { b: "Дозволити «почистити»", s: "обіцяє чистоту", fn: g => ({ ...g, water: g.water - aw(g, 0.08), evapBoostT: 16 }), luck: -2 },
+    { b: "Дозволити «почистити»", s: "обіцяє чистоту", fn: g => ({ ...g, water: g.water - aw(g, 0.08), evapBoostT: addT(g.evapBoostT, 16) }), luck: -2 },
     { b: "Струсити геть", sf: g => `+${aw(g, 0.04)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.04), g.maxWater) }) }] },
 ];
 
@@ -1408,7 +1408,7 @@ export default function App() {
                 <Stat l="Наповнення" v={`${Math.round(clamp(g.water / g.maxWater, 0, 1) * 100)}%`} c="var(--ink)" />
                 <Stat l="Волога ґрунту" v={`${Math.round(g.soil)}%`} c="var(--ink)" />
                 <Stat l="Опір спеці" v={`${Math.round(g.sunResist * 100)}%`} c="var(--ink)" />
-                {warmingDrain(g.day) * (g.ecoMult ?? 1) > 0.05 && <Stat l="Потепління 🌡️" v={`−${fmt(warmingDrain(g.day) * (g.ecoMult ?? 1))}/с`} c="var(--bad)" />}
+                {warmingDrain(g.day) * (g.ecoMult ?? 1) * (1 + w.evapMod) > 0.05 && <Stat l="Потепління 🌡️" v={`−${fmt(warmingDrain(g.day) * (g.ecoMult ?? 1) * (1 + w.evapMod))}/с`} c="var(--bad)" />}
                 <Stat l="Сутність ◈" v={`${fmt(g.pending)}${w.essMod ? ` ·${(1 + w.essMod).toFixed(1)}×` : ""}`} c="var(--essence)" />
                 {(g.speed || 1) > 1.01 && <Stat l="Швидкість ⏩" v={`×${(g.speed).toFixed(2)}`} c="var(--essence)" />}
               </div>
