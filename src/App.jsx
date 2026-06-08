@@ -212,6 +212,10 @@ const EVENTS = [
     d: "Під тобою з тихим зітханням розкрилася тріщина аж до підземних вод.", opts: [
     { b: "Зрости вглиб", s: "+90 об'єму · +0.3/с", fn: g => ({ ...g, maxWater: g.maxWater + 90, passive: g.passive + 0.3 }) },
     { b: "Запечатати мулом", s: "+45 води", fn: g => ({ ...g, water: Math.min(g.water + 45, g.maxWater) }) }] },
+  { t: "Ямковий ремонт", emo: "🚧", req: (g) => g.day >= 4 && g.maxWater >= 200, weight: 0.9, timer: 11,
+    d: "Дорожники сяк-так залатали яму гарячим асфальтом — твоє ложе помітно поменшало.", opts: [
+    { b: "Влягтися в менше ложе", s: "−18% об'єму · +20 сутності", fn: g => { const mw = Math.max(120, Math.round(g.maxWater * 0.82)); return { ...g, maxWater: mw, water: Math.min(g.water, mw), pending: g.pending + 20 * effEss(g) }; } },
+    { b: "Просочитися під латку", s: "−35% води, об'єм цілий", fn: g => ({ ...g, water: g.water * 0.65 }) }] },
   { t: "Веселка торкнулась води", emo: "🌈", req: (g) => g.day >= 5, weight: 0.7,
     d: "Після короткого дощу веселка вмочила свій край просто в тебе.", opts: [
     { b: "Зачерпнути барв", s: "+50 води · +12 сутності", fn: g => ({ ...g, water: Math.min(g.water + 50, g.maxWater), pending: g.pending + 12 * effEss(g) }) },
@@ -326,7 +330,9 @@ function evapPerSec(g) {
   const w = g.weather || NEUTRAL;
   const sunEff = clamp(g.sun * (1 + w.sunMod), 0, 400);
   const sunMul = 1 + (sunEff / 100) * 2.5 * (1 - clamp(g.sunResist, 0, 0.85));
-  let e = g.baseEvap * g.deepenMult * g.mossMult * sunMul * (1 - g.leaf);
+  // апгрейди зменшують випар не більше ніж удвічі (щоб пізня гра не ставала тривіальною)
+  const redu = Math.max(0.5, g.deepenMult * g.mossMult);
+  let e = g.baseEvap * redu * sunMul * (1 - g.leaf);
   if (g.shadeT > 0) e *= 0.35;
   if (g.evapBoostT > 0) e *= 1.7;
   e *= (1 + w.evapMod);
@@ -830,7 +836,8 @@ export default function App() {
   const rainN = Math.round(clamp(w.rainPower * 10, 0, 36));
   const snowN = phase === "playing" && w.evapMod < -0.18 ? 18 : 0;
   const timeLeft = Math.max(0, Math.ceil(g.dayLen - g.elapsed));
-  const respinCost = Math.max(1, Math.round(12 * Math.pow(1.8, respins) * (1 - 0.08 * (meta.calmsky || 0))));
+  // база перекруту росте з кожним днем; далі множиться за кількістю перекрутів і дешевшає від «Пам'яті зливи»
+  const respinCost = Math.max(1, Math.round((12 + (g.day - 1) * 7) * Math.pow(1.8, respins) * (1 - 0.08 * (meta.calmsky || 0))));
   const tierCol = (t) => t === "jackpot" ? "var(--essence)" : t === "good" ? "var(--good)" : t === "danger" ? "var(--bad)" : "var(--water-a)";
 
   // time-of-day for the sky
