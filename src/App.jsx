@@ -845,6 +845,17 @@ export default function App() {
     return () => clearInterval(iv);
   }, []);
   useEffect(() => { if (loaded.current) store.save(KEY, JSON.stringify({ v: 3, meta, phase: phaseRef.current, g: gRef.current, result: resultRef.current })); }, [meta]);
+  // живий заголовок вкладки — відображає, що зараз із калабанею
+  useEffect(() => {
+    const NM = "КАЛАБАНЯ";
+    let t = `💧 ${NM} — калюжа, що мріє стати океаном`;
+    if (phase === "playing") t = `💧 День ${g.day} · ${rankName(g.maxWater)} — ${NM}`;
+    else if (phase === "forecast" || phase === "challenge") t = `🎰 День ${g.day} — ${NM}`;
+    else if (phase === "survived") t = `🌙 День ${g.day} пережито — ${NM}`;
+    else if (phase === "dead") t = `🥀 Висохла на ${(result && result.day) || g.day} день — ${NM}`;
+    else if (phase === "menu") t = `✦ Вівтар калабань — ${NM}`;
+    document.title = t;
+  }, [phase, g.day, g.maxWater, result]);
   // persist immediately whenever the phase changes, so a refresh resumes the exact screen
   useEffect(() => {
     if (!loaded.current || phase === "loading") return;
@@ -1086,26 +1097,46 @@ export default function App() {
 
   /* ---- Колесо Фортуни ---- */
   const declineWheel = () => { Sfx.click(); setWheel(null); setG(p => ({ ...p, nextEvent: 13 + Math.random() * 8 })); };
-  const closeWheel = () => { Sfx.click(); setWheel(null); setG(p => ({ ...p, nextEvent: 13 + Math.random() * 8 })); };
-  const spinWheel = () => {
-    if (!wheel || wheel.stage !== "offer") return;
+  // перекрут колеса за сутність дорожчає щоразу й росте з днем
+  const wheelRerollCost = (rr, day) => Math.round(80 * Math.pow(2.2, rr || 0) * (1 + ((day || 1) - 1) * 0.12));
+  const wheelPool = () => Math.round((gRef.current.pending || 0) + (metaRef.current.essence || 0));
+  // прокрутити колесо (rr — лічильник перекрутів цього колеса). Результат лише показуємо — застосуємо на «Прийняти»
+  const spinWheelTo = (rr) => {
     const idx = pickWheel(fateLuck(metaRef.current));
     Sfx.spin();
     setWheelRot(prev => Math.ceil(prev / 360) * 360 + 360 * 6 + ((360 - idx * 45) % 360));
-    setWheel({ stage: "spin", idx });
+    setWheel({ stage: "spin", idx, rr });
     setTimeout(() => {
       const seg = WHEEL[idx];
-      setG(p => {
-        const n = seg.fn ? { ...seg.fn(p) } : { ...p };
-        checkVol(n.maxWater);
-        if (n.maxWater > (metaRef.current.maxVol || 0)) setMeta(m => ({ ...m, maxVol: Math.round(n.maxWater) }));
-        return n;
-      });
-      if (seg.luck) setMeta(m => ({ ...m, fate: Math.max(0, (m.fate || 0) + seg.luck) }));
       if (seg.tier === "jackpot" || seg.tier === "good") { Sfx.win(); Haptics.good(); }
       else if (seg.tier === "bad" || seg.tier === "verybad") { Sfx.danger(); Haptics.bad(); }
-      setWheel({ stage: "done", idx });
+      setWheel({ stage: "done", idx, rr });
     }, 3300);
+  };
+  const spinWheel = () => { if (wheel && wheel.stage === "offer") spinWheelTo(0); };
+  const rerollWheel = () => {
+    if (!wheel || wheel.stage !== "done") return;
+    const cost = wheelRerollCost(wheel.rr, gRef.current.day);
+    if (wheelPool() < cost) return;
+    const fromRun = Math.min(gRef.current.pending || 0, cost), fromBank = cost - fromRun;
+    setG(p => ({ ...p, pending: Math.max(0, (p.pending || 0) - fromRun) }));
+    if (fromBank > 0) setMeta(m => ({ ...m, essence: Math.max(0, m.essence - fromBank) }));
+    spinWheelTo((wheel.rr || 0) + 1);
+  };
+  // прийняти випалий сектор — лише тут застосовуємо ефект
+  const acceptWheel = () => {
+    if (!wheel || wheel.stage !== "done") return;
+    const seg = WHEEL[wheel.idx];
+    Sfx.click();
+    setG(p => {
+      const n = seg.fn ? { ...seg.fn(p) } : { ...p };
+      checkVol(n.maxWater);
+      if (n.maxWater > (metaRef.current.maxVol || 0)) setMeta(m => ({ ...m, maxVol: Math.round(n.maxWater) }));
+      n.nextEvent = 13 + Math.random() * 8;
+      return n;
+    });
+    if (seg.luck) setMeta(m => ({ ...m, fate: Math.max(0, (m.fate || 0) + seg.luck) }));
+    setWheel(null);
   };
 
   /* ---- slot spin ---- */
@@ -1638,13 +1669,19 @@ export default function App() {
               </div>
               <div className="wheel-hub" />
             </div>
-            {wheel.stage === "done" ? (
+            {wheel.stage === "done" ? (() => {
+              const rrCost = wheelRerollCost(wheel.rr, g.day);
+              const canRR = ((g.pending || 0) + (meta.essence || 0)) >= rrCost;
+              return (
               <div className="bannerin">
                 <div className="fc-name" style={{ color: WHEEL[wheel.idx].tier === "jackpot" ? "var(--essence)" : WHEEL[wheel.idx].tier === "good" ? "var(--good)" : WHEEL[wheel.idx].tier === "none" ? "var(--muted)" : "var(--bad)" }}>{WHEEL[wheel.idx].emo} {WHEEL[wheel.idx].nm}</div>
                 <div style={{ fontSize: 13.5, color: "#cfe6ea", margin: "8px 0 2px", fontStyle: "italic" }}>{WHEEL[wheel.idx].msg}</div>
-                <button className="kal-go" onClick={closeWheel}>Далі →</button>
+                <button className="kal-go" onClick={acceptWheel}>Прийняти →</button>
+                <button className="kal-go ghost" disabled={!canRR} onClick={rerollWheel} style={{ opacity: canRR ? 1 : 0.5 }}>🎡 Перекрутити (−◈ {fmt(rrCost)})</button>
+                <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 4 }}>Сектор діє лише коли «Прийняти». Перекрут коштує сутності й дорожчає.</div>
               </div>
-            ) : (
+              );
+            })() : (
               <>
                 <button className="kal-go" disabled={wheel.stage === "spin"} onClick={spinWheel} style={{ opacity: wheel.stage === "spin" ? 0.5 : 1 }}>🎡 Крутити колесо</button>
                 <button className="kal-go ghost" disabled={wheel.stage === "spin"} onClick={declineWheel} style={{ opacity: wheel.stage === "spin" ? 0.5 : 1 }}>Відмовитися</button>
