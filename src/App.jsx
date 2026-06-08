@@ -155,7 +155,7 @@ const EVENTS = [
     { b: "Зібратись", sf: g => `+${aw(g, 0.10)} води, безпечно`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.10), g.maxWater) }) }] },
   { t: "Сусідський песик", emo: "🐕", art: "dog", req: (g) => g.day >= 2, weight: 1.1, timer: 10,
     d: "Кудлатий песик підбіг до тебе, висолопив язика й завзято замахав хвостом.", opts: [
-    { b: "Дати напитися", sf: g => `−${aw(g, 0.08)} води · +вдача`, fn: g => ({ ...g, water: g.water - aw(g, 0.08) }), luck: 1 },
+    { b: "Дати напитися", sf: g => `−${aw(g, 0.08)} води · +вдача`, fn: g => ({ ...g, water: g.water - aw(g, 0.08) }), meta: m => ({ ...m, dogFriend: true }), luck: 1 },
     { b: "Хай «позначить»", sf: g => `+${aw(g, 0.11)} води, та каламутна (+випар)`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.11), g.maxWater), evapBoostT: 9 }) },
     { b: "Відігнати", s: "нічого", fn: g => g }] },
   { t: "Дощовий хробак", emo: "🐛", art: "worm", req: (g) => g.day >= 2, weight: 1.0,
@@ -182,7 +182,7 @@ const EVENTS = [
     { b: "Витерпіти", sf: g => `+${aw(g, 0.14)} води, та швидко випарується (16с)`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.14), g.maxWater), evapBoostT: 16 }) }] },
   { t: "Жаба-мандрівниця", emo: "🐸", art: "frog", d: "Жаба обрала твою калабаню за прихисток на ніч.", opts: [
     { b: "Прихистити її", sf: g => `−${aw(g, 0.05)} води · +дружба з жабою`, fn: g => ({ ...g, water: g.water - aw(g, 0.05), shadeT: 16 }), meta: m => ({ ...m, frogBond: (m.frogBond || 0) + 1 }), luck: 2 },
-    { b: "Прогнати геть", sf: g => `+${aw(g, 0.06)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.06), g.maxWater) }) }] },
+    { b: "Прогнати геть", sf: g => `+${aw(g, 0.06)} води · жаба ображається`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.06), g.maxWater) }), meta: m => ({ ...m, frogShy: true }) }] },
   { t: "Дитячий кораблик", emo: "⛵", art: "boat", d: "Дитина пустила паперовий човник твоїми водами.", opts: [
     { b: "Гойдати лагідно", s: "+вбирання на 14с", fn: g => ({ ...g, absorbBoostT: 14 }) },
     { b: "Поглинути човник", sf: g => `+${aw(g, 0.07)} води, +${eAmt(g, 6)} сутності`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.07), g.maxWater), pending: g.pending + eAmt(g, 6) * effEss(g) }) }] },
@@ -260,6 +260,29 @@ const EVENTS = [
     d: "Дід-рибалка таки щось упіймав у тобі й на радощах поглибив твоє ложе.", opts: [
     { b: "Прийняти дарунок", sf: g => `+${aw(g, 0.16)} об'єму · +0.4/с`, fn: g => ({ ...g, maxWater: g.maxWater + aw(g, 0.16), passive: g.passive + 0.4 }) },
     { b: "Випросити сутність", sf: g => `+${eAmt(g, 34)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 34) * effEss(g) }) }] },
+
+  /* — розгалуження за історією стосунків (дружба / образа / обман) — */
+  { t: "Песик-приятель", emo: "🐕", art: "dog", req: (g, m) => m.dogFriend && g.day >= 4, weight: 0.6,
+    d: "Той самий песик, якого ти напоїв, прибіг знову — приніс у зубах щось блискуче й завзято завиляв хвостом.", opts: [
+    { b: "Прийняти дарунок", sf: g => `+${eAmt(g, 18)} сутності · +вдача`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 18) * effEss(g) }), luck: 2 },
+    { b: "Погратися замість того", s: "+вбирання на 18с · вірний друг", fn: g => ({ ...g, absorbBoostT: 18 }), luck: 1 }] },
+  { t: "Жаб'яче віче", emo: "🐸", art: "frog", req: (g, m) => (m.frogBond || 0) >= 2, weight: 0.6,
+    d: "Жаби зібрались коло тебе на раду — гадають, як помогти тобі вирости в озеро.", opts: [
+    { b: "Прийняти поміч громади", sf: g => `+${aw(g, 0.18)} об'єму`, fn: g => ({ ...g, maxWater: g.maxWater + aw(g, 0.18) }), luck: 1 },
+    { b: "Попросити колискову", sf: g => `+${eAmt(g, 22)} сутності · −випар на 16с`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 22) * effEss(g), shadeT: 16 }) }] },
+  { t: "Скривджена Кума", emo: "🐸", art: "frog", req: (g, m) => m.frogShy && (m.frogBond || 0) < 2, weight: 0.7,
+    d: "Жаба, яку ти колись прогнав, скоса визирає з очерету й не наближається.", opts: [
+    { b: "Щиро перепросити", sf: g => `−${aw(g, 0.06)} води · знову дружба`, fn: g => ({ ...g, water: g.water - aw(g, 0.06) }), meta: m => ({ ...m, frogShy: false, frogBond: (m.frogBond || 0) + 1 }), luck: 2 },
+    { b: "Байдуже знизати краєм", s: "нічого", fn: g => g }] },
+  { t: "Равлик пропонує борг", emo: "🐌", art: "snail", req: (g, m) => m.snailMet && g.day >= 7, weight: 0.6, timer: 11,
+    d: "Равлик підморгнув ріжком: «Бери крам у борг — поверне́ш сутністю, як підростеш».", opts: [
+    { b: "Узяти об'єм у борг", sf: g => `+${aw(g, 0.16)} об'єму · −${eAmt(g, 18)} сутності`, fn: g => ({ ...g, maxWater: g.maxWater + aw(g, 0.16), pending: Math.max(0, g.pending - eAmt(g, 18) * effEss(g)) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
+    { b: "Чесно заплатити зараз", sf: g => `−${aw(g, 0.10)} води · +${aw(g, 0.11)} об'єму`, fn: g => ({ ...g, water: g.water - aw(g, 0.10), maxWater: g.maxWater + aw(g, 0.11) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
+    { b: "Пройти повз", s: "нічого", fn: g => g }] },
+  { t: "Крук тисне на боржника", emo: "🐦‍⬛", art: "crow", cunning: true, req: (g, m) => m.tricked && g.day >= 6, weight: 0.7, timer: 9,
+    d: "Крук, якому ти вже колись повірив, нахабно вимагає «повернути послугу».", opts: [
+    { b: "Відкупитися", sf: g => `−${aw(g, 0.14)} води`, fn: g => ({ ...g, water: g.water - aw(g, 0.14) }), luck: -2 },
+    { b: "Нарешті прогнати назавжди", s: "+вдача · спокій", fn: g => g, meta: m => ({ ...m, tricked: false }), luck: 3 }] },
 
   /* — хитруни: на вигляд вигідно, насправді користуються тобою (таємно мінус Вдача) — */
   { t: "Воронячий борг", emo: "🐦‍⬛", art: "crow", cunning: true, req: (g) => g.day >= 9, weight: 0.6, timer: 9,
@@ -510,7 +533,7 @@ function Reel({ target, spinKey, delay, dur }) {
 }
 
 /* ============================ APP ============================ */
-const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, fate: 0, sound: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0 };
+const DEFAULT_META = { essence: 0, runs: 0, best: 0, memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, luck: 0, moon: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, frogBond: 0, snailMet: false, catPet: false, dogFriend: false, frogShy: false, tricked: false, fate: 0, sound: true, keepAwake: true, ach: {}, maxVol: 120, clouds: 0, ascensions: 0, essThisAsc: 0, lifeEss: 0, c_ess: 0, c_full: 0, c_spring: 0, c_cheap: 0, c_silt: 0 };
 
 export default function App() {
   const [phase, setPhase] = useState("loading"); // loading|welcome|menu|forecast|challenge|playing|dead|survived
@@ -792,7 +815,7 @@ export default function App() {
       const fate = Math.max(0, (m.fate || 0) + opt.luck); // рішення впливають на приховану Вдачу (±)
       if (opt.luck < 0) queueMicrotask(() => unlock("deceived"));
       if (fate >= 20) queueMicrotask(() => unlock("lucky"));
-      return { ...m, fate };
+      return { ...m, fate, tricked: opt.luck < 0 ? true : m.tricked };
     });
     setEvent(null);
   };
