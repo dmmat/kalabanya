@@ -930,7 +930,8 @@ const ABILITIES = [
   { id: "frogs", emo: "🐸", nm: "Жаб'ячий хор", cd: 38, kind: "тінь+вбирання", req: m => (m.frogBond || 0) >= 1,
     apply: (g, m) => ({ ...g, shadeT: addT(g.shadeT, 6 + Math.min(m.frogBond || 0, 6)), absorbBoostT: addT(g.absorbBoostT, 6 + fc3(m)) }), tip: "Хор жаб: +тінь і +вбирання (росте з дружбою)" },
   { id: "snail", emo: "🐌", nm: "Равликів слиз", cd: 46, kind: "тінь", req: m => m.snailMet,
-    apply: (g, m) => ({ ...g, shadeT: addT(g.shadeT, 14 + fc3(m)) }), tip: "Прохолодний слиз — велика тінь" },
+    apply: (g, m) => ({ ...g, shadeT: addT(g.shadeT, 14 + fc3(m)) }), summon: "Равлик-крамар", summonChance: 0.3,
+    tip: "Прохолодний слиз — велика тінь (інколи приваблює равлика-крамаря)" },
   { id: "hog", emo: "🦔", nm: "Їжак розпушує", cd: 44, kind: "ґрунт", req: m => m.hogFriend, prey: ["snail"], lock: 9,
     apply: g => ({ ...g, soil: g.soilMax }), tip: "Розпушує ґрунт — повна волога (равлик ховається)" },
   // — сутність + ситуативна користь: довша перезарядка —
@@ -1455,6 +1456,27 @@ export default function App() {
       const names = joinUa(scared.map(id => PREY_ACC[id] || id));
       const showClash = () => flashAbil("clash", `${ab.emo} сполохав ${names} — тимчасово недоступні`);
       if (syn) setTimeout(showClash, 950); else showClash(); // не перебивати синергію миттєво
+    }
+    // виклик гостя: равликів слиз інколи приваблює крамаря. Шанс залежить від прихованої Вдачі:
+    // за доброї — частіше добрий крам; за лихої — натомість приповзає равлик-лихвар із боргом (гірша угода).
+    if (ab.summon && !event) {
+      const fl = fateLuck(metaRef.current);            // 0..1 прихована Вдача
+      const base = ab.summonChance || 0.3;
+      const goodCh = base * (0.5 + fl);                // більше доброго з удачею
+      const badCh = base * (1 - fl) * 0.8;             // більше лихого без удачі
+      const r = Math.random();
+      const good = r < goodCh, bad = !good && r < goodCh + badCh;
+      if (good || bad) {
+        const wantT = good ? ab.summon : "Равлик пропонує борг";
+        const reqOk = e => !e.req || e.req(gRef.current, metaRef.current);
+        const ev = EVENTS.find(e => e.t === wantT && reqOk(e)) || EVENTS.find(e => e.t === ab.summon && reqOk(e));
+        if (ev) {
+          Haptics.event();
+          setEvent(ev);
+          const showSummon = () => flashAbil(good ? "syn" : "clash", good ? `${ev.emo} Слиз привабив ${ev.t.toLowerCase()}` : `${ev.emo} На слиз приповз лихвар`);
+          if (syn) setTimeout(showSummon, 950); else showSummon(); // не перебивати синергію миттєво
+        }
+      }
     }
     setCombo(cc);
     clearTimeout(comboHideRef.current);
