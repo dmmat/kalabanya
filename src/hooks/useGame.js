@@ -4,12 +4,13 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { fmt, clamp, mix, shuffle } from "../game/format.js";
 import { SYMBOLS, NEUTRAL, rollForecast, computeWeather } from "../game/weather.js";
 import { ABSORB_BASE, RUN_UPGRADES, runCost, META_UPGRADES, META_TIER2_DAY, PRESTIGE_UNLOCK, cloudsFrom, PRESTIGE_UPGRADES, CHALLENGES, challengeForDay, applyChallenge, effEss, sizeMul, aw, eAmt, tempC, warmingDrain, rankName, evapPerSec, freshRun } from "../game/balance.js";
-import { friendCount, PERMA_FRIENDS, friendBaseline, ABILITIES, SYNERGY, synKey, PREY_ACC, joinUa } from "../game/characters.js";
+import { friendCount, PERMA_FRIENDS, PERMA_FLAG, friendBaseline, ABILITIES, SYNERGY, synKey, PREY_ACC, joinUa } from "../game/characters.js";
 import { makeRiddleEvent, pickEvent } from "../game/events.js";
 import { FESTIVALS, festivalForDay } from "../game/festivals.js";
 import { WHEEL, pickWheel, fateLuck } from "../game/wheel.js";
 import { ACHIEVEMENTS } from "../game/achievements.js";
 import { skyAt } from "../game/sky.js";
+import { buyRunUpgrade } from "../game/engine.js";
 import { KEY, store } from "../storage.js";
 import { Sfx, Haptics } from "../audio.js";
 import { DEFAULT_META, migrateMeta } from "../constants.js";
@@ -78,12 +79,13 @@ export function useGame() {
     Sfx.ach(); Haptics.good();
   }, []);
   // досягнення за об'ємом (мрія рости)
+  // пороги збігаються з рангами (rankName): досягнення дають точно тоді, коли калабаня стає тим рангом
   const checkVol = useCallback((mw) => {
     if (mw >= 500) unlock("unfathom");
-    if (mw >= 2500) unlock("pond");
-    if (mw >= 16000) unlock("lakeach");
-    if (mw >= 160000) unlock("ocean");
-    if (mw >= 1000000) unlock("worldocean");
+    if (mw >= 900) unlock("pond");        // стає «ставком»
+    if (mw >= 6000) unlock("lakeach");    // стає «озером»
+    if (mw >= 400000) unlock("ocean");    // стає «океаном» (Північний Льодовитий)
+    if (mw >= 35000000) unlock("worldocean"); // стає «Світовим океаном»
   }, [unlock]);
 
   usePersistence({ bootForecast, g, gRef, loaded, meta, metaRef, phase, phaseRef, result, resultRef, setG, setMeta, setPhase, setResult });
@@ -121,19 +123,11 @@ export function useGame() {
   }, []);
 
   const buyRun = (u) => setG(prev => {
-    const lvl = prev.levels[u.id], cost = runCost(u, lvl, prev.maxWater, prev.cheapT > 0 ? 0.6 : 1);
-    if (prev.water < cost) return prev;
+    const n = buyRunUpgrade(prev, u); // ефект апгрейду — у чистому рушії (його ж бачить симулятор)
+    if (!n) return prev; // не вистачило води
     Sfx.click();
-    const n = { ...prev, water: prev.water - cost, levels: { ...prev.levels, [u.id]: lvl + 1 } };
-    // additive capacity — об'єм росте і адитивно (рання гра), і часткою від поточного
-    // (пізня гра) — щоб дотягтись аж до океанів. Ціна апгрейдів від об'єму більше не залежить.
-    if (u.id === "deepen") { n.maxWater += Math.max(50 + lvl * 10, Math.round(n.maxWater * 0.05)); n.deepenMult *= 0.97; }
-    if (u.id === "silt") { n.sunResist = clamp(n.sunResist + 0.08, 0, 0.85); if (n.levels.silt >= 10) queueMicrotask(() => unlock("shrek")); }
-    if (u.id === "widen") { n.absorbMult += 0.6; n.soilMax += 40; n.maxWater += Math.max(30, Math.round(n.maxWater * 0.02)); n.baseEvap += 0.04; }
-    if (u.id === "moss") n.mossMult *= 0.93;
-    if (u.id === "vein") n.passive += 0.4;
-    if (u.id === "lake") { n.maxWater += Math.max(150, Math.round(n.maxWater * 0.08)); n.passive += 0.7; queueMicrotask(() => unlock("deepwell")); }
-    if (u.id === "trench") { n.maxWater += Math.max(400, Math.round(n.maxWater * 0.08)); n.passive += 1.5; }
+    if (u.id === "silt" && n.levels.silt >= 10) queueMicrotask(() => unlock("shrek"));
+    if (u.id === "lake") queueMicrotask(() => unlock("deepwell"));
     checkVol(n.maxWater);
     if (n.maxWater > (metaRef.current.maxVol || 0)) setMeta(m => ({ ...m, maxVol: Math.round(n.maxWater) }));
     return n;
@@ -229,6 +223,7 @@ export function useGame() {
     if (opt.ach) queueMicrotask(() => unlock(opt.ach)); // подія може дати досягнення
     setG(prev => {
       const n = opt.fn ? { ...opt.fn(prev) } : { ...prev };
+      if (opt.shoo === "crow") n.crowShoo = (prev.crowShoo || 0) + 1; // прогнав крука → крок до приколу з кодлом
       // на фестивалі святкові й звичайні події чергуються через звичайний спавнер
       n.nextEvent = prev.festival ? 7 + Math.random() * 6 : 13 + Math.random() * 8;
       checkVol(n.maxWater);
@@ -245,7 +240,10 @@ export function useGame() {
       if ((nm.frogBond || 0) >= 1 && nm.catPet && nm.snailMet) queueMicrotask(() => unlock("allfriends"));
       const gained = friendCount(nm) > friendCount(m);
       if (gained) queueMicrotask(() => setG(p => ({ ...p, hasFriend: true }))); // відкрити «Гучніший поклик» цього забігу
-      return { ...nm, everFriend: m.everFriend || friendCount(nm) > 0 };
+      // персистентно запам'ятати, з ким уже знайомились — у вівтарі приручати можна лише відкритих
+      const met = { ...(m.metFriends || {}) };
+      for (const pid in PERMA_FLAG) if (nm[PERMA_FLAG[pid]]) met[pid] = true;
+      return { ...nm, everFriend: m.everFriend || friendCount(nm) > 0, metFriends: met };
     });
     if (opt.luck) setMeta(m => {
       const fate = Math.max(0, (m.fate || 0) + opt.luck); // рішення впливають на приховану Вдачу (±)

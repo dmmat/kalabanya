@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "sim": "node sim/analyze.mjs compare"
+    "sim": "node sim/analyze.mjs"
   },
   "dependencies": {
     "react": "^19.2.7",

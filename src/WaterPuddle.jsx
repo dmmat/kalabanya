@@ -30,23 +30,26 @@ export default function WaterPuddle({
     ro.observe(parent);
 
     r.setParams({ fill, tod, night, cloud, wave });
-    if (active) r.start();
+    if (active) r.start(); else r.renderOnce(); // на паузі малюємо хоч один кадр, щоб канвас не був порожнім
 
     return () => { ro.disconnect(); r.destroy(); rendererRef.current = null; };
     // навмисно лише по URL-ах: зміна арту = новий рендер; решта йде через окремі ефекти
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bgDayUrl, bgNightUrl, mapUrl]);
 
-  // живі параметри — без рестарту rAF
+  // живі параметри — без рестарту rAF; на паузі оновлюємо статичний кадр
   useEffect(() => {
-    rendererRef.current?.setParams({ fill, tod, night, cloud, wave });
-  }, [fill, tod, night, cloud, wave]);
+    const r = rendererRef.current;
+    if (!r) return;
+    r.setParams({ fill, tod, night, cloud, wave });
+    if (!active) r.renderOnce();
+  }, [fill, tod, night, cloud, wave, active]);
 
   // пауза/старт за фазою гри
   useEffect(() => {
     const r = rendererRef.current;
     if (!r) return;
-    if (active) r.start(); else r.stop();
+    if (active) r.start(); else { r.stop(); r.renderOnce(); }
   }, [active]);
 
   // брижі з існуючого клік-пайплайну (fx: {id, amt, x%, y%})

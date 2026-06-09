@@ -19,6 +19,7 @@ export default function AltarMenu({ buyMeta, buyPerma, buyPrestige, buyTicket, c
             <div className="kal-card reveal" style={{ marginTop: 16 }}>
               <span className="kal-tag">між мандрівками</span>
               <div className="kal-lore">Кожна калабаня мріє стати озером, а потай — океаном. Та сонце п'є тебе краплю за краплею, і з кожним днем дужчає потепління. Витрачай <span className="kal-ess">Сутність</span>, що лишили попередні твої «я», й рости далі.</div>
+              <button className="kal-go" onClick={startJourney} style={{ marginTop: 4, marginBottom: 4 }}>Стати калабанею знову →</button>
               <div className="seclab">Постійні дари</div>
               {META_UPGRADES.filter(u => u.tier !== 2 && (!u.req || u.req(meta))).map(u => {
                 const lvl = meta[u.id] || 0, maxed = lvl >= u.max, cost = Math.round(u.base * Math.pow(u.growth, lvl)), can = !maxed && meta.essence >= cost;
@@ -50,7 +51,6 @@ export default function AltarMenu({ buyMeta, buyPerma, buyPrestige, buyTicket, c
                   <div className="body"><div className="nm">Глибинні дари</div><div className="de">Відкриються, коли проживеш {META_TIER2_DAY} днів за одну мандрівку.</div></div>
                 </div>
               )}
-              <button className="kal-go" onClick={startJourney}>Стати калабанею знову →</button>
             </div>
 
             <div className="kal-card reveal" style={{ marginTop: 14 }}>
@@ -58,6 +58,17 @@ export default function AltarMenu({ buyMeta, buyPerma, buyPrestige, buyTicket, c
               <div className="kal-lore">За <span className="kal-ess">Сутність</span> придбай квиток на фестиваль — і він трапиться у твоєму наступному забігу в свій день. Квиток діє <b>один забіг</b>. Торкатися там не можна, тож приходь із друзями, щоб не висохнути.</div>
               {FESTIVALS.map(f => {
                 const owned = !!(meta.tickets || {})[f.id];
+                const need = Math.max(0, f.day - 5); // фестивалі відкриваються поступово — у міру зростання рекорду
+                const revealed = owned || (meta.best || 0) >= need;
+                if (!revealed) { // ще не дорослий до цього свята — показуємо як ціль
+                  return (
+                    <div key={f.id} className="kal-up dis" style={{ cursor: "default" }}>
+                      <div className="emo">🔒</div>
+                      <div className="body"><div className="nm">Свято попереду<span className="lvl">день {f.day}</span></div><div className="de">Відкриється за рекорду {need} дн.</div></div>
+                      <div className="cost">◈ {fmt(f.ticket)}</div>
+                    </div>
+                  );
+                }
                 const can = !owned && meta.essence >= f.ticket;
                 return (
                   <div key={f.id} className={"kal-up clickable" + (owned ? "" : can ? "" : " dis")} onClick={() => can && buyTicket(f)} style={owned ? { cursor: "default", borderColor: "var(--water-a)" } : {}}>
@@ -74,6 +85,8 @@ export default function AltarMenu({ buyMeta, buyPerma, buyPrestige, buyTicket, c
               <div className="kal-lore">Тепер дружби <b>скидаються щозабігу</b> — друзів треба здобувати знову через події. Та за <b>дуже багато</b> <span className="kal-ess">Сутності</span> можна <b>приручити</b> когось назавжди — і він стартуватиме з тобою в кожному забігу.</div>
               {PERMA_FRIENDS.map(f => {
                 const owned = !!(meta.perma || {})[f.id];
+                const met = owned || !!(meta.metFriends || {})[f.id];
+                if (!met) return null; // нерозкритих друзів не показуємо — з'являються лише після знайомства
                 const can = !owned && meta.essence >= f.cost;
                 return (
                   <div key={f.id} className={"kal-up clickable" + (owned ? "" : can ? "" : " dis")} onClick={() => can && buyPerma(f)} style={owned ? { cursor: "default", borderColor: "var(--water-a)" } : {}}>

@@ -148,6 +148,8 @@ function freshRun(meta) {
     abil: { birds: 0, frogs: 0, dog: 0, cat: 0, ducks: 0, snail: 0, bee: 0, hog: 0, heron: 0, fish: 0, fire: 0 },
     hasFriend: !!(meta.birdFriend || (meta.frogBond || 0) >= 1 || meta.dogFriend || meta.catPet || meta.duckFriend || meta.snailMet || meta.beeFriend || meta.hogFriend || meta.heronFriend || meta.fireFriend),
     pending: 0, nextEvent: 14, festival: false, festAt: 0,
+    usedRiddles: [], eventCd: {}, crowShoo: 0, crowGagDone: false, // загадки без повторів · кулдауни подій · лічильник приколу з круком
+
     tickets: { ...(meta.tickets || {}) }, // придбані квитки на фестивалі діють цей забіг
     seed: (Math.random() * 4294967296) >>> 0, // сід забігу для детермінованого прогнозу
     fcIdx: 0, fcFree: 0, // № перекруту прогнозу цього дня та скільки безкоштовних витрачено (зберігаються → рефреш не змінює небо)

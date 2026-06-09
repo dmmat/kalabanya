@@ -15,7 +15,7 @@ const EVENTS = [
     { b: "Дати напитися", sf: g => `−${aw(g, 0.08)} води · +вдача`, fn: g => ({ ...g, water: g.water - aw(g, 0.08) }), meta: m => ({ ...m, dogFriend: true }), luck: 1 },
     { b: "Хай «позначить»", sf: g => `+${aw(g, 0.11)} води, та каламутна (+випар)`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.11), g.maxWater), evapBoostT: addT(g.evapBoostT, 9) }) },
     { b: "Відігнати", s: "нічого", fn: g => g }] },
-  { t: "Дощовий хробак", emo: "🐛", art: "worm", req: (g) => g.day >= 2, weight: 1.0,
+  { t: "Дощовий хробак", emo: "🪱", art: "worm", req: (g) => g.day >= 2, weight: 1.0,
     d: "Після вологи з ґрунту виповз рожевий хробачок і блаженно скрутився у твоїй прохолоді.", opts: [
     { b: "Прихистити хробачка", s: "наповнити вологу ґрунту · +вдача", fn: g => ({ ...g, soil: g.soilMax }), luck: 1 },
     { b: "Не чіпати", s: "нічого", fn: g => g }] },
@@ -93,14 +93,14 @@ const EVENTS = [
     { b: "Подякувати й відмовити", s: "нічого", fn: g => g, luck: 1 }] },
 
   /* — нові події з розгалуженням (вибір веде до наступної сцени) — */
-  { t: "Замулений сундук", emo: "🧰", req: (g) => g.day >= 4, weight: 0.9,
+  { t: "Замулений сундук", emo: "🧰", req: (g) => g.day >= 4, weight: 0.9, cd: 4,
     d: "У твоєму намулі проступив старий сундук із важким, поіржавілим замком.", opts: [
     { b: "Розбити замок об камінь", sf: g => `−${aw(g, 0.06)} води`, fn: g => ({ ...g, water: g.water - aw(g, 0.06) }),
       then: { t: "Сундук відчинено", emo: "🗝️", d: "Замок піддався з тріском. Усередині — потьмяніле начиння, а в кутку щось зблиснуло.", opts: [
         { b: "Забрати жменю монет", sf: g => `+${eAmt(g, 30)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 30) * effEss(g) }), luck: 1 },
         { b: "Розколупати дно — там джерельце", sf: g => `+${aw(g, 0.2)} об'єму`, fn: g => ({ ...g, maxWater: g.maxWater + aw(g, 0.2) }) }] } },
     { b: "Не чіпати чужого", s: "+вдача", fn: g => g, luck: 2 }] },
-  { t: "Подорожній із загадкою", emo: "🧙", req: (g) => g.day >= 3, weight: 0.9, timer: 12,
+  { t: "Подорожній із загадкою", emo: "🧙", req: (g) => g.day >= 3, weight: 0.9, timer: 12, cd: 3,
     d: "Подорожній присів на твоїм березі: «Відгадаєш — віддячу. Що росте догори корінням?»", opts: [
     { b: "«Бурулька»", fn: g => g, luck: 1,
       then: { t: "Просто в ціль!", emo: "🎉", d: "«А ти кмітлива калабаня!» — він простягнув тобі вибір дарунка.", opts: [
@@ -110,7 +110,7 @@ const EVENTS = [
       then: { t: "Майже…", emo: "🤔", d: "«Не зовсім. Та за сміливість — ось дещиця».", opts: [
         { b: "Прийняти дещицю", sf: g => `+${eAmt(g, 8)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 8) * effEss(g) }) }] } },
     { b: "Промовчати", s: "нічого", fn: g => g }] },
-  { t: "Стара верба схилилась", emo: "🌳", req: (g) => g.day >= 5, weight: 0.85,
+  { t: "Стара верба схилилась", emo: "🌳", req: (g) => g.day >= 5, weight: 0.85, cd: 4,
     d: "Гілля старої верби схилилось над тобою — то прихисток, то спрага її коренів.", opts: [
     { b: "Прийняти затінок", s: "−випар на 24с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 24) }),
       then: { t: "Корінь прокинувся", emo: "🪵", d: "У затінку верба пустила корінь глибше до тебе — обери, як бути.", opts: [
@@ -119,38 +119,38 @@ const EVENTS = [
     { b: "Скаламутитись", s: "верба відступає", fn: g => g }] },
 
   /* — персонажі, що здешевлюють «Поглиблення» на якийсь час — */
-  { t: "Бобер-будівничий", emo: "🦫", req: (g) => g.day >= 4, weight: 0.85, timer: 12,
+  { t: "Бобер-будівничий", emo: "🦫", req: (g) => g.day >= 4, weight: 0.85, timer: 12, cd: 3,
     d: "Дбайливий бобер приволік оберемок гілок: «Підсоблю тобі з ложем — поки я тут, поглиблюватись дешевше!»", opts: [
     { b: "Прийняти допомогу", s: "−40% до «Поглиблення» на 30с", fn: g => ({ ...g, cheapT: addT(g.cheapT, 30) }), luck: 1 },
     { b: "Подякувати й відмовити", s: "+вдача", fn: g => g, luck: 1 }] },
-  { t: "Кріт-землекоп", emo: "⛏️", req: (g) => g.day >= 3, weight: 0.85,
+  { t: "Кріт-землекоп", emo: "⛏️", req: (g) => g.day >= 3, weight: 0.85, cd: 3,
     d: "З-під дна виткнувся кріт у касці: «Розпушу тобі ложе — усі поглиблення підуть легше й дешевше!»", opts: [
     { b: "Хай порпається", s: "−40% до «Поглиблення» на 28с", fn: g => ({ ...g, cheapT: addT(g.cheapT, 28) }), luck: 1 },
     { b: "Не чіпати дно", s: "нічого", fn: g => g }] },
 
   /* — ще «скарбові» події з розгалуженням (як сундук) — */
-  { t: "Глиняний глечик у намулі", emo: "🏺", req: (g) => g.day >= 5, weight: 0.8,
+  { t: "Глиняний глечик у намулі", emo: "🏺", req: (g) => g.day >= 5, weight: 0.8, cd: 4,
     d: "З-під намулу проступив старий глиняний глечик, замазаний воском. Усередині щось глухо побрязкує.", opts: [
     { b: "Розбити й зазирнути", sf: g => `−${aw(g, 0.07)} води`, fn: g => ({ ...g, water: g.water - aw(g, 0.07) }),
       then: { t: "Козацький скарб!", emo: "🪙", d: "Жменя старих монет і чорна від часу каблучка. Та кажуть, на кладах буває й закляття…", opts: [
         { b: "Забрати геть усе", sf: g => `+${eAmt(g, 36)} сутності · ризик`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 36) * effEss(g) }), luck: -1 },
         { b: "Узяти лиш монети, каблучку лишити", sf: g => `+${eAmt(g, 18)} сутності · +вдача`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 18) * effEss(g) }), luck: 2 }] } },
     { b: "Закопати назад", s: "+вдача", fn: g => g, luck: 1 }] },
-  { t: "Запечатана пляшка", emo: "🍾", req: (g) => g.day >= 3, weight: 0.85,
+  { t: "Запечатана пляшка", emo: "🍾", req: (g) => g.day >= 3, weight: 0.85, cd: 4,
     d: "До берега прибилась запечатана сургучем пляшка. Усередині — згорнутий пожовклий папір.", opts: [
     { b: "Розкоркувати й прочитати", s: "цікаво…", fn: g => g,
       then: { t: "Карта схову", emo: "🗺️", d: "Це карта! Хрестик позначає місце просто під тобою. Копнути глибше?", opts: [
         { b: "Копати за картою", sf: g => `−${aw(g, 0.08)} води · +${aw(g, 0.22)} об'єму`, fn: g => ({ ...g, water: g.water - aw(g, 0.08), maxWater: g.maxWater + aw(g, 0.22) }) },
         { b: "Сховати карту на потім", sf: g => `+${eAmt(g, 14)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 14) * effEss(g) }), luck: 1 }] } },
     { b: "Відправити далі плисти", s: "+вдача", fn: g => g, luck: 1 }] },
-  { t: "Зоряний камінь", emo: "☄️", req: (g) => g.day >= 6, tod: [0.72, 1.0], weight: 0.7,
+  { t: "Зоряний камінь", emo: "☄️", req: (g) => g.day >= 6, tod: [0.72, 1.0], weight: 0.7, cd: 4,
     d: "З нічного неба зірвалась зоря й шубовснула просто в тебе — на дні мерехтить ще теплий камінець.", opts: [
     { b: "Притиснути до дна", s: "—", fn: g => g,
       then: { t: "Камінь жевріє", emo: "✨", d: "Зоряний уламок пульсує теплом і світлом. Що з ним зробити?", opts: [
         { b: "Увібрати тепло", sf: g => `+${eAmt(g, 30)} сутності · −випар на 20с`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 30) * effEss(g), shadeT: addT(g.shadeT, 20) }), luck: 1 },
         { b: "Загадати бажання", s: "+багато вдачі", fn: g => g, luck: 3 }] } },
     { b: "Дати йому охолонути", s: "нічого", fn: g => g }] },
-  { t: "Водяник зі дна", emo: "🌊", req: (g) => g.maxWater >= 400, weight: 0.7,
+  { t: "Водяник зі дна", emo: "🌊", req: (g) => g.maxWater >= 400, weight: 0.7, cd: 4,
     d: "З глибини зринув старий Водяник, борода в рясці: «Гарна калабаня… Зробимо оборудку?»", opts: [
     { b: "Вислухати оборудку", s: "—", fn: g => g,
       then: { t: "Оборудка Водяника", emo: "🧜", d: "«Дай краплю свого блиску — а я тобі підземну жилу відкрию». Згода?", opts: [
@@ -266,35 +266,35 @@ const EVENTS = [
     { b: "Замилуватись", sf: g => `+${eAmt(g, 28)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 28) * effEss(g) }) }] },
 
   /* — українські меми та культурні гості (з любов'ю) — */
-  { t: "Пасічник Ющенко", emo: "🐝", req: (g) => g.day >= 2, weight: 0.4,
+  { t: "Пасічник Ющенко", emo: "🐝", req: (g) => g.day >= 2, weight: 0.4, cd: 4,
     d: "Сивий пасічник підійшов із вуликом, примружився й мовив: «Бджоли — це Так!».", opts: [
     { b: "«Так!»", sf: g => `+${eAmt(g, 16)} сутності · мед`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }), meta: m => ({ ...m, beeFriend: true }), luck: 2 },
     { b: "Узяти воскову плівку", s: "−випар на 18с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 18) }), meta: m => ({ ...m, beeFriend: true }) }] },
-  { t: "Рій золотих бджіл", emo: "🐝", req: (g, m) => m.beeFriend && g.day >= 4, weight: 0.35,
+  { t: "Рій золотих бджіл", emo: "🐝", req: (g, m) => m.beeFriend && g.day >= 4, weight: 0.35, cd: 4,
     d: "Знайомі бджоли привели цілий рій — гудуть над тобою золотою хмаркою.", opts: [
     { b: "Прийняти медовий дар", sf: g => `+${eAmt(g, 28)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 28) * effEss(g) }), luck: 1 },
     { b: "Попросити воскову плівку", s: "−випар на 22с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 22) }) }] },
-  { t: "Кіт Степан завітав", emo: "🐈", req: (g) => g.day >= 2, weight: 0.4,
+  { t: "Кіт Степан завітав", emo: "🐈", req: (g) => g.day >= 2, weight: 0.4, cd: 4,
     d: "Біля тебе флегматично вмостився рудий кіт зі склянкою — точнісінько як на тих картинках.", opts: [
     { b: "Зробити вірусне фото", sf: g => `+${eAmt(g, 14)} сутності · слава`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 14) * effEss(g) }), meta: m => ({ ...m, catPet: true }), luck: 2 },
     { b: "Не турбувати кота", s: "+вбирання на 14с", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 14) }) }] },
-  { t: "Пес Патрон на службі", emo: "🐕", req: (g) => g.day >= 2, weight: 0.4,
+  { t: "Пес Патрон на службі", emo: "🐕", req: (g) => g.day >= 2, weight: 0.4, cd: 4,
     d: "Маленький джек-рассел у жилетці обнюхав твій берег: «Чисто — мін немає!».", opts: [
     { b: "Подякувати герою", sf: g => `+${eAmt(g, 16)} сутності · спокій`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g), shadeT: addT(g.shadeT, 10) }), meta: m => ({ ...m, dogFriend: true }), luck: 2 },
     { b: "Дати водички", sf: g => `−${aw(g, 0.06)} води · +вдача`, fn: g => ({ ...g, water: g.water - aw(g, 0.06) }), meta: m => ({ ...m, dogFriend: true }), luck: 2 }] },
-  { t: "Чорнобаївка", emo: "💥", req: (g) => g.day >= 5, weight: 0.3,
+  { t: "Чорнобаївка", emo: "💥", req: (g) => g.day >= 5, weight: 0.3, cd: 4,
     d: "Тут знову щось пішло не так — уже вкотре. Дивне місце, ця твоя яма.", opts: [
     { b: "Махнути рукою", sf: g => `+${eAmt(g, 12)} сутності (з досвіду)`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 12) * effEss(g) }), luck: 1 },
     { b: "Спробувати ще раз", sf: g => `+${aw(g, 0.08)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.08), g.maxWater) }) }] },
-  { t: "Байрактар над полем", emo: "🛩️", req: (g) => g.day >= 4, weight: 0.3,
+  { t: "Байрактар над полем", emo: "🛩️", req: (g) => g.day >= 4, weight: 0.3, cd: 4,
     d: "Над тобою з тихим дзижчанням пройшов знайомий безпілотник — мов із тієї пісеньки.", opts: [
     { b: "Помахати знизу", s: "+вбирання на 16с · бойовий дух", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 16) }), luck: 1 },
     { b: "Сховатись у тінь крила", s: "−випар на 16с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 16) }) }] },
-  { t: "Червона калина", emo: "🌺", req: (g) => g.day >= 3, weight: 0.35,
+  { t: "Червона калина", emo: "🌺", req: (g) => g.day >= 3, weight: 0.35, cd: 4,
     d: "Над тобою схилилась гілка червоної калини, і десь у вітрі вчувається пісня.", opts: [
     { b: "Підспівати", sf: g => `+${eAmt(g, 14)} сутності · піднесення`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 14) * effEss(g) }), luck: 1 },
     { b: "Вмочити ягідку", sf: g => `+${aw(g, 0.06)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.06), g.maxWater) }) }] },
-  { t: "Доброго вечора!", emo: "🌻", tod: [0.74, 1.0], weight: 0.4,
+  { t: "Доброго вечора!", emo: "🌻", tod: [0.74, 1.0], weight: 0.4, cd: 4,
     d: "Хтось проходить повз і кидає тепле: «Доброго вечора, ми з України!».", opts: [
     { b: "Привітатись у відповідь", s: "+вбирання на 14с · добрий настрій", fn: g => ({ ...g, absorbBoostT: addT(g.absorbBoostT, 14) }), luck: 1 },
     { b: "Засоромитись брижами", sf: g => `+${eAmt(g, 10)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 10) * effEss(g) }) }] },
@@ -302,7 +302,7 @@ const EVENTS = [
     d: "У тебе шубовснули чиїсь джинси — ті самі, «за сорок гривень». Легендарна знахідка, раз на життя!", opts: [
     { b: "Виставити на продаж", sf: g => `+${eAmt(g, 40)} сутності (рівно за 40!)`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 40) * effEss(g) }), luck: 2 },
     { b: "Зробити з них тінь", s: "−випар на 40с", fn: g => ({ ...g, shadeT: addT(g.shadeT, 40) }) }] },
-  { t: "Кличко латає яму", emo: "🥊", req: (g) => g.day >= 3, weight: 0.3,
+  { t: "Кличко латає яму", emo: "🥊", req: (g) => g.day >= 3, weight: 0.3, cd: 4,
     d: "Сам мер прийшов оглянути твою яму: «Сьогодні-завтра залатаємо. Тому що!» — махнув рукою й кудись зник.", opts: [
     { b: "«Тому що!»", sf: g => `+${eAmt(g, 16)} сутності (за терпіння)`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }), luck: 1 },
     { b: "Дочекатись «ремонту»", sf: g => `−12% об'єму, зате +${eAmt(g, 18)} сутності`, fn: g => { const mw = Math.max(120, Math.round(g.maxWater * 0.88)); return { ...g, maxWater: mw, water: Math.min(g.water, mw), pending: g.pending + eAmt(g, 18) * effEss(g) }; } }] },
@@ -328,22 +328,22 @@ const EVENTS = [
   { t: "Крук тисне на боржника", emo: "🐦‍⬛", art: "crow", cunning: true, req: (g, m) => m.tricked && g.day >= 6, weight: 0.7, timer: 9,
     d: "Крук, якому ти вже колись повірив, нахабно вимагає «повернути послугу».", opts: [
     { b: "Відкупитися", sf: g => `−${aw(g, 0.14)} води`, fn: g => ({ ...g, water: g.water - aw(g, 0.14) }), luck: -2 },
-    { b: "Нарешті прогнати назавжди", s: "+вдача · спокій", fn: g => g, meta: m => ({ ...m, tricked: false }), luck: 3 }] },
+    { b: "Нарешті прогнати назавжди", s: "+вдача · спокій", fn: g => g, meta: m => ({ ...m, tricked: false }), luck: 3, shoo: "crow" }] },
 
   /* — хитруни: на вигляд вигідно, насправді користуються тобою (таємно мінус Вдача) — */
   { t: "Воронячий борг", emo: "🐦‍⬛", art: "crow", cunning: true, req: (g) => g.day >= 9, weight: 0.6, timer: 9,
     d: "Той самий крук повернувся: «Цього разу точно віддам борг — лиш позич трохи більше».", opts: [
     { b: "Знову повірити", sf: g => `−${aw(g, 0.16)} води · «велика віддяка»`, fn: g => ({ ...g, water: g.water - aw(g, 0.16) }), luck: -4 },
-    { b: "Прогнати назавжди", s: "нічого", fn: g => g }] },
+    { b: "Прогнати назавжди", s: "нічого", fn: g => g, shoo: "crow" }] },
   { t: "Спритний крук", emo: "🐦‍⬛", art: "crow", cunning: true, req: (g) => g.day >= 3, weight: 1.0, timer: 10,
     d: "Крук схилив голову й зблиснув оком на твоє срібло: «Дай краплин — поверну скарбом, обіцяю».", opts: [
     { b: "Повірити круку", sf: g => `−${aw(g, 0.10)} води · обіцяє скарб`, fn: g => ({ ...g, water: g.water - aw(g, 0.10) }), luck: -3 },
-    { b: "Не вестись", s: "нічого", fn: g => g }] },
+    { b: "Не вестись", s: "нічого", fn: g => g, shoo: "crow" }] },
   { t: "Очеретяний шепіт", emo: "🌾", cunning: true, req: (g) => g.day >= 4, weight: 0.9, timer: 9,
     d: "З очерету тягнеться вкрадливий шепіт: «Розкрийся ширше — і станеш цілим озером…»", opts: [
     { b: "Розкритись на шепіт", s: "обіцяє великий об'єм", fn: g => ({ ...g, water: g.water * 0.7, evapBoostT: addT(g.evapBoostT, 18) }), luck: -2 },
     { b: "Стулитись міцніше", s: "нічого", fn: g => g }] },
-  { t: "Лощава п'явка", emo: "🪱", cunning: true, req: (g) => g.day >= 5, weight: 0.8, timer: 9,
+  { t: "Лощава п'явка", emo: "🧛", cunning: true, req: (g) => g.day >= 5, weight: 0.8, timer: 9,
     d: "Слизька п'явка лащиться до краю: «Я почищу тебе зсередини, будеш як кришталь».", opts: [
     { b: "Дозволити «почистити»", s: "обіцяє чистоту", fn: g => ({ ...g, water: g.water - aw(g, 0.08), evapBoostT: addT(g.evapBoostT, 16) }), luck: -2 },
     { b: "Струсити геть", sf: g => `+${aw(g, 0.04)} води`, fn: g => ({ ...g, water: Math.min(g.water + aw(g, 0.04), g.maxWater) }) }] },
@@ -421,8 +421,14 @@ const RIDDLES = [
   { q: "Червоний колір, а білий смак.", a: "Редиска", w: ["Помідор", "Яблуко"] },
 ];
 
-function makeRiddleEvent() {
-  const r = RIDDLES[Math.floor(Math.random() * RIDDLES.length)];
+// загадки НЕ повторюються за забіг: used — індекси вже показаних цього забігу.
+// повертаємо {ev, usedRiddles}; коли всі загадки вичерпано — коло починається наново.
+function makeRiddleEvent(used = []) {
+  let pool = RIDDLES.map((_, i) => i).filter(i => !used.includes(i));
+  let next = used;
+  if (!pool.length) { pool = RIDDLES.map((_, i) => i); next = []; } // усі вже були — новий цикл
+  const idx = pool[Math.floor(Math.random() * pool.length)];
+  const r = RIDDLES[idx];
   const opts = shuffle([{ text: r.a, correct: true }, ...r.w.map(t => ({ text: t, correct: false }))]).map(o => (
     o.correct
       ? { b: o.text, sfx: "win", fn: g => ({ ...g, pending: g.pending + eAmt(g, 22) * effEss(g), water: Math.min(g.water + aw(g, 0.08), g.maxWater) }), luck: 2,
@@ -430,20 +436,35 @@ function makeRiddleEvent() {
       : { b: o.text, sfx: "bad", fn: g => g,
           then: { t: "Не цього разу 🙃", emo: "🙃", d: `Правильна відповідь — «${r.a}». Наступного разу пощастить!`, opts: [{ b: "Далі →", fn: g => g }] } }
   ));
-  return { t: "Загадка мандрівника", emo: "🧩", d: `«${r.q}»`, timer: 16, opts };
+  return { ev: { t: "Загадка мандрівника", emo: "🧩", d: `«${r.q}»`, timer: 16, opts }, usedRiddles: [...next, idx] };
 }
+
+// прикол із круком: коли гравець стільки разів розкусив круячі хитрощі (shoo: "crow"),
+// що ціле кодло злітається й визнає його своїм. Спрацьовує раз за забіг (див. useGameLoop).
+const CROW_SHOO_LIMIT = 3;
+const CROW_GAG = { t: "Вороняча рада", emo: "🐦‍⬛", art: "crow",
+  d: "Ти стільки разів розкусив усі круячі хитрощі, що ціле вороняче кодло злетілось на раду — і визнало тебе своєю. На знак поваги круки звалили тобі цілу купу краденого блиску!", opts: [
+  { b: "Прийняти воронячий скарб", sf: g => `+${eAmt(g, 46)} сутності · +багато вдачі`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 46) * effEss(g) }), luck: 4, sfx: "win", ach: "crowking" },
+  { b: "Поділитися блиском із кодлом", sf: g => `+${eAmt(g, 22)} сутності · +0.3 води/с (круки носитимуть)`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 22) * effEss(g), passive: g.passive + 0.3 }), luck: 3, sfx: "win", ach: "crowking" }] };
+
+// CD за замовчуванням (днів між повторами тієї самої події); подія може задати власний e.cd
+const DEFAULT_EVENT_CD = 2;
+const eventCdOf = e => (e.cd != null ? e.cd : DEFAULT_EVENT_CD);
 
 function pickEvent(g, meta) {
   const tod = g.dayLen ? clamp(g.elapsed / g.dayLen, 0, 1) : 0.5;
   const okReq = e => !e.req || e.req(g, meta);
   const okTod = e => !e.tod || (tod >= e.tod[0] && tod <= e.tod[1]);
   const okOnce = e => !e.once || !((meta.seenOnce || {})[e.once]); // одноразові події — лише раз за всю гру
-  let pool = EVENTS.filter(e => okReq(e) && okTod(e) && okOnce(e));
-  if (!pool.length) pool = EVENTS.filter(e => okReq(e) && okOnce(e)); // запас: якщо за часом нічого не підійшло
+  // кулдаун: подію не пропонуємо, доки не мине e.cd днів від останньої появи (g.eventCd[назва] = день появи)
+  const okCd = e => { const last = (g.eventCd || {})[e.t]; return last == null || (g.day - last) >= eventCdOf(e); };
+  let pool = EVENTS.filter(e => okReq(e) && okTod(e) && okOnce(e) && okCd(e));
+  if (!pool.length) pool = EVENTS.filter(e => okReq(e) && okOnce(e) && okCd(e)); // запас: послабити час доби
+  if (!pool.length) pool = EVENTS.filter(e => okReq(e) && okOnce(e)); // крайній запас: послабити й кулдаун
   const tot = pool.reduce((a, e) => a + (e.weight || 1), 0);
   let r = Math.random() * tot;
   for (const e of pool) { r -= (e.weight || 1); if (r <= 0) return e; }
   return pool[pool.length - 1] || EVENTS[0];
 }
 
-export { EVENTS, RIDDLES, makeRiddleEvent, pickEvent };
+export { EVENTS, RIDDLES, CROW_GAG, CROW_SHOO_LIMIT, makeRiddleEvent, pickEvent };

@@ -208,15 +208,24 @@ export function createWaterRenderer(canvas, { bgDayUrl, bgNightUrl, mapUrl, onEr
   }
 
   /* ---- lifecycle ---- */
-  let raf = 0, running = false, last = 0;
+  let raf = 0, running = false, last = 0, pendingOnce = false;
   function loop(ts) {
     if (!running) return;
     const dt = Math.min(50, ts - last || 16); last = ts;
     if (!document.hidden) render(dt);
     raf = requestAnimationFrame(loop);
   }
-  function start() { if (running) return; running = true; last = 0; raf = requestAnimationFrame(loop); }
+  function start() { if (running) return; running = true; last = 0; pendingOnce = false; raf = requestAnimationFrame(loop); }
   function stop() { running = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
+  // намалювати ОДИН статичний кадр на паузі (напр. у вівтарі/після рефрешу). Якщо зображення
+  // ще не завантажились — запам'ятовуємо намір і малюємо, щойно вони будуть готові (tryStatic).
+  function renderOnce() {
+    if (running) return;
+    S.fill = S.target; // без плавного ease — одразу цільовий рівень води
+    if (ready()) { render(0); pendingOnce = false; }
+    else pendingOnce = true;
+  }
+  function tryStatic() { if (pendingOnce && !running && ready()) { S.fill = S.target; render(0); pendingOnce = false; } }
   function onVis() { last = 0; } // уникнути стрибка dt після повернення вкладки
   document.addEventListener("visibilitychange", onVis);
 
@@ -229,11 +238,11 @@ export function createWaterRenderer(canvas, { bgDayUrl, bgNightUrl, mapUrl, onEr
   }
 
   // старт завантаження
-  bgDay.onload = () => { dayOk = true; computeCover(); };
-  bgNight.onload = () => { nightOk = true; };
-  mapImg.onload = () => { buildDepth(); };
+  bgDay.onload = () => { dayOk = true; computeCover(); tryStatic(); };
+  bgNight.onload = () => { nightOk = true; tryStatic(); };
+  mapImg.onload = () => { buildDepth(); tryStatic(); };
   bgDay.onerror = bgNight.onerror = mapImg.onerror = fail;
   bgDay.src = bgDayUrl; bgNight.src = bgNightUrl; mapImg.src = mapUrl;
 
-  return { setParams, addRipple, resize, start, stop, destroy };
+  return { setParams, addRipple, resize, start, stop, renderOnce, destroy };
 }

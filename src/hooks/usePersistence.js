@@ -22,7 +22,7 @@ export function usePersistence({ bootForecast, g, gRef, loaded, meta, metaRef, p
         try {
           const d = JSON.parse(raw);
           if (d.meta) setMeta(m => ({ ...m, ...migrateMeta(d.meta), ach: { ...(d.meta.ach || {}) } }));
-          const resumable = ["playing", "survived", "forecast", "challenge", "festival", "dead"];
+          const resumable = ["playing", "survived", "forecast", "challenge", "festival", "dead", "menu"];
           if (d.g && resumable.includes(d.phase)) {
             // якщо перезавантажили під час події/колеса — скидаємо «паузу» таймера подій
             const ne = (d.g.nextEvent == null || d.g.nextEvent >= 9999) ? 6 + Math.random() * 6 : d.g.nextEvent;
