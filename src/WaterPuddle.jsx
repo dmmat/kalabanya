@@ -5,8 +5,11 @@ import { createWaterRenderer } from "./water/waterRenderer.js";
 // Керується живими props (fill 0..1, tod 0..1, night 0..1); брижі — з fxEvents гри.
 export default function WaterPuddle({
   fill, tod, night = 0, active = true, fxEvents = [],
-  bgDayUrl, bgNightUrl, mapUrl, cloud = 0.5, wave = 0.35, onError,
+  bgDayUrl, bgNightUrl, mapUrl, cloud = 0.5, wave = 0.35, lowGfx = false, onError,
 }) {
+  // celestial=1: відбиток сонця/місяця завжди на 100% (сам слідує за tod через bodies).
+  // glitter навмисно вимкнений — важкий per-pixel прохід.
+  const CELESTIAL = 1;
   const canvasRef = useRef(null);
   const rendererRef = useRef(null);
   const seenFxRef = useRef(new Set());
@@ -29,7 +32,7 @@ export default function WaterPuddle({
     const ro = new ResizeObserver(doResize);
     ro.observe(parent);
 
-    r.setParams({ fill, tod, night, cloud, wave });
+    r.setParams({ fill, tod, night, cloud, wave, celestial: CELESTIAL, lowGfx });
     if (active) r.start(); else r.renderOnce(); // на паузі малюємо хоч один кадр, щоб канвас не був порожнім
 
     return () => { ro.disconnect(); r.destroy(); rendererRef.current = null; };
@@ -41,9 +44,9 @@ export default function WaterPuddle({
   useEffect(() => {
     const r = rendererRef.current;
     if (!r) return;
-    r.setParams({ fill, tod, night, cloud, wave });
+    r.setParams({ fill, tod, night, cloud, wave, celestial: CELESTIAL, lowGfx });
     if (!active) r.renderOnce();
-  }, [fill, tod, night, cloud, wave, active]);
+  }, [fill, tod, night, cloud, wave, lowGfx, active]);
 
   // пауза/старт за фазою гри
   useEffect(() => {
