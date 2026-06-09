@@ -148,10 +148,10 @@ export default function App() {
           )}
           {phase === "playing" && <div className="kal-hint">{g.festival ? `🎉 свято — просто святкуй · ${w.icon} злива-благодать` : `торкайся, щоб вбирати · ${net >= 0 ? "▲" : "▼"} ${fmt(Math.abs(net))}/с ${w.icon}`}</div>}
         </div>
-        </div>{/* end stage wrap */}
 
-        {/* ACTIVE ABILITIES (appear only once befriended — a surprise) */}
+        {/* ACTIVE ABILITIES (appear only once befriended — a surprise) — pinned together with the puddle */}
         {phase === "playing" && ABILITIES.some(a => a.req(meta, g)) && <AbilityBar abilCD={abilCD} abilFx={abilFx} combo={combo} g={g} meta={meta} useAbility={useAbility} />}
+        </div>{/* end stage wrap */}
 
         {/* PLAY PANELS */}
         {phase === "playing" && <PlayPanels buyRun={buyRun} evap={evap} g={g} net={net} w={w} />}
