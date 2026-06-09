@@ -1838,6 +1838,9 @@ export default function App() {
   const size = 130 + ratio * 175;
   const evap = evapPerSec(g);
   const net = g.passive + w.rainPower - evap;
+  // розкладка випару: потепління (окрема невідворотна складова) і решта — сонячний випар
+  const warmEvap = warmingDrain(g.day, g.maxWater) * (g.ecoMult ?? 1) * (1 + w.evapMod);
+  const sunEvap = Math.max(0, evap - warmEvap);
   const dryT = 1 - ratio;
   const waterCol = mix("#2f7d5f", "#8a5a3c", dryT * 0.65);
   const waterEdge = mix("#74c39a", "#b07a4a", dryT * 0.6);
@@ -2057,14 +2060,14 @@ export default function App() {
             <div className="kal-card">
               <h3>Стан калабані <small>{w.icon} {w.name}</small></h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 15 }}>
-                <Stat l="Випар" v={`${fmt(evap)}/с`} c="var(--bad)" />
+                <Stat l="Випар ☀️" v={`${fmt(sunEvap)}/с`} c="var(--bad)" />
                 <Stat l="Приплив" v={`+${fmt(g.passive + w.rainPower)}/с`} c="var(--good)" />
                 <Stat l="Чистий" v={`${net >= 0 ? "+" : "−"}${fmt(Math.abs(net))}/с`} c={net >= 0 ? "var(--good)" : "var(--bad)"} />
                 <Stat l="Вбирання" v={`+${fmt(ABSORB_BASE * g.absorbMult * (g.absorbBoostT > 0 ? 1.9 : 1) * (1 + w.absorbMod))}/тап`} c="var(--water-a)" />
                 <Stat l="Наповнення" v={`${Math.round(clamp(g.water / g.maxWater, 0, 1) * 100)}%`} c="var(--ink)" />
                 <Stat l="Волога ґрунту" v={`${Math.round(g.soil)}%`} c="var(--ink)" />
                 <Stat l="Опір спеці 🟤" v={`${Math.round(g.sunResist * 100)}%`} c="var(--ink)" />
-                {warmingDrain(g.day, g.maxWater) * (g.ecoMult ?? 1) * (1 + w.evapMod) > 0.05 && <Stat l="Потепління 🌡️" v={`−${fmt(warmingDrain(g.day, g.maxWater) * (g.ecoMult ?? 1) * (1 + w.evapMod))}/с`} c="var(--bad)" />}
+                {warmEvap > 0.05 && <Stat l="Потепління 🌡️" v={`+${fmt(warmEvap)}/с до випару`} c="var(--bad)" />}
                 <Stat l="Сутність ◈" v={`${fmt(g.pending)}${w.essMod ? ` ·${(1 + w.essMod).toFixed(1)}×` : ""}`} c="var(--essence)" />
                 <Stat l="Збір ◈ (більша калабаня — більше)" v={`+${fmt((g.essRate || 0.10) * sizeMul(g.maxWater) * effEss(g))}/с`} c="var(--essence)" />
                 {(g.speed || 1) > 1.01 && <Stat l="Швидкість ⏩" v={`×${(g.speed).toFixed(2)}`} c="var(--essence)" />}
