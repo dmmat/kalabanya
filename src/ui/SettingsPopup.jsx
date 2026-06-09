@@ -32,6 +32,11 @@ export default function SettingsPopup({ copyExport, exportProgress, importProgre
               <div className="body"><div className="nm">Вібрація</div><div className="de">Тактильний відгук на тап і події (телефон).</div></div>
               <button className="kal-mini" onClick={() => { setMeta(m => ({ ...m, haptics: m.haptics === false ? true : false })); Sfx.click(); Haptics.tap(); }}>{meta.haptics !== false ? "Увімкнено" : "Вимкнено"}</button>
             </div>
+            <div className="kal-up" style={{ cursor: "default", marginTop: 6 }}>
+              <div className="emo">{meta.lowGfx ? "⚡" : "🖌"}</div>
+              <div className="body"><div className="nm">Спрощена графіка</div><div className="de">Легша вода для слабких пристроїв (нижча деталізація, ~30 к/с).</div></div>
+              <button className="kal-mini" onClick={() => { setMeta(m => ({ ...m, lowGfx: !m.lowGfx })); Sfx.click(); }}>{meta.lowGfx ? "Увімкнено" : "Вимкнено"}</button>
+            </div>
             <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--line)" }}>
               <div className="seclab">Збереження</div>
               <div style={{ fontSize: 12.5, color: "var(--muted)", marginBottom: 10, lineHeight: 1.4 }}>Можна зберегти або перенести прогрес будь-якої миті — навіть посеред дня.</div>

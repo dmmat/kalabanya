@@ -106,6 +106,7 @@ export default function App() {
             bgDayUrl={waterBgDay}
             bgNightUrl={waterBgNight}
             mapUrl={waterMap}
+            lowGfx={meta.lowGfx}
             onError={() => setWaterOk(false)}
           />
 
