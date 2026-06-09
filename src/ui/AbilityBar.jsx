@@ -1,4 +1,5 @@
 /* AUTO-EXTRACTED from App.jsx — presentational component. */
+import { useState, useRef, useEffect } from "react";
 import { fmt, clamp, mix, shuffle } from "../game/format.js";
 import { SYMBOLS, NEUTRAL, rollForecast, computeWeather } from "../game/weather.js";
 import { ABSORB_BASE, RUN_UPGRADES, runCost, META_UPGRADES, META_TIER2_DAY, PRESTIGE_UNLOCK, cloudsFrom, PRESTIGE_UPGRADES, CHALLENGES, challengeForDay, applyChallenge, effEss, sizeMul, aw, eAmt, tempC, warmingDrain, rankName, evapPerSec, freshRun } from "../game/balance.js";
@@ -10,7 +11,44 @@ import { Sfx, Haptics } from "../audio.js";
 import { SafeImg, Stat, ResStat } from "./atoms.jsx";
 import Reel from "./Reel.jsx";
 
+/* телефон/планшет: нема нормального ховера → ховаємо клавіші 1-0 і вмикаємо хінти на лонг-прес */
+const IS_TOUCH = typeof window !== "undefined" && window.matchMedia
+  ? window.matchMedia("(hover: none), (pointer: coarse)").matches
+  : false;
+
 export default function AbilityBar({ abilCD, abilFx, combo, g, meta, useAbility }) {
+  const [openTip, setOpenTip] = useState(null); // id здібності, чий хінт показано (лонг-прес)
+  const pressTimer = useRef(null);
+  const longPressed = useRef(false);
+
+  // прибрати хінт при будь-якому тапі поза смужкою здібностей
+  useEffect(() => {
+    if (!IS_TOUCH || openTip == null) return;
+    const close = (e) => { if (!e.target.closest || !e.target.closest(".kal-abil")) setOpenTip(null); };
+    document.addEventListener("touchstart", close, { passive: true });
+    return () => document.removeEventListener("touchstart", close);
+  }, [openTip]);
+
+  const startPress = (id) => {
+    if (!IS_TOUCH) return;
+    longPressed.current = false;
+    clearTimeout(pressTimer.current);
+    pressTimer.current = setTimeout(() => {
+      longPressed.current = true;
+      setOpenTip(id);
+      Haptics.tap();
+    }, 350);
+  };
+  const cancelPress = () => { clearTimeout(pressTimer.current); };
+  const endPress = () => {
+    clearTimeout(pressTimer.current);
+    // якщо це був лонг-прес — лишаємо хінт відкритим, але глушимо клік (не активуємо здібність)
+  };
+  const onAbilClick = (a) => {
+    if (longPressed.current) { longPressed.current = false; return; } // лонг-прес показав хінт, не активуємо
+    useAbility(a);
+  };
+
   return (
           <div className="kal-abilities reveal">
             {combo >= 2 && <div className="kal-combo" key={combo}>КОМБО ×{combo}!</div>}
@@ -22,16 +60,27 @@ export default function AbilityBar({ abilCD, abilFx, combo, g, meta, useAbility 
               const preyEmos = (a.prey || []).map(id => (ABILITIES.find(x => x.id === id) || {}).emo).filter(Boolean);
               const synEmos = Object.keys(SYNERGY).filter(k => k.split("+").includes(a.id))
                 .map(k => (ABILITIES.find(x => x.id === k.split("+").find(id => id !== a.id)) || {}).emo).filter(Boolean);
+              const tipOpen = openTip === a.id;
               return (
-                <button key={a.id} className={"kal-abil" + (cd > 0 ? " cd" : "")} disabled={cd > 0} onClick={() => useAbility(a)}>
+                <button
+                  key={a.id}
+                  className={"kal-abil" + (cd > 0 ? " cd" : "") + (tipOpen ? " tip-open" : "")}
+                  disabled={cd > 0}
+                  onClick={() => onAbilClick(a)}
+                  onTouchStart={() => startPress(a.id)}
+                  onTouchEnd={endPress}
+                  onTouchMove={cancelPress}
+                  onTouchCancel={cancelPress}
+                  onContextMenu={(e) => { if (IS_TOUCH) e.preventDefault(); }}
+                >
                   {cd > 0 && <span className="ab-ring" style={{ background: `conic-gradient(rgba(0,0,0,.55) ${(cd / max) * 360}deg, transparent 0)` }} />}
                   <span className="ab-emo">{a.emo}</span>
                   {cd > 0 && <span className="ab-num">{Math.ceil(cd)}</span>}
-                  {hot && cd <= 0 && <span className="ab-key">{hot}</span>}
-                  <span className="ab-tip">
+                  {hot && cd <= 0 && !IS_TOUCH && <span className="ab-key">{hot}</span>}
+                  <span className={"ab-tip" + (tipOpen ? " show" : "")}>
                     <b>{a.emo} {a.nm}</b>
                     <i>{a.tip}</i>
-                    <em>Перезарядка ~{max}с · {a.kind}{hot ? ` · клавіша ${hot}` : ""}{cd > 0 ? ` · ще ${Math.ceil(cd)}с` : ""}</em>
+                    <em>Перезарядка ~{max}с · {a.kind}{hot && !IS_TOUCH ? ` · клавіша ${hot}` : ""}{cd > 0 ? ` · ще ${Math.ceil(cd)}с` : ""}</em>
                     {synEmos.length > 0 && <span className="good">Синергія: {synEmos.join(" ")}</span>}
                     {preyEmos.length > 0 && <span className="bad">Лякає: {preyEmos.join(" ")}</span>}
                   </span>
