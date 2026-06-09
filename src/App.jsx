@@ -89,6 +89,9 @@ const SYMBOLS = [
   { e: "🌡️", nm: "Спека",   sun: 0.3, evap: 0.08,  combo: "ТЕПЛОВИЙ КУПОЛ",       tier: "danger" },
 ];
 const WEIGHTS = [4, 3, 4, 3, 3, 1, 1.6, 2, 1.4, 1.8, 3, 1.6];
+// погода впливає сильніше: фізичні модифікатори (сонце/випар/дощ/вітер) множимо,
+// тож і хороші, і лихі дні відчутно дужчі — більше розмаху, більше напруги (рогалик)
+const WEATHER_AMP = 1.45;
 const NEUTRAL = { rainPower: 0, sunMod: 0, absorbMod: 0, evapMod: 0, essMod: 0, name: "Ще не дивилась у небо", icon: "⛅", idxs: [0, 0, 0], tier: "norm" };
 
 // детермінований ГВЧ — щоб прогноз погоди НЕ мінявся при перезавантаженні сторінки
@@ -135,6 +138,9 @@ function computeWeather(idxs) {
     if (w.sunMod > 0.45) tier = "danger";
     else if (w.rainPower > 0.4 || w.essMod > 0.1) tier = "good";
   }
+  // підсилюємо фізичний вплив погоди (назва/tier рахувались на базових значеннях вище,
+  // тож ярлики лишаються звичні, а самі ефекти на воду — відчутно сильніші)
+  w.rainPower *= WEATHER_AMP; w.sunMod *= WEATHER_AMP; w.absorbMod *= WEATHER_AMP; w.evapMod *= WEATHER_AMP;
   return { ...w, name, icon, idxs, tier, isCombo: all };
 }
 
@@ -149,12 +155,13 @@ const RUN_UPGRADES = [
   { id: "trench", emo: "🌀", nm: "Океанічна западина", de: "Велетенська западина: +8% об'єму та +1.5/с.", base: 420, growth: 1.62, frac: 0.22, req: g => (g.levels.lake || 0) >= 2, lock: "відкриється: Підземне озеро рів.2" },
   { id: "summon", emo: "📣", nm: "Гучніший поклик", de: "−6% перезарядки здібностей.", base: 60, growth: 1.5, frac: 0.10, req: g => g.hasFriend, hidden: true },
 ];
-// ціна = більше з експоненти (рання гра) та частки від об'єму (пізня гра),
-// але ніколи не вище 92% об'єму → апгрейд завжди можна накопичити (без софт-локу за будь-якої стратегії)
-const runCost = (u, lvl, maxW, disc = 1) => {
+// ціна апгрейду залежить ЛИШЕ від рівня (чиста експонента), а НЕ від об'єму.
+// Раніше ціна росла з об'ємом (частка maxWater) → зростати ставало дорого, гравцю
+// було вигідно «лишатися малим». Тепер об'єм НЕ дорожчає прокачку — навпаки, велика
+// калабаня має більший запас води, тож качати об'єм стало вигідно й бажано.
+const runCost = (u, lvl, _maxW, disc = 1) => {
   lvl = lvl || 0; // захист: новододані апгрейди можуть не мати рівня у старих збереженнях → не дати NaN-ціні
-  const c = Math.max(u.base * Math.pow(u.growth, lvl), (u.frac || 0) * maxW);
-  return Math.max(1, Math.round(Math.min(c, 0.92 * maxW) * disc));
+  return Math.max(1, Math.round(u.base * Math.pow(u.growth, lvl) * disc));
 };
 const META_UPGRADES = [
   { id: "memory", emo: "🫧", nm: "Глибша пам'ять", de: "+22 стартової води.", base: 40, growth: 1.72, max: 12 },
@@ -988,7 +995,9 @@ const tempC = (sun) => Math.round(14 + Math.sqrt(clamp(sun, 0, 400) / 400) * 32)
 // (більша гладь — більше випаровує). Завдяки цьому ЖОДЕН забіг не безсмертний: пасив
 // зрештою програє потеплінню за будь-якого об'єму, а зростати — це усвідомлений ризик
 // (більший дохід, але важче втриматись). Еко-дари лише ВІДТЕРМІНОВУЮТЬ, не скасовують.
-const warmingDrain = (day, maxWater) => Math.pow(Math.max(0, day - 10), 1.5) * 0.17 * Math.pow(Math.max(1, maxWater || 120) / 120, 0.35);
+// Підкручено: починається раніше (день 8), б'є сильніше й дужче залежить від об'єму —
+// це рогалик, тож велика калабаня має таки висихати, а смерть — норма гри.
+const warmingDrain = (day, maxWater) => Math.pow(Math.max(0, day - 8), 1.5) * 0.26 * Math.pow(Math.max(1, maxWater || 120) / 120, 0.45);
 // мрія калабані рости: ранг за об'ємом
 const RANKS = [[300, "калабаня"], [900, "велика калабаня"], [2500, "ставок"], [6000, "озерце"], [16000, "озеро"], [50000, "велике озеро"], [160000, "море"], [400000, "велике море"], [1000000, "Північний Льодовитий океан"], [3000000, "Індійський океан"], [10000000, "Атлантичний океан"], [35000000, "Тихий океан"]];
 const rankName = (mw) => { for (const [t, n] of RANKS) if (mw < t) return n; return "Світовий океан"; };
@@ -1260,8 +1269,11 @@ export default function App() {
         const n = { ...prev };
         n.elapsed += dt;
         const t = clamp(n.elapsed / n.dayLen, 0, 1);
-        const peak = 72 + (n.day - 1) * 13 + Math.pow(Math.max(0, n.day - 5), 1.6) * 0.6;
-        n.sun = Math.max(6, peak * Math.sin(Math.PI * t));
+        // прогресія спеки крутіша: кожен день помітно гарячіший, а пізні дні — лавиною.
+        const peak = 72 + (n.day - 1) * 16 + Math.pow(Math.max(0, n.day - 4), 1.75) * 0.9;
+        // крива дня гостріша (^1.25): ранок/вечір лагідні, а ОПІВДНІ — пік-пекло,
+        // тож удень доводиться активно шукати тінь, щоб пережити полудень.
+        n.sun = Math.max(6, peak * Math.pow(Math.sin(Math.PI * t), 1.25));
         n.shadeT = Math.max(0, n.shadeT - dt);
         n.evapBoostT = Math.max(0, n.evapBoostT - dt);
         n.absorbBoostT = Math.max(0, n.absorbBoostT - dt);
@@ -1367,8 +1379,8 @@ export default function App() {
     if (prev.water < cost) return prev;
     Sfx.click();
     const n = { ...prev, water: prev.water - cost, levels: { ...prev.levels, [u.id]: lvl + 1 } };
-    // additive capacity — помірний ріст об'єму (від софт-локу захищає стеля ціни 92% у runCost)
-    // об'єм росте і адитивно (рання гра), і часткою від поточного (пізня гра) — щоб дотягтись аж до океанів
+    // additive capacity — об'єм росте і адитивно (рання гра), і часткою від поточного
+    // (пізня гра) — щоб дотягтись аж до океанів. Ціна апгрейдів від об'єму більше не залежить.
     if (u.id === "deepen") { n.maxWater += Math.max(50 + lvl * 10, Math.round(n.maxWater * 0.05)); n.deepenMult *= 0.97; }
     if (u.id === "silt") { n.sunResist = clamp(n.sunResist + 0.08, 0, 0.85); if (n.levels.silt >= 10) queueMicrotask(() => unlock("shrek")); }
     if (u.id === "widen") { n.absorbMult += 0.6; n.soilMax += 40; n.maxWater += Math.max(30, Math.round(n.maxWater * 0.02)); n.baseEvap += 0.04; }

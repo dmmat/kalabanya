@@ -37,7 +37,7 @@ function pickIdx(rng) {
   return WEIGHTS.length - 1;
 }
 
-export function rollWeather(rng) {
+export function rollWeather(rng, C = CURRENT) {
   const idxs = [pickIdx(rng), pickIdx(rng), pickIdx(rng)];
   const w = { rainPower: 0, sunMod: 0, absorbMod: 0, evapMod: 0, essMod: 0 };
   idxs.forEach(i => { const s = SYMBOLS[i]; w.rainPower += s.rain || 0; w.sunMod += s.sun || 0; w.absorbMod += s.abs || 0; w.evapMod += s.evap || 0; w.essMod += s.ess || 0; });
@@ -53,6 +53,9 @@ export function rollWeather(rng) {
     if (w.sunMod > 0.45) tier = "danger";
     else if (w.rainPower > 0.4 || w.essMod > 0.1) tier = "good";
   }
+  // tier/name use base values; physical mods are amplified (mirror of App.jsx WEATHER_AMP)
+  const amp = C.weatherAmp || 1;
+  w.rainPower *= amp; w.sunMod *= amp; w.absorbMod *= amp; w.evapMod *= amp;
   return { ...w, tier, isCombo: all };
 }
 
@@ -64,10 +67,13 @@ export const CURRENT = {
   evapReduFloor: 0.5,
   sunMulCoef: 2.5, sunResistCap: 0.85,
   sunEffCap: 400,
-  // sun peak curve
+  // sun peak curve (day-to-day ramp) + within-day curve sharpness (sunCurveExp 1 = sine)
   sunPeakBase: 72, sunPeakPerDay: 13, sunPeakLateStart: 5, sunPeakLateExp: 1.6, sunPeakLateCoef: 0.6,
+  sunCurveExp: 1,
   // global warming (warmSizeExp 0 = original: size-independent additive drain)
   warmStart: 10, warmExp: 1.5, warmCoef: 0.13, ecoFloor: 0.12, warmSizeExp: 0,
+  // weather amplifier (1 = original; >1 makes weather swing harder)
+  weatherAmp: 1,
   // absorb / soil
   absorbBase: 2.5, soilDrain: 6, soilRegen: 3.8, absorbBoost: 1.9,
   soilStart: 60, soilMaxStart: 60,
@@ -126,6 +132,8 @@ export const warmingDrain = (g, C) => {
   return base * sizeF;
 };
 export const sunPeak = (day, C) => C.sunPeakBase + (day - 1) * C.sunPeakPerDay + Math.pow(Math.max(0, day - C.sunPeakLateStart), C.sunPeakLateExp) * C.sunPeakLateCoef;
+// within-day sun curve: sine raised to sunCurveExp (>1 = sharper midday spike)
+export const sunCurve = (t, C) => Math.pow(Math.sin(Math.PI * t), C.sunCurveExp || 1);
 
 export const effEss = (g) => g.essMult * (1 + g.weather.essMod);
 export const eAmt = (g, base, C) => Math.round(base * (1 + (g.day - 1) * C.eAmtDayCoef) * (g.friend || 1));

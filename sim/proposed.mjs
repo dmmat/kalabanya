@@ -22,11 +22,31 @@ PROPOSED.essBonusBase = 5;     // dusk survival bonus base (×sizeMul ×effEss),
 PROPOSED.eAmtDayCoef = 0.06;   // events scale gentler with day (was 0.12) → less day-farm
 
 // ── 2. tension: warming is the terminal driver for ALL sizes ────────────────
-PROPOSED.warmCoef = 0.17;      // was 0.13 — warming bites harder
+// it's a roguelike — dying is the point. Warming starts earlier, bites harder,
+// and leans more on size, so even big puddles dry out and runs stay short.
+PROPOSED.warmStart = 8;        // was 10 — warming kicks in two days sooner
+PROPOSED.warmCoef = 0.26;      // was 0.13 — warming bites much harder
 PROPOSED.ecoFloor = 0.55;      // was 0.12 — eco upgrades DELAY warming, can't cancel it
-PROPOSED.warmSizeExp = 0.35;   // warming scales with sqrt-ish of size → big puddles aren't immortal
+PROPOSED.warmSizeExp = 0.45;   // warming scales harder with size → big puddles aren't immortal
 
-// ── 3. economy deflation handled by income model above + re-priced sinks ────
+// weather swings harder too — good and bad days both hit more (more tension/variance)
+PROPOSED.weatherAmp = 1.45;
+
+// evaporation ramps up faster day-to-day, and the midday curve is sharper, so each
+// day the noon spike forces you to actively seek shade to survive the hot hours.
+PROPOSED.sunPeakPerDay = 16;   // was 13 — every day noticeably hotter
+PROPOSED.sunPeakLateStart = 4; // was 5 — late-game heat avalanche starts sooner
+PROPOSED.sunPeakLateExp = 1.75;// was 1.6
+PROPOSED.sunPeakLateCoef = 0.9;// was 0.6
+PROPOSED.sunCurveExp = 1.25;   // sharper midday peak (sine^1.25) → noon is a danger window
+
+// ── 3. growth is the goal: prices no longer scale with volume ───────────────
+// pure exponential cost per level (no frac-of-volume floor, no volume cap) → a
+// bigger puddle just means a bigger water pool to spend, so pumping volume pays off.
+PROPOSED.runCostCap = Infinity;
+for (const k in PROPOSED.runUpg) PROPOSED.runUpg[k].frac = 0;
+
+// ── economy deflation handled by income model above + re-priced sinks ────────
 // permanent friends re-priced to the new income scale (reachable over ~many runs)
 PROPOSED.permaPrices = [3000, 4500, 6500, 9000, 12000, 16000, 21000, 27000, 34000, 44000];
 PROPOSED.prestigeUnlock = 100000; // lifetime essence to unlock prestige (a mid-game milestone)

@@ -13,7 +13,7 @@
    ========================================================================= */
 import {
   CURRENT, freshRun, evapPerSec, effEss, runCost, metaCost, applyRunUpgrade,
-  rollWeather, sunPeak, warmingDrain, mulberry32, clamp, essCollect, dayBonus,
+  rollWeather, sunPeak, sunCurve, warmingDrain, mulberry32, clamp, essCollect, dayBonus,
 } from "./model.mjs";
 import { PROPOSED } from "./proposed.mjs";
 
@@ -70,7 +70,7 @@ function simulateDay(g, C, dayLen, policy, rng, opt) {
   let eventAccum = 0;
   for (let i = 0; i < ticks; i++) {
     const t = g.elapsed / dayLen;
-    g.sun = Math.max(6, peak * Math.sin(Math.PI * t));
+    g.sun = Math.max(6, peak * sunCurve(t, C));
     g.shadeT = Math.max(0, g.shadeT - dt);
     g.evapBoostT = Math.max(0, g.evapBoostT - dt);
     g.absorbBoostT = Math.max(0, g.absorbBoostT - dt);
@@ -108,9 +108,9 @@ export function simRun(meta, C, opt = {}) {
     g.elapsed = 0;
     const dayLen = C.dayLen + (day - 1) * 6;
     // forecast: dodge danger with free respins (meta.luck)
-    let w = rollWeather(rng);
+    let w = rollWeather(rng, C);
     let free = meta.luck || 0;
-    while (policy.dangerRespin && w.tier === "danger" && free > 0) { w = rollWeather(rng); free--; }
+    while (policy.dangerRespin && w.tier === "danger" && free > 0) { w = rollWeather(rng, C); free--; }
     g.weather = w;
     const alive = simulateDay(g, C, dayLen, policy, rng, opt);
     peakVol = Math.max(peakVol, g.maxWater);
