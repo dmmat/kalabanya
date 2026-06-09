@@ -9,6 +9,12 @@ import WaterPuddle from "./WaterPuddle.jsx";
 
 const KEY = "kalabanya:save:v3";
 const ABSORB_BASE = 2.5; // water per tap before multipliers (kept in sync logic↔HUD)
+// опір спеці: до SOFT росте швидко (+8%/рів.), далі повільно (+2%/рів.), але ВИДИМО — до жорсткої стелі CAP
+const SUN_RESIST_SOFT = 0.85, SUN_RESIST_CAP = 0.92;
+// сонячний випар від поглибшання+ряски не може впасти нижче цієї частки (−60% разом)
+const EVAP_REDU_FLOOR = 0.4;
+// наступний приріст опору спеці (повільний, але ненульовий хвіст після SOFT)
+const siltStep = (r) => r < SUN_RESIST_SOFT ? 0.08 : 0.02;
 
 /* ---------- storage layer: localStorage -> window.storage -> memory ------- */
 const _mem = {};
@@ -146,9 +152,9 @@ function computeWeather(idxs) {
 
 /* ---------- in-run & meta upgrades ---------- */
 const RUN_UPGRADES = [
-  { id: "deepen", emo: "🕳️", nm: "Поглибшати", de: "+об'єму, трохи менший випар.", base: 24, growth: 1.4, frac: 0.18 },
+  { id: "deepen", emo: "🕳️", nm: "Поглибшати", de: "+об'єму, −3% сонячного випару.", base: 24, growth: 1.4, frac: 0.18 },
   { id: "silt",   emo: "🟤", nm: "Намулитись", de: "Плівка мулу: +8% опору спеці (див. «Стан калабані»).", base: 30, growth: 1.42, frac: 0.12 },
-  { id: "widen",  emo: "💧", nm: "Розширити русло", de: "+вбирання, +30 об'єму, трохи більший випар.", base: 22, growth: 1.4, frac: 0.10 },
+  { id: "widen",  emo: "💧", nm: "Розширити русло", de: "+вбирання, +об'єму, +0.04 базового випару.", base: 22, growth: 1.4, frac: 0.10 },
   { id: "moss",   emo: "🌿", nm: "Поростити ряскою", de: "Ряска вкриває гладь: −7% випару.", base: 28, growth: 1.45, frac: 0.10 },
   { id: "vein",   emo: "🌊", nm: "Прокласти жилу", de: "Підземна жила: +0.4 води/с.", base: 40, growth: 1.5, frac: 0.14 },
   { id: "lake",   emo: "🟦", nm: "Підземне озеро", de: "Велике джерело: +об'єму, +0.7/с.", base: 130, growth: 1.7, frac: 0.25, req: g => g.levels.deepen >= 3, lock: "відкриється: Поглибшати рів.3" },
@@ -162,6 +168,29 @@ const RUN_UPGRADES = [
 const runCost = (u, lvl, _maxW, disc = 1) => {
   lvl = lvl || 0; // захист: новододані апгрейди можуть не мати рівня у старих збереженнях → не дати NaN-ціні
   return Math.max(1, Math.round(u.base * Math.pow(u.growth, lvl) * disc));
+};
+// чи апгрейд уперся в стелю (далі ефекту не дасть) — щоб не списувати воду намарно
+const runMaxed = (u, g) =>
+  (u.id === "silt" && g.sunResist >= SUN_RESIST_CAP - 1e-6) ||
+  (u.id === "moss" && g.deepenMult * g.mossMult <= EVAP_REDU_FLOOR + 1e-6);
+// точний опис ефекту наступного рівня — у числах/відсотках, без «трохи»
+const runDesc = (u, g) => {
+  const mw = g.maxWater || 120, lvl = g.levels[u.id] || 0;
+  switch (u.id) {
+    case "deepen": return `+${fmt(Math.max(50 + lvl * 10, Math.round(mw * 0.05)))} об'єму · −3% сонячного випару`;
+    case "silt":   return g.sunResist >= SUN_RESIST_CAP - 1e-6
+      ? `опір спеці на межі — ${Math.round(SUN_RESIST_CAP * 100)}%`
+      : `+${Math.round(siltStep(g.sunResist) * 100)}% опору спеці (зараз ${Math.round(g.sunResist * 100)}%, межа ${Math.round(SUN_RESIST_CAP * 100)}%)`;
+    case "widen":  return `+0.6 вбирання · +${fmt(Math.max(30, Math.round(mw * 0.02)))} об'єму · +0.04 базового випару`;
+    case "moss":   return g.deepenMult * g.mossMult <= EVAP_REDU_FLOOR + 1e-6
+      ? `захист випару на межі — −${Math.round((1 - EVAP_REDU_FLOOR) * 100)}%`
+      : `−7% сонячного випару (з поглибшанням разом до −${Math.round((1 - EVAP_REDU_FLOOR) * 100)}%)`;
+    case "vein":   return `+0.4 води/с до приливу`;
+    case "lake":   return `+${fmt(Math.max(150, Math.round(mw * 0.08)))} об'єму · +0.7 води/с`;
+    case "trench": return `+${fmt(Math.max(400, Math.round(mw * 0.08)))} об'єму · +1.5 води/с`;
+    case "summon": return `−6% перезарядки здібностей друзів`;
+    default:       return u.de;
+  }
 };
 const META_UPGRADES = [
   { id: "memory", emo: "🫧", nm: "Глибша пам'ять", de: "+22 стартової води.", base: 40, growth: 1.72, max: 12 },
@@ -261,7 +290,7 @@ const EVENTS = [
     { b: "Попросити про послугу", sf: g => `+${eAmt(g, 16)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }) }] },
   { t: "Равлик-крамар", emo: "🐌", art: "snail", req: (g) => g.day >= 3, weight: 1.1, timer: 12,
     d: "Равлик зі скойкою-крамницею повз твоїм берегом і розклав на мушлі дрібний крам.", opts: [
-    { b: "Виміняти мул на захист", sf: g => `−${aw(g, 0.05)} води · +опір спеці`, fn: g => ({ ...g, water: g.water - aw(g, 0.05), sunResist: clamp(g.sunResist + 0.06, 0, 0.85) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
+    { b: "Виміняти мул на захист", sf: g => `−${aw(g, 0.05)} води · +опір спеці`, fn: g => ({ ...g, water: g.water - aw(g, 0.05), sunResist: clamp(g.sunResist + 0.06, 0, SUN_RESIST_CAP) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
     { b: "Купити краплю глибини", sf: g => `−${aw(g, 0.08)} води · +${aw(g, 0.13)} об'єму`, fn: g => ({ ...g, water: g.water - aw(g, 0.08), maxWater: g.maxWater + aw(g, 0.13) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
     { b: "Придбати жменю ряски", sf: g => `−${aw(g, 0.06)} води · −6% випару (на весь забіг)`, fn: g => ({ ...g, water: g.water - aw(g, 0.06), mossMult: g.mossMult * 0.94 }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
     { b: "Пройти повз", s: "нічого", fn: g => g }] },
@@ -397,7 +426,7 @@ const EVENTS = [
   { t: "Равликова гільдія", emo: "🐌", art: "snail", req: (g, m) => m.snailMet && g.day >= 8, weight: 0.5, timer: 12,
     d: "Равлик привів старшого з гільдії — на мушлі рідкісний, добірний крам.", opts: [
     { b: "Купити глибоке русло", sf: g => `−${aw(g, 0.12)} води · +${aw(g, 0.28)} об'єму`, fn: g => ({ ...g, water: g.water - aw(g, 0.12), maxWater: g.maxWater + aw(g, 0.28) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
-    { b: "Купити вічний мул", sf: g => `−${aw(g, 0.10)} води · +опір спеці`, fn: g => ({ ...g, water: g.water - aw(g, 0.10), sunResist: clamp(g.sunResist + 0.10, 0, 0.85) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
+    { b: "Купити вічний мул", sf: g => `−${aw(g, 0.10)} води · +опір спеці`, fn: g => ({ ...g, water: g.water - aw(g, 0.10), sunResist: clamp(g.sunResist + 0.10, 0, SUN_RESIST_CAP) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
     { b: "Пройти повз", s: "нічого", fn: g => g }] },
   { t: "Кошенята місячного кота", emo: "🐈‍⬛", art: "cat", req: (g, m) => m.catPet && g.day >= 6, tod: [0.74, 1.0], weight: 0.5,
     d: "Місячний кіт привів кошенят — вони бавляться у твоїх відблисках.", opts: [
@@ -1005,9 +1034,9 @@ const rankName = (mw) => { for (const [t, n] of RANKS) if (mw < t) return n; ret
 function evapPerSec(g) {
   const w = g.weather || NEUTRAL;
   const sunEff = clamp(g.sun * (1 + w.sunMod), 0, 400);
-  const sunMul = 1 + (sunEff / 100) * 2.5 * (1 - clamp(g.sunResist, 0, 0.85));
-  // апгрейди зменшують випар не більше ніж удвічі (щоб пізня гра не ставала тривіальною)
-  const redu = Math.max(0.5, g.deepenMult * g.mossMult);
+  const sunMul = 1 + (sunEff / 100) * 2.5 * (1 - clamp(g.sunResist, 0, SUN_RESIST_CAP));
+  // поглибшання+ряска зменшують СОНЯЧНИЙ випар, але не нижче EVAP_REDU_FLOOR (щоб пізня гра не була тривіальною; потепління це не чіпає)
+  const redu = Math.max(EVAP_REDU_FLOOR, g.deepenMult * g.mossMult);
   let e = g.baseEvap * redu * sunMul * (1 - g.leaf);
   if (g.shadeT > 0) e *= 0.35;
   // буст випару від подій: множник + плоский злив, обмежений доходом (а не об'ємом),
@@ -1025,7 +1054,7 @@ function freshRun(meta) {
     water: 46 + M("memory") * 22 + 40 * M("wellspring") + 30 * M("c_full") + 15 * M("abyss"), maxWater: 120 + M("memory") * 22 + 40 * M("wellspring") + 25 * M("c_full") + 15 * M("abyss"),
     day: 1, elapsed: 0, dayLen: 100, sun: 8, speed: 1 + 0.12 * M("swift"), rescues: 0,
     baseEvap: 0.95 * Math.pow(0.96, M("cold")) * Math.pow(0.97, M("permafrost")),
-    deepenMult: 1, mossMult: 1, sunResist: clamp(0.06 * M("c_silt"), 0, 0.85), absorbMult: 1 + 0.10 * M("absorb") + 0.12 * M("thirst"),
+    deepenMult: 1, mossMult: 1, sunResist: clamp(0.06 * M("c_silt"), 0, SUN_RESIST_CAP), absorbMult: 1 + 0.10 * M("absorb") + 0.12 * M("thirst"),
     soil: 60, soilMax: 60, soilRegen: 3.8 * (1 + 0.25 * M("roots") + 0.25 * M("deeproots")),
     passive: 0.3 * M("spring") + 0.4 * M("spring2") + 0.5 * M("c_spring") + 0.03 * M("abyss") + ((meta.frogBond || 0) >= 3 ? 0.1 : 0), leaf: 0,
     shadeT: 0, evapBoostT: 0, absorbBoostT: 0, cheapT: 0,
@@ -1375,6 +1404,7 @@ export default function App() {
   }, []);
 
   const buyRun = (u) => setG(prev => {
+    if (runMaxed(u, prev)) return prev; // уперлись у стелю — не списувати воду намарно
     const lvl = prev.levels[u.id], cost = runCost(u, lvl, prev.maxWater, prev.cheapT > 0 ? 0.6 : 1);
     if (prev.water < cost) return prev;
     Sfx.click();
@@ -1382,7 +1412,7 @@ export default function App() {
     // additive capacity — об'єм росте і адитивно (рання гра), і часткою від поточного
     // (пізня гра) — щоб дотягтись аж до океанів. Ціна апгрейдів від об'єму більше не залежить.
     if (u.id === "deepen") { n.maxWater += Math.max(50 + lvl * 10, Math.round(n.maxWater * 0.05)); n.deepenMult *= 0.97; }
-    if (u.id === "silt") { n.sunResist = clamp(n.sunResist + 0.08, 0, 0.85); if (n.levels.silt >= 10) queueMicrotask(() => unlock("shrek")); }
+    if (u.id === "silt") { n.sunResist = clamp(n.sunResist + siltStep(n.sunResist), 0, SUN_RESIST_CAP); if (n.levels.silt >= 10) queueMicrotask(() => unlock("shrek")); }
     if (u.id === "widen") { n.absorbMult += 0.6; n.soilMax += 40; n.maxWater += Math.max(30, Math.round(n.maxWater * 0.02)); n.baseEvap += 0.04; }
     if (u.id === "moss") n.mossMult *= 0.93;
     if (u.id === "vein") n.passive += 0.4;
@@ -2013,12 +2043,13 @@ export default function App() {
                     <div className="body"><div className="nm">{u.nm}</div><div className="de">{u.lock || "ще не відкрито"}</div></div>
                   </div>
                 );
-                const can = g.water >= cost;
+                const maxed = runMaxed(u, g);
+                const can = !maxed && g.water >= cost;
                 return (
-                  <div key={u.id} className={"kal-up clickable" + (can ? "" : " dis")} onClick={() => can && buyRun(u)}>
+                  <div key={u.id} className={(maxed ? "kal-up dis" : "kal-up clickable" + (can ? "" : " dis"))} onClick={() => can && buyRun(u)}>
                     <div className="emo">{u.emo}</div>
-                    <div className="body"><div className="nm">{u.nm}<span className="lvl">рів.{lvl}</span></div><div className="de">{u.de}</div></div>
-                    <div className="cost">{fmt(cost)} 💧</div>
+                    <div className="body"><div className="nm">{u.nm}<span className="lvl">рів.{lvl}</span></div><div className="de">{runDesc(u, g)}</div></div>
+                    <div className="cost">{maxed ? "межа" : `${fmt(cost)} 💧`}</div>
                   </div>
                 );
               })}

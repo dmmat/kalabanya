@@ -65,7 +65,7 @@ export const CURRENT = {
   dayLen: 100, dt: 0.1,
   baseEvap: 0.95, evapColdMul: 0.96, evapPermaMul: 0.97,
   evapReduFloor: 0.5,
-  sunMulCoef: 2.5, sunResistCap: 0.85,
+  sunMulCoef: 2.5, sunResistSoft: 0.85, sunResistCap: 0.85,
   sunEffCap: 400,
   // sun peak curve (day-to-day ramp) + within-day curve sharpness (sunCurveExp 1 = sine)
   sunPeakBase: 72, sunPeakPerDay: 13, sunPeakLateStart: 5, sunPeakLateExp: 1.6, sunPeakLateCoef: 0.6,
@@ -185,10 +185,10 @@ export function freshRun(meta, C) {
 }
 
 // apply a run-upgrade purchase (mirror of buyRun effects)
-export function applyRunUpgrade(n, id) {
+export function applyRunUpgrade(n, id, C = CURRENT) {
   const lvl = n.levels[id];
   if (id === "deepen") { n.maxWater += Math.max(50 + lvl * 10, Math.round(n.maxWater * 0.05)); n.deepenMult *= 0.97; }
-  if (id === "silt") { n.sunResist = clamp(n.sunResist + 0.08, 0, 0.85); }
+  if (id === "silt") { const step = n.sunResist < C.sunResistSoft ? 0.08 : 0.02; n.sunResist = clamp(n.sunResist + step, 0, C.sunResistCap); }
   if (id === "widen") { n.absorbMult += 0.6; n.soilMax += 40; n.maxWater += Math.max(30, Math.round(n.maxWater * 0.02)); n.baseEvap += 0.04; }
   if (id === "moss") n.mossMult *= 0.93;
   if (id === "vein") n.passive += 0.4;

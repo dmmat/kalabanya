@@ -42,7 +42,7 @@ function tryBuy(g, C, policy, order) {
       const cost = runCost(id, g.levels[id], g.maxWater, C);
       if (g.water - cost >= g.maxWater * policy.buyFloor) {
         g.water -= cost;
-        applyRunUpgrade(g, id);
+        applyRunUpgrade(g, id, C);
         bought = true;
         break;
       }

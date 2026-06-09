@@ -46,6 +46,12 @@ PROPOSED.sunCurveExp = 1.25;   // sharper midday peak (sine^1.25) → noon is a 
 PROPOSED.runCostCap = Infinity;
 for (const k in PROPOSED.runUpg) PROPOSED.runUpg[k].frac = 0;
 
+// upgrades keep a visible effect instead of dead-ending: heat resist grows slowly
+// past 85% up to a 92% ceiling; sun-evap reduction floor lowered 0.5 → 0.4 (more runway)
+PROPOSED.sunResistSoft = 0.85;
+PROPOSED.sunResistCap = 0.92;
+PROPOSED.evapReduFloor = 0.4;
+
 // ── economy deflation handled by income model above + re-priced sinks ────────
 // permanent friends re-priced to the new income scale (reachable over ~many runs)
 PROPOSED.permaPrices = [3000, 4500, 6500, 9000, 12000, 16000, 21000, 27000, 34000, 44000];
