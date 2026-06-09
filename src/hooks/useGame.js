@@ -383,8 +383,8 @@ export function useGame() {
 
   const enterForecast = () => {
     setRespins(0); setFcResult(null); setSpinning(false);
-    setFreeSpins(meta.luck || 0);
-    setG(p => ({ ...p, fcIdx: 0, fcFree: 0, seed: p.seed || ((Math.random() * 4294967296) >>> 0) })); // новий день — лічильник перекрутів обнуляється (сід для старих збережень)
+    // безкоштовні перекрути — на ВЕСЬ забіг, тож freeSpins/fcFree НЕ скидаємо щодня (обнуляються лише у freshRun)
+    setG(p => ({ ...p, fcIdx: 0, seed: p.seed || ((Math.random() * 4294967296) >>> 0) })); // новий день — лічильник платних перекрутів обнуляється
     setPhase("forecast");
     setTimeout(() => spin(0), 350);
   };
@@ -392,6 +392,7 @@ export function useGame() {
     Sfx.click(); dayTaps.current = 0;
     // новий забіг: дружби скидаються до купленого «назавжди» базису — друзів треба здобувати знову
     const m2 = { ...meta, ...friendBaseline(meta.perma) };
+    setFreeSpins(m2.luck || 0); // безкоштовні перекрути даються РАЗ на забіг (freshRun обнуляє fcFree)
     setG(freshRun(m2)); // freshRun бачить скинуті дружби й копіює квитки у забіг
     setMeta({ ...m2, tickets: {} }); // квитки діють лише цей забіг — забираємо з вівтаря
     setEvent(null); setResult(null); enterForecast();
