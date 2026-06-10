@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { fmt, clamp, mix, shuffle } from "../game/format.js";
 import { SYMBOLS, NEUTRAL, rollForecast, computeWeather } from "../game/weather.js";
-import { ABSORB_BASE, RUN_UPGRADES, runCost, META_UPGRADES, META_TIER2_DAY, PRESTIGE_UNLOCK, cloudsFrom, PRESTIGE_UPGRADES, CHALLENGES, challengeForDay, applyChallenge, effEss, sizeMul, aw, eAmt, tempC, warmingDrain, rankName, evapPerSec, freshRun } from "../game/balance.js";
+import { ABSORB_BASE, RUN_UPGRADES, runCost, META_UPGRADES, META_TIER2_DAY, PRESTIGE_UNLOCK, cloudsFrom, PRESTIGE_UPGRADES, CHALLENGES, challengeForDay, applyChallenge, effEss, sizeMul, aw, eAmt, tempC, warmingDrain, rankName, evapPerSec, freshRun, dayLength, daySpeed } from "../game/balance.js";
 import { friendCount, PERMA_FRIENDS, PERMA_FLAG, friendBaseline, ABILITIES, SYNERGY, synKey, PREY_ACC, joinUa } from "../game/characters.js";
 import { makeRiddleEvent, pickEvent } from "../game/events.js";
 import { FESTIVALS, festivalForDay } from "../game/festivals.js";
@@ -84,8 +84,8 @@ export function useGame() {
     if (mw >= 500) unlock("unfathom");
     if (mw >= 900) unlock("pond");        // стає «ставком»
     if (mw >= 6000) unlock("lakeach");    // стає «озером»
-    if (mw >= 400000) unlock("ocean");    // стає «океаном» (Північний Льодовитий)
-    if (mw >= 35000000) unlock("worldocean"); // стає «Світовим океаном»
+    if (mw >= 4000000) unlock("ocean");    // стає «океаном» (Північний Льодовитий)
+    if (mw >= 150000000) unlock("worldocean"); // стає «Світовим океаном»
   }, [unlock]);
 
   usePersistence({ bootForecast, g, gRef, loaded, meta, metaRef, phase, phaseRef, result, resultRef, setG, setMeta, setPhase, setResult });
@@ -154,7 +154,7 @@ export function useGame() {
     setMeta(m => ({
       ...m,
       essence: 0, essThisAsc: 0,
-      memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, absorb: 0, thirst: 0, luck: 0, moon: 0, callcd: 0, trees: 0, swift: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, abyss: 0,
+      memory: 0, cold: 0, silver: 0, spring: 0, roots: 0, absorb: 0, thirst: 0, luck: 0, moon: 0, callcd: 0, trees: 0, warp: 0, warpdur: 0, wellspring: 0, permafrost: 0, golddrop: 0, deeproots: 0, spring2: 0, essflow: 0, calmsky: 0, abyss: 0,
       clouds: (m.clouds || 0) + gain,
       ascensions: (m.ascensions || 0) + 1,
     }));
@@ -419,7 +419,7 @@ export function useGame() {
     Sfx.click();
     const nd = g.day + 1;
     // новий день — листяний прихисток («до кінця дня») спадає
-    setG(prev => ({ ...prev, day: prev.day + 1, elapsed: 0, sun: 6, dayLen: prev.dayLen + 6, nextEvent: 12 + Math.random() * 6, leaf: 0, festival: false }));
+    setG(prev => ({ ...prev, day: prev.day + 1, elapsed: 0, sun: 6, dayLen: dayLength(nd), speed: daySpeed(nd, prev.accelPeak, prev.accelWindow, prev.accelFloor), nextEvent: 12 + Math.random() * 6, leaf: 0, festival: false }));
     const fest = festivalForDay(nd);
     if (fest && (g.tickets || {})[fest.id]) { dayTaps.current = 0; setEvent(null); setPhase("festival"); } // фестиваль — лише з квитком, без прогнозу
     else if (challengeForDay(nd)) { dayTaps.current = 0; setEvent(null); setPhase("challenge"); } // День Випробування — без слота

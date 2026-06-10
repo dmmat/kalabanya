@@ -34,7 +34,7 @@ const META = {
   fresh: {},
   mid: { memory: 6, cold: 4, silver: 5, spring: 3, roots: 3, absorb: 4, moon: 2, trees: 3 },
   late: { memory: 12, cold: 10, silver: 12, spring: 8, roots: 8, absorb: 10, moon: 8, trees: 12,
-    swift: 6, wellspring: 5, permafrost: 4, golddrop: 5, deeproots: 4, thirst: 4, best: 12 },
+    warp: 6, warpdur: 4, wellspring: 5, permafrost: 4, golddrop: 5, deeproots: 4, thirst: 4, best: 12 },
 };
 
 console.log("\n=================== КАЛАБАНЯ · BALANCE (live balance.js) ===================");

@@ -12,7 +12,7 @@
    ========================================================================= */
 import { freshRun, RUN_UPGRADES, META_UPGRADES, PRESTIGE_UPGRADES, runCost,
   ABSORB_BASE, META_TIER2_DAY, PRESTIGE_UNLOCK, cloudsFrom,
-  challengeForDay, applyChallenge } from "../src/game/balance.js";
+  challengeForDay, applyChallenge, dayLength, daySpeed } from "../src/game/balance.js";
 import { advanceTick, buyRunUpgrade, duskBonus, abilityCooldown, metaCost } from "../src/game/engine.js";
 import { NEUTRAL, computeWeather, rollForecast } from "../src/game/weather.js";
 import { pickEvent, makeRiddleEvent, CROW_GAG, CROW_SHOO_LIMIT } from "../src/game/events.js";
@@ -165,7 +165,7 @@ export function simRun(meta, opt = {}) {
     const RUNAWAY = 1e12; // beyond any sane scale → growth has outrun warming (immortal)
     let day = 0, peakVol = g.maxWater;
     for (;;) {
-      day++; g.day = day; g.elapsed = 0; g.dayLen = 100 + (day - 1) * 6;
+      day++; g.day = day; g.elapsed = 0; g.dayLen = dayLength(day); g.speed = daySpeed(day, g.accelPeak, g.accelWindow, g.accelFloor);
       g.festival = false; g.festAt = 0; g.leaf = 0; g.nextEvent = 12 + Math.random() * 6;
       let festEvents = null;
       const fest = festivalForDay(day);
@@ -226,7 +226,7 @@ function maybePrestige(meta) {
   if (gain < 3) return false; // a real player ascends when the payoff is worth it
   // buy cloud gifts, then reset run-scoped meta (mirror of doPrestige)
   meta.clouds = (meta.clouds || 0) + gain; meta.ascensions = (meta.ascensions || 0) + 1; meta.essThisAsc = 0; meta.essence = 0;
-  for (const id of ["memory", "cold", "silver", "spring", "roots", "absorb", "thirst", "luck", "moon", "callcd", "trees", "swift", "wellspring", "permafrost", "golddrop", "deeproots", "spring2", "essflow", "calmsky", "abyss"]) meta[id] = 0;
+  for (const id of ["memory", "cold", "silver", "spring", "roots", "absorb", "thirst", "luck", "moon", "callcd", "trees", "warp", "warpdur", "wellspring", "permafrost", "golddrop", "deeproots", "spring2", "essflow", "calmsky", "abyss"]) meta[id] = 0;
   let bought = true;
   while (bought) {
     bought = false;

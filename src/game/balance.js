@@ -5,6 +5,31 @@ import { NEUTRAL } from "./weather.js";
 
 const ABSORB_BASE = 2.5; // water per tap before multipliers (kept in sync logic↔HUD)
 
+/* ---------- адаптація часу: крива дня + промотка раннього грайнду ----------
+ * Базова крива (автоматична): день стартує коротким і доростає до стелі — щоб ранній
+ * онбординг був швидким, а пізні дні не тяглися нескінченно (раніше dayLen ріс без межі).
+ * Промотка (за апгрейди): fast-forward — день СИМУЛЮЄ повну довжину, лише реальний час
+ * стискається (economy за день не міняється). Найсильніша на старті забігу й згасає за
+ * вікно днів. Підлога — мінімум реальних секунд на день (знижується престижем). */
+const DAY_BASE = 30, DAY_STEP = 15, DAY_CAP = 180; // день1=30с … день11=180с, далі 180с
+const dayLength = (day) => Math.min(DAY_CAP, DAY_BASE + (Math.max(1, day) - 1) * DAY_STEP);
+// мета-апгрейд «warp»: пік % промотки, гіперболічно до ~0.95 (ніколи не досягне)
+const accelPeak = (lvl) => (lvl > 0 ? 0.95 * (1 - Math.pow(0.78, lvl)) : 0);
+// мета-апгрейд «warpdur»: вікно дії промотки у днях (рів.1 → 5 днів)
+const accelWindow = (lvl) => 4 + (lvl || 0);
+// престиж-апгрейд «c_warp»: підлога реальних секунд/день, гіперболічно 10 → 5 (ніколи не 5)
+const warpFloor = (lvl) => 5 + 5 * Math.pow(0.7, lvl || 0);
+// частка промотки на день забігу: peak на старті, плавно (ease-in-out, smoothstep)
+// згасає до 0 на межі вікна. warpdur розтягує саму криву ширше. Без різких щоденних стрибків.
+const smoothstep = (t) => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
+const dayAccel = (day, peak, window) => (peak > 0 && window > 0 ? peak * (1 - smoothstep((day - 1) / window)) : 0);
+// множник до dt: повна довжина / цільовий реальний час (з підлогою). ≥1.
+const daySpeed = (day, peak, window, floor) => {
+  const len = dayLength(day);
+  const wall = Math.max(floor || warpFloor(0), len * (1 - dayAccel(day, peak, window)));
+  return len / wall;
+};
+
 /* ---------- in-run & meta upgrades ---------- */
 const RUN_UPGRADES = [
   { id: "deepen", emo: "🕳️", nm: "Поглибшати", de: "+об'єму, трохи менший випар.", base: 24, growth: 1.4, frac: 0.18 },
@@ -32,7 +57,8 @@ const META_UPGRADES = [
   { id: "spring", emo: "⛲", nm: "Вічне джерело", de: "Старт із +0.3/с пасивної води.", base: 70, growth: 1.85, max: 8 },
   { id: "roots",  emo: "🌱", nm: "Глибокі корінці", de: "+25% швидкості наповнення ґрунту.", base: 52, growth: 1.78, max: 8 },
   { id: "absorb", emo: "🪣", nm: "Спрагле ложе", de: "+10% вбирання вологи за дотик.", base: 50, growth: 1.76, max: 10 },
-  { id: "swift",  emo: "⏩", nm: "Стрімкий час", de: "+12% швидкості гри (усе те саме, лише швидше).", base: 200, growth: 1.9, max: 12 },
+  { id: "warp",    emo: "⏩", nm: "Адаптація часу", de: "Ранні дні забігу промотуються швидше (усе те саме, лише швидше). Гіперболічно — день не коротший за мінімум.", base: 200, growth: 1.9, max: 12 },
+  { id: "warpdur", emo: "⏳", nm: "Перехідний період", de: "+1 день дії промотки (без межі — лише дорожчає). Розтягує плавну криву промотки глибше в забіг.", base: 150, growth: 1.55, max: 9999, inf: true, req: m => (m.warp || 0) >= 1 },
   { id: "luck",   emo: "🍀", nm: "Прихильність неба", de: "+1 безкоштовний перекрут прогнозу за забіг.", base: 70, growth: 2.1, max: 4 },
   { id: "moon",   emo: "🌗", nm: "Срібло сутінків", de: "+15% сутності за виживання до ночі.", base: 85, growth: 1.95, max: 8 },
   { id: "trees",  emo: "🌳", nm: "Лісосмуга", de: "−6% глобального потепління.", base: 84, growth: 1.84, max: 12 },
@@ -62,6 +88,7 @@ const PRESTIGE_UPGRADES = [
   { id: "c_cheap",  emo: "🕊️", nm: "Лагідне небо", de: "−6% до ціни «постійних дарів».", base: 2, growth: 1.9, max: 8 },
   { id: "c_silt",   emo: "🪨", nm: "Прадавній мул", de: "Старт із +6% опору спеці.", base: 2, growth: 1.8, max: 6 },
   { id: "c_eco",    emo: "♻️", nm: "Чисте небо", de: "−10% глобального потепління.", base: 2, growth: 1.9, max: 6 },
+  { id: "c_warp",   emo: "🕳️", nm: "Згорнутий час", de: "Знижує мінімум часу на день при промотці (10с → … → 5с, ніколи не нижче).", base: 2, growth: 1.9, max: 8 },
 ];
 
 /* ---------- Дні Випробувань: кожен 10-й день — особливий, без прокруту погоди ---------- */
@@ -112,7 +139,7 @@ const tempC = (sun) => Math.round(14 + Math.sqrt(clamp(sun, 0, 400) / 400) * 32)
 // це рогалик, тож велика калабаня має таки висихати, а смерть — норма гри.
 const warmingDrain = (day, maxWater) => Math.pow(Math.max(0, day - 8), 1.5) * 0.26 * Math.pow(Math.max(1, maxWater || 120) / 120, 0.45);
 // мрія калабані рости: ранг за об'ємом
-const RANKS = [[300, "калабаня"], [900, "велика калабаня"], [2500, "ставок"], [6000, "озерце"], [16000, "озеро"], [50000, "велике озеро"], [160000, "море"], [400000, "велике море"], [1000000, "Північний Льодовитий океан"], [3000000, "Індійський океан"], [10000000, "Атлантичний океан"], [35000000, "Тихий океан"]];
+const RANKS = [[300, "калабаня"], [900, "велика калабаня"], [2500, "ставок"], [6000, "озерце"], [16000, "озеро"], [150000, "велике озеро"], [600000, "море"], [1600000, "велике море"], [4000000, "Північний Льодовитий океан"], [14000000, "Індійський океан"], [50000000, "Атлантичний океан"], [150000000, "Тихий океан"]];
 const rankName = (mw) => { for (const [t, n] of RANKS) if (mw < t) return n; return "Світовий океан"; };
 
 function evapPerSec(g) {
@@ -136,7 +163,9 @@ function freshRun(meta) {
   const M = (k) => meta[k] || 0;
   return {
     water: 46 + M("memory") * 22 + 40 * M("wellspring") + 30 * M("c_full") + 15 * M("abyss"), maxWater: 120 + M("memory") * 22 + 40 * M("wellspring") + 25 * M("c_full") + 15 * M("abyss"),
-    day: 1, elapsed: 0, dayLen: 100, sun: 8, speed: 1 + 0.12 * M("swift"), rescues: 0,
+    day: 1, elapsed: 0, dayLen: dayLength(1), sun: 8, rescues: 0,
+    accelPeak: accelPeak(M("warp")), accelWindow: accelWindow(M("warpdur")), accelFloor: warpFloor(M("c_warp")),
+    speed: daySpeed(1, accelPeak(M("warp")), accelWindow(M("warpdur")), warpFloor(M("c_warp"))),
     baseEvap: 0.95 * Math.pow(0.96, M("cold")) * Math.pow(0.97, M("permafrost")),
     deepenMult: 1, mossMult: 1, sunResist: clamp(0.06 * M("c_silt"), 0, 0.85), absorbMult: 1 + 0.10 * M("absorb") + 0.12 * M("thirst"),
     soil: 60, soilMax: 60, soilRegen: 3.8 * (1 + 0.25 * M("roots") + 0.25 * M("deeproots")),
@@ -158,4 +187,4 @@ function freshRun(meta) {
   };
 }
 
-export { ABSORB_BASE, RUN_UPGRADES, runCost, META_UPGRADES, META_TIER2_DAY, PRESTIGE_UNLOCK, cloudsFrom, PRESTIGE_UPGRADES, CHALLENGE_EVERY, CHALLENGES, challengeForDay, nextChallengeDay, applyChallenge, ABT_CAP, addT, effEss, sizeMul, aw, eAmt, tempC, warmingDrain, RANKS, rankName, evapPerSec, freshRun };
+export { ABSORB_BASE, RUN_UPGRADES, runCost, META_UPGRADES, META_TIER2_DAY, PRESTIGE_UNLOCK, cloudsFrom, PRESTIGE_UPGRADES, CHALLENGE_EVERY, CHALLENGES, challengeForDay, nextChallengeDay, applyChallenge, ABT_CAP, addT, effEss, sizeMul, aw, eAmt, tempC, warmingDrain, RANKS, rankName, evapPerSec, freshRun, dayLength, daySpeed, accelPeak, accelWindow, warpFloor };
