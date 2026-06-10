@@ -1,6 +1,6 @@
 /* AUTO-EXTRACTED from App.jsx — game module. See docs/ARCHITECTURE.md. */
 
-import { aw, eAmt, effEss, addT } from "./balance.js";
+import { aw, eAmt, effEss, addT, addResist } from "./balance.js";
 import { clamp, shuffle } from "./format.js";
 
 /* ---------- events ---------- */
@@ -62,7 +62,7 @@ const EVENTS = [
     { b: "Попросити про послугу", sf: g => `+${eAmt(g, 16)} сутності`, fn: g => ({ ...g, pending: g.pending + eAmt(g, 16) * effEss(g) }) }] },
   { t: "Равлик-крамар", emo: "🐌", art: "snail", req: (g) => g.day >= 3, weight: 1.1, timer: 12,
     d: "Равлик зі скойкою-крамницею повз твоїм берегом і розклав на мушлі дрібний крам.", opts: [
-    { b: "Виміняти мул на захист", sf: g => `−${aw(g, 0.05)} води · +опір спеці`, fn: g => ({ ...g, water: g.water - aw(g, 0.05), sunResist: clamp(g.sunResist + 0.06, 0, 0.85) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
+    { b: "Виміняти мул на захист", sf: g => `−${aw(g, 0.05)} води · +опір спеці`, fn: g => ({ ...g, water: g.water - aw(g, 0.05), sunResist: addResist(g.sunResist, 0.07) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
     { b: "Купити краплю глибини", sf: g => `−${aw(g, 0.08)} води · +${aw(g, 0.13)} об'єму`, fn: g => ({ ...g, water: g.water - aw(g, 0.08), maxWater: g.maxWater + aw(g, 0.13) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
     { b: "Придбати жменю ряски", sf: g => `−${aw(g, 0.06)} води · −6% випару (на весь забіг)`, fn: g => ({ ...g, water: g.water - aw(g, 0.06), mossMult: g.mossMult * 0.94 }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
     { b: "Пройти повз", s: "нічого", fn: g => g }] },
@@ -198,7 +198,7 @@ const EVENTS = [
   { t: "Равликова гільдія", emo: "🐌", art: "snail", req: (g, m) => m.snailMet && g.day >= 8, weight: 0.5, timer: 12,
     d: "Равлик привів старшого з гільдії — на мушлі рідкісний, добірний крам.", opts: [
     { b: "Купити глибоке русло", sf: g => `−${aw(g, 0.12)} води · +${aw(g, 0.28)} об'єму`, fn: g => ({ ...g, water: g.water - aw(g, 0.12), maxWater: g.maxWater + aw(g, 0.28) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
-    { b: "Купити вічний мул", sf: g => `−${aw(g, 0.10)} води · +опір спеці`, fn: g => ({ ...g, water: g.water - aw(g, 0.10), sunResist: clamp(g.sunResist + 0.10, 0, 0.85) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
+    { b: "Купити вічний мул", sf: g => `−${aw(g, 0.10)} води · +опір спеці`, fn: g => ({ ...g, water: g.water - aw(g, 0.10), sunResist: addResist(g.sunResist, 0.12) }), meta: m => ({ ...m, snailMet: true }), luck: 1 },
     { b: "Пройти повз", s: "нічого", fn: g => g }] },
   { t: "Кошенята місячного кота", emo: "🐈‍⬛", art: "cat", req: (g, m) => m.catPet && g.day >= 6, tod: [0.74, 1.0], weight: 0.5,
     d: "Місячний кіт привів кошенят — вони бавляться у твоїх відблисках.", opts: [

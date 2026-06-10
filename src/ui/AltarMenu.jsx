@@ -98,6 +98,22 @@ export default function AltarMenu({ buyMeta, buyPerma, buyPrestige, buyTicket, c
               })}
             </div>
 
+            {!(meta.ascensions > 0 || (meta.lifeEss || 0) >= PRESTIGE_UNLOCK || (meta.best || 0) >= 12) && (() => {
+              const prog = clamp((meta.lifeEss || 0) / PRESTIGE_UNLOCK, 0, 1);
+              return (
+                <div className="kal-card reveal" style={{ marginTop: 14 }}>
+                  <span className="kal-tag">небо попереду</span>
+                  <div className="kal-lore">Збери досить <span className="kal-ess">Сутності</span> за всі свої життя — і відкриється <b>Велике Випаровування</b>: піднімешся парою в небо, проллєшся новою калабанею й лишиш собі вічні <span className="kal-clouds">Хмари</span>.</div>
+                  <div style={{ height: 10, borderRadius: 6, background: "rgba(255,255,255,0.10)", overflow: "hidden", marginTop: 4 }}>
+                    <div style={{ height: "100%", width: `${(prog * 100).toFixed(1)}%`, background: "var(--essence)", borderRadius: 6, transition: "width .4s ease" }} />
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--muted)", textAlign: "center", marginTop: 6 }}>
+                    ◈ {fmt(Math.floor(meta.lifeEss || 0))} / {fmt(PRESTIGE_UNLOCK)} сутності за всі життя{prog >= 0.5 ? " · вже близько ☁" : ""}
+                  </div>
+                </div>
+              );
+            })()}
+
             {(meta.ascensions > 0 || (meta.lifeEss || 0) >= PRESTIGE_UNLOCK || (meta.best || 0) >= 12) && (() => {
               const gain = cloudsFrom(meta.essThisAsc);
               return (

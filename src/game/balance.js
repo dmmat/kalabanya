@@ -33,12 +33,12 @@ const daySpeed = (day, peak, window, floor) => {
 /* ---------- in-run & meta upgrades ---------- */
 const RUN_UPGRADES = [
   { id: "deepen", emo: "🕳️", nm: "Поглибшати", de: "+об'єму, трохи менший випар.", base: 24, growth: 1.4, frac: 0.18 },
-  { id: "silt",   emo: "🟤", nm: "Намулитись", de: "Плівка мулу: +8% опору спеці.", base: 30, growth: 1.42, frac: 0.12 },
   { id: "widen",  emo: "💧", nm: "Розширити русло", de: "+вбирання, +30 об'єму, трохи більший випар.", base: 22, growth: 1.4, frac: 0.10 },
-  { id: "moss",   emo: "🌿", nm: "Поростити ряскою", de: "Ряска вкриває гладь: −7% випару.", base: 28, growth: 1.45, frac: 0.10 },
   { id: "vein",   emo: "🌊", nm: "Прокласти жилу", de: "Підземна жила: +0.4 води/с.", base: 40, growth: 1.5, frac: 0.14 },
-  { id: "lake",   emo: "🟦", nm: "Підземне озеро", de: "Велике джерело: +об'єму, +0.7/с.", base: 130, growth: 1.7, frac: 0.25, req: g => g.levels.deepen >= 3, lock: "відкриється: Поглибшати рів.3" },
-  { id: "trench", emo: "🌀", nm: "Океанічна западина", de: "Велетенська западина: +8% об'єму та +1.5/с.", base: 420, growth: 1.62, frac: 0.22, req: g => (g.levels.lake || 0) >= 2, lock: "відкриється: Підземне озеро рів.2" },
+  { id: "lake",   emo: "🟦", nm: "Підземне озеро", de: "Велике джерело: +об'єму та +1.5 води/с.", base: 1800, growth: 1.7, frac: 0.25, req: g => (g.maxWater || 0) >= 16000, hidden: true },
+  { id: "trench", emo: "🌀", nm: "Океанічна западина", de: "Велетенська западина: +об'єму та +4 води/с.", base: 150000, growth: 1.62, frac: 0.22, req: g => (g.maxWater || 0) >= 4000000, hidden: true },
+  { id: "moss",   emo: "🌿", nm: "Поростити ряскою", de: "Ряска вкриває гладь: −7% випару.", base: 28, growth: 1.45, frac: 0.10 },
+  { id: "silt",   emo: "🟤", nm: "Намулитись", de: "Плівка мулу: +опір спеці. Кожен новий шар лягає тонше.", base: 30, growth: 1.42, frac: 0.12 },
   { id: "summon", emo: "📣", nm: "Гучніший поклик", de: "−6% перезарядки здібностей.", base: 60, growth: 1.5, frac: 0.10, req: g => g.hasFriend, hidden: true },
 ];
 // ціна апгрейду залежить ЛИШЕ від рівня (чиста експонента), а НЕ від об'єму.
@@ -57,8 +57,8 @@ const META_UPGRADES = [
   { id: "spring", emo: "⛲", nm: "Вічне джерело", de: "Старт із +0.3/с пасивної води.", base: 70, growth: 1.85, max: 8 },
   { id: "roots",  emo: "🌱", nm: "Глибокі корінці", de: "+25% швидкості наповнення ґрунту.", base: 52, growth: 1.78, max: 8 },
   { id: "absorb", emo: "🪣", nm: "Спрагле ложе", de: "+10% вбирання вологи за дотик.", base: 50, growth: 1.76, max: 10 },
-  { id: "warp",    emo: "⏩", nm: "Адаптація часу", de: "Ранні дні забігу промотуються швидше (усе те саме, лише швидше). Гіперболічно — день не коротший за мінімум.", base: 200, growth: 1.9, max: 12 },
-  { id: "warpdur", emo: "⏳", nm: "Перехідний період", de: "+1 день дії промотки (без межі — лише дорожчає). Розтягує плавну криву промотки глибше в забіг.", base: 150, growth: 1.55, max: 9999, inf: true, req: m => (m.warp || 0) >= 1 },
+  { id: "warp",    emo: "⏩", nm: "Адаптація часу", de: "Ранні дні линуть швидше — усе те саме, лиш проминаєш звичне.", base: 200, growth: 1.9, max: 12 },
+  { id: "warpdur", emo: "⏳", nm: "Перехідний період", de: "Швидкий проміжок розтягується на більше днів. Без межі.", base: 150, growth: 1.55, max: 9999, inf: true, req: m => (m.warp || 0) >= 1 },
   { id: "luck",   emo: "🍀", nm: "Прихильність неба", de: "+1 безкоштовний перекрут прогнозу за забіг.", base: 70, growth: 2.1, max: 4 },
   { id: "moon",   emo: "🌗", nm: "Срібло сутінків", de: "+15% сутності за виживання до ночі.", base: 85, growth: 1.95, max: 8 },
   { id: "trees",  emo: "🌳", nm: "Лісосмуга", de: "−6% глобального потепління.", base: 84, growth: 1.84, max: 12 },
@@ -86,9 +86,9 @@ const PRESTIGE_UPGRADES = [
   { id: "c_full",   emo: "💧", nm: "Повноводний старт", de: "+30 стартової води та +25 об'єму.", base: 1, growth: 1.7, max: 10 },
   { id: "c_spring", emo: "🌧️", nm: "Першоджерело неба", de: "Старт із +0.5/с пасивної води.", base: 2, growth: 1.9, max: 8 },
   { id: "c_cheap",  emo: "🕊️", nm: "Лагідне небо", de: "−6% до ціни «постійних дарів».", base: 2, growth: 1.9, max: 8 },
-  { id: "c_silt",   emo: "🪨", nm: "Прадавній мул", de: "Старт із +6% опору спеці.", base: 2, growth: 1.8, max: 6 },
+  { id: "c_silt",   emo: "🪨", nm: "Прадавній мул", de: "Старт із плівкою мулу: трохи більше опору спеці.", base: 2, growth: 1.8, max: 6 },
   { id: "c_eco",    emo: "♻️", nm: "Чисте небо", de: "−10% глобального потепління.", base: 2, growth: 1.9, max: 6 },
-  { id: "c_warp",   emo: "🕳️", nm: "Згорнутий час", de: "Знижує мінімум часу на день при промотці (10с → … → 5с, ніколи не нижче).", base: 2, growth: 1.9, max: 8 },
+  { id: "c_warp",   emo: "🕳️", nm: "Згорнутий час", de: "Час згортається тісніше: мінімум на день коротшає (та не зникне зовсім).", base: 2, growth: 1.9, max: 8 },
 ];
 
 /* ---------- Дні Випробувань: кожен 10-й день — особливий, без прокруту погоди ---------- */
@@ -138,6 +138,13 @@ const tempC = (sun) => Math.round(14 + Math.sqrt(clamp(sun, 0, 400) / 400) * 32)
 // Підкручено: починається раніше (день 8), б'є сильніше й дужче залежить від об'єму —
 // це рогалик, тож велика калабаня має таки висихати, а смерть — норма гри.
 const warmingDrain = (day, maxWater) => Math.pow(Math.max(0, day - 8), 1.5) * 0.26 * Math.pow(Math.max(1, maxWater || 120) / 120, 0.45);
+// опір спеці (Намул) накопичується РЕГРЕСИВНО: кожен рівень закриває частку розриву до
+// стелі 0.99 (геометрично спадна віддача — асимптота, ніколи не 100%). Раніше це був
+// плаский +8%/рів до капу 0.85 → кілька дешевих рівнів давали майже імунітет (імба).
+const RESIST_CAP = 0.99;
+const SILT_STEP = 0.085, C_SILT_STEP = 0.065; // частка розриву, що закриває один рівень
+const addResist = (cur, step) => RESIST_CAP - (RESIST_CAP - (cur || 0)) * (1 - step); // одна покупка
+const stackResist = (n, step) => RESIST_CAP * (1 - Math.pow(1 - step, n || 0)); // n покупок з нуля
 // мрія калабані рости: ранг за об'ємом
 const RANKS = [[300, "калабаня"], [900, "велика калабаня"], [2500, "ставок"], [6000, "озерце"], [16000, "озеро"], [150000, "велике озеро"], [600000, "море"], [1600000, "велике море"], [4000000, "Північний Льодовитий океан"], [14000000, "Індійський океан"], [50000000, "Атлантичний океан"], [150000000, "Тихий океан"]];
 const rankName = (mw) => { for (const [t, n] of RANKS) if (mw < t) return n; return "Світовий океан"; };
@@ -145,7 +152,7 @@ const rankName = (mw) => { for (const [t, n] of RANKS) if (mw < t) return n; ret
 function evapPerSec(g) {
   const w = g.weather || NEUTRAL;
   const sunEff = clamp(g.sun * (1 + w.sunMod), 0, 400);
-  const sunMul = 1 + (sunEff / 100) * 2.5 * (1 - clamp(g.sunResist, 0, 0.85));
+  const sunMul = 1 + (sunEff / 100) * 2.5 * (1 - clamp(g.sunResist, 0, RESIST_CAP));
   // апгрейди зменшують випар не більше ніж удвічі (щоб пізня гра не ставала тривіальною)
   const redu = Math.max(0.5, g.deepenMult * g.mossMult);
   let e = g.baseEvap * redu * sunMul * (1 - g.leaf);
@@ -167,7 +174,7 @@ function freshRun(meta) {
     accelPeak: accelPeak(M("warp")), accelWindow: accelWindow(M("warpdur")), accelFloor: warpFloor(M("c_warp")),
     speed: daySpeed(1, accelPeak(M("warp")), accelWindow(M("warpdur")), warpFloor(M("c_warp"))),
     baseEvap: 0.95 * Math.pow(0.96, M("cold")) * Math.pow(0.97, M("permafrost")),
-    deepenMult: 1, mossMult: 1, sunResist: clamp(0.06 * M("c_silt"), 0, 0.85), absorbMult: 1 + 0.10 * M("absorb") + 0.12 * M("thirst"),
+    deepenMult: 1, mossMult: 1, sunResist: stackResist(M("c_silt"), C_SILT_STEP), absorbMult: 1 + 0.10 * M("absorb") + 0.12 * M("thirst"),
     soil: 60, soilMax: 60, soilRegen: 3.8 * (1 + 0.25 * M("roots") + 0.25 * M("deeproots")),
     passive: 0.3 * M("spring") + 0.4 * M("spring2") + 0.5 * M("c_spring") + 0.03 * M("abyss") + ((meta.frogBond || 0) >= 3 ? 0.1 : 0), leaf: 0,
     shadeT: 0, evapBoostT: 0, absorbBoostT: 0, cheapT: 0,
@@ -187,4 +194,4 @@ function freshRun(meta) {
   };
 }
 
-export { ABSORB_BASE, RUN_UPGRADES, runCost, META_UPGRADES, META_TIER2_DAY, PRESTIGE_UNLOCK, cloudsFrom, PRESTIGE_UPGRADES, CHALLENGE_EVERY, CHALLENGES, challengeForDay, nextChallengeDay, applyChallenge, ABT_CAP, addT, effEss, sizeMul, aw, eAmt, tempC, warmingDrain, RANKS, rankName, evapPerSec, freshRun, dayLength, daySpeed, accelPeak, accelWindow, warpFloor };
+export { ABSORB_BASE, RUN_UPGRADES, runCost, META_UPGRADES, META_TIER2_DAY, PRESTIGE_UNLOCK, cloudsFrom, PRESTIGE_UPGRADES, CHALLENGE_EVERY, CHALLENGES, challengeForDay, nextChallengeDay, applyChallenge, ABT_CAP, addT, effEss, sizeMul, aw, eAmt, tempC, warmingDrain, RANKS, rankName, evapPerSec, freshRun, dayLength, daySpeed, accelPeak, accelWindow, warpFloor, addResist, SILT_STEP };

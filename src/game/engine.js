@@ -4,7 +4,7 @@
    See docs/ARCHITECTURE.md. */
 import { clamp } from "./format.js";
 import { NEUTRAL } from "./weather.js";
-import { evapPerSec, sizeMul, effEss, runCost } from "./balance.js";
+import { evapPerSec, sizeMul, effEss, runCost, addResist, SILT_STEP } from "./balance.js";
 
 // sun: day-to-day ramp (hotter each day, late-game avalanche) + within-day curve
 // (sine^1.25 → sharp midday spike). Was hard-coded in the game loop.
@@ -64,11 +64,11 @@ export function buyRunUpgrade(prev, u) {
   if (prev.water < cost) return null;
   const n = { ...prev, water: prev.water - cost, levels: { ...prev.levels, [u.id]: lvl + 1 } };
   if (u.id === "deepen") { n.maxWater += Math.max(50 + lvl * 10, Math.round(n.maxWater * 0.05)); n.deepenMult *= 0.97; }
-  if (u.id === "silt") { n.sunResist = clamp(n.sunResist + 0.08, 0, 0.85); }
+  if (u.id === "silt") { n.sunResist = addResist(n.sunResist, SILT_STEP); }
   if (u.id === "widen") { n.absorbMult += 0.6; n.soilMax += 40; n.maxWater += Math.max(30, Math.round(n.maxWater * 0.02)); n.baseEvap += 0.04; }
   if (u.id === "moss") n.mossMult *= 0.93;
   if (u.id === "vein") n.passive += 0.4;
-  if (u.id === "lake") { n.maxWater += Math.max(150, Math.round(n.maxWater * 0.08)); n.passive += 0.7; }
-  if (u.id === "trench") { n.maxWater += Math.max(400, Math.round(n.maxWater * 0.08)); n.passive += 1.5; }
+  if (u.id === "lake") { n.maxWater += Math.max(150, Math.round(n.maxWater * 0.08)); n.passive += 1.5; }
+  if (u.id === "trench") { n.maxWater += Math.max(400, Math.round(n.maxWater * 0.08)); n.passive += 4.0; }
   return n;
 }
