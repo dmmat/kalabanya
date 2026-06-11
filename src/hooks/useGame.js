@@ -82,8 +82,8 @@ export function useGame() {
   // пороги збігаються з рангами (rankName): досягнення дають точно тоді, коли калабаня стає тим рангом
   const checkVol = useCallback((mw) => {
     if (mw >= 500) unlock("unfathom");
-    if (mw >= 900) unlock("pond");        // стає «ставком»
-    if (mw >= 6000) unlock("lakeach");    // стає «озером»
+    if (mw >= 2500) unlock("pond");        // стає «ставком»
+    if (mw >= 16000) unlock("lakeach");    // стає «озером»
     if (mw >= 4000000) unlock("ocean");    // стає «океаном» (Північний Льодовитий)
     if (mw >= 150000000) unlock("worldocean"); // стає «Світовим океаном»
   }, [unlock]);
